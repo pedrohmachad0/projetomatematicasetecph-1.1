@@ -51,7 +51,7 @@ function SomaWorkspace({ problema }: { problema: AdditionProblem }) {
 
   return (
     <>
-      <div className="mb-4 overflow-hidden rounded-2xl border-2 bg-white p-3 text-center shadow-sm sm:mb-6 sm:p-5">
+      <div className="mb-4 h-[320px] overflow-hidden rounded-2xl border-2 bg-white p-3 text-center shadow-sm sm:mb-6 sm:h-[330px] sm:p-5">
         <p className="mb-2 text-[11px] font-medium text-slate-500">Clique em um número para editá-lo.</p>
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-4">
           <motion.input
@@ -123,7 +123,7 @@ function SomaWorkspace({ problema }: { problema: AdditionProblem }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="mt-3 px-2 text-xs font-medium text-blue-700 sm:text-sm"
+              className="mt-3 h-5 px-2 text-xs font-medium text-blue-700 sm:text-sm"
             >
               {animDelta > 0
                 ? `→ ${animDelta} unidade${animDelta === 1 ? '' : 's'} de A para B`
@@ -132,16 +132,18 @@ function SomaWorkspace({ problema }: { problema: AdditionProblem }) {
           )}
         </AnimatePresence>
 
-        {(isADezena || isBDezena) && (
-          <div className="mx-auto mt-3 flex max-w-2xl items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left">
-            <Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={16} />
-            <div className="text-xs leading-relaxed text-amber-800 sm:text-sm">
-              <span className="font-bold">Dezena exata! </span>
-              {isADezena && isBDezena ? `Ambas são dezenas exatas (${a} e ${b})!` : isADezena ? `${a} é dezena exata.` : `${b} é dezena exata.`}
-              <span className="hidden sm:inline"> Some mentalmente agora.</span>
+        <div className="mx-auto mt-3 h-[58px] max-w-2xl">
+          {(isADezena || isBDezena) && (
+            <div className="flex h-full items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left">
+              <Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={16} />
+              <div className="text-xs leading-relaxed text-amber-800 sm:text-sm">
+                <span className="font-bold">Dezena exata! </span>
+                {isADezena && isBDezena ? `Ambas são dezenas exatas (${a} e ${b})!` : isADezena ? `${a} é dezena exata.` : `${b} é dezena exata.`}
+                <span className="hidden sm:inline"> Some mentalmente agora.</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-[1fr_auto_1fr]">
