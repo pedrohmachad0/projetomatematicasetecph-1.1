@@ -13,8 +13,40 @@ interface Feedback {
   points: number
 }
 
+interface TopicStats {
+  attempts: number
+  answeredQuestions: number
+  correctAnswers: number
+  bestScore: number
+}
+
+const QUIZ_STATS_STORAGE_KEY = 'pemfm-simulator-quiz-stats'
+
 function isQuizTopic(topic: string | undefined): topic is QuizTopic {
   return Boolean(topic && topic in quizTopics)
+}
+
+function getStoredStats(): Record<QuizTopic, TopicStats> {
+  const empty: Record<QuizTopic, TopicStats> = {
+    soma: { attempts: 0, answeredQuestions: 0, correctAnswers: 0, bestScore: 0 },
+    subtracao: { attempts: 0, answeredQuestions: 0, correctAnswers: 0, bestScore: 0 },
+    pitagoras: { attempts: 0, answeredQuestions: 0, correctAnswers: 0, bestScore: 0 },
+  }
+
+  try {
+    const storedValue = localStorage.getItem(QUIZ_STATS_STORAGE_KEY)
+    const storedStats: unknown = storedValue ? JSON.parse(storedValue) : null
+    if (!storedStats || typeof storedStats !== 'object') return empty
+
+    const candidate = storedStats as Partial<Record<QuizTopic, Partial<TopicStats>>>
+    return {
+      soma: { ...empty.soma, ...candidate.soma },
+      subtracao: { ...empty.subtracao, ...candidate.subtracao },
+      pitagoras: { ...empty.pitagoras, ...candidate.pitagoras },
+    }
+  } catch {
+    return empty
+  }
 }
 
 export default function Quiz() {
@@ -72,6 +104,18 @@ export default function Quiz() {
 
   function continueQuiz() {
     if (questionIndex === questions.length - 1) {
+      const finalCorrectAnswers = correctAnswers + (feedback?.isCorrect ? 1 : 0)
+      const finalScore = score + (feedback?.points ?? 0)
+      const stats = getStoredStats()
+      stats[topic] = {
+        attempts: stats[topic].attempts + 1,
+        answeredQuestions: stats[topic].answeredQuestions + questions.length,
+        correctAnswers: stats[topic].correctAnswers + finalCorrectAnswers,
+        bestScore: Math.max(stats[topic].bestScore, finalScore),
+      }
+      localStorage.setItem(QUIZ_STATS_STORAGE_KEY, JSON.stringify(stats))
+      setCorrectAnswers(finalCorrectAnswers)
+      setScore(finalScore)
       setPhase('result')
       return
     }
@@ -105,15 +149,19 @@ export default function Quiz() {
   }
 
   if (phase === 'result') {
+    const accuracy = Math.round((correctAnswers / QUIZ_QUESTION_COUNT) * 100)
+    const stats = getStoredStats()[topic]
     return (
       <div className="mx-auto max-w-2xl">
         <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-7 text-center shadow-sm sm:p-10">
           <div className="text-6xl" aria-hidden="true">🏆</div>
           <p className="mt-4 text-xs font-black tracking-[0.18em] text-emerald-700">QUIZ CONCLUÍDO</p>
           <h1 className="mt-2 text-3xl font-black text-slate-900">{config.title}</h1>
-          <div className="mx-auto my-7 grid max-w-sm grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-3xl font-black text-emerald-600">{correctAnswers}/{QUIZ_QUESTION_COUNT}</div><div className="mt-1 text-xs font-bold text-slate-500">ACERTOS</div></div>
-            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-3xl font-black text-violet-600">{score}</div><div className="mt-1 text-xs font-bold text-slate-500">PONTOS</div></div>
+          <div className="mx-auto my-7 grid max-w-md grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-2xl font-black text-emerald-600">{correctAnswers}/{QUIZ_QUESTION_COUNT}</div><div className="mt-1 text-[11px] font-bold text-slate-500">ACERTOS</div></div>
+            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-2xl font-black text-violet-600">{score}</div><div className="mt-1 text-[11px] font-bold text-slate-500">PONTOS</div></div>
+            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-2xl font-black text-blue-600">{accuracy}%</div><div className="mt-1 text-[11px] font-bold text-slate-500">PRECISÃO</div></div>
+            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-2xl font-black text-amber-500">{stats.bestScore}</div><div className="mt-1 text-[11px] font-bold text-slate-500">MELHOR</div></div>
           </div>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <button type="button" onClick={startQuiz} className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-violet-600 px-5 font-black text-white hover:bg-violet-700"><RotateCcw size={18} /> Novo desafio</button>
