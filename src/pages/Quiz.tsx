@@ -86,7 +86,7 @@ export default function Quiz() {
   if (phase === 'intro') {
     return (
       <div className="mx-auto max-w-2xl">
-        <Link to={config.simulatorPath} className="mb-5 inline-flex min-h-[44px] items-center gap-2 font-bold text-violet-700 hover:underline"><ArrowLeft size={18} /> Voltar ao simulador</Link>
+        <Link to="/aprender" className="mb-5 inline-flex min-h-[44px] items-center gap-2 font-bold text-violet-700 hover:underline"><ArrowLeft size={18} /> Voltar para aprender</Link>
         <section className="rounded-3xl bg-gradient-to-br from-violet-700 to-indigo-700 p-7 text-center text-white shadow-lg sm:p-10">
           <div className="text-6xl" aria-hidden="true">{config.icon}</div>
           <p className="mt-5 text-xs font-black tracking-[0.18em] text-violet-200">DESAFIO DE 5 QUESTÕES</p>
@@ -117,7 +117,7 @@ export default function Quiz() {
           </div>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <button type="button" onClick={startQuiz} className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-violet-600 px-5 font-black text-white hover:bg-violet-700"><RotateCcw size={18} /> Novo desafio</button>
-            <Link to={config.simulatorPath} className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border-2 border-slate-300 bg-white px-5 font-black text-slate-700 hover:bg-slate-50"><ArrowLeft size={18} /> Voltar ao simulador</Link>
+            <Link to="/aprender" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border-2 border-slate-300 bg-white px-5 font-black text-slate-700 hover:bg-slate-50"><ArrowLeft size={18} /> Voltar para aprender</Link>
           </div>
         </section>
       </div>
@@ -130,7 +130,7 @@ export default function Quiz() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link to={config.simulatorPath} className="mb-5 inline-flex min-h-[44px] items-center gap-2 font-bold text-violet-700 hover:underline"><ArrowLeft size={18} /> Sair do quiz</Link>
+      <Link to="/aprender" className="mb-5 inline-flex min-h-[44px] items-center gap-2 font-bold text-violet-700 hover:underline"><ArrowLeft size={18} /> Sair do quiz</Link>
       <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-lg font-black text-slate-900">{config.icon} {config.title}</h1>
