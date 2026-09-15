@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, RotateCcw, Star, Target } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, ExternalLink, RotateCcw, Star, Target } from 'lucide-react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import QuestionCard from '../components/learn/QuestionCard'
 import { QUIZ_QUESTION_COUNT, quizTopics, type QuizAnswer, type QuizQuestion, type QuizTopic } from '../data/quiz'
 import { calculateQuizPoints, generateSimulatorQuiz, isCorrectAnswer } from '../logic/quiz'
+import { getQuizStats, recordQuizResult } from '../logic/quizStats'
 
 type QuizPhase = 'intro' | 'quiz' | 'result'
 
@@ -28,6 +29,7 @@ export default function Quiz() {
   const [correctAnswers, setCorrectAnswers] = useState(0)
   const [score, setScore] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const [bestScore, setBestScore] = useState(0)
   const questionStartedAt = useRef(0)
 
   const currentQuestion = questions[questionIndex]
@@ -42,17 +44,18 @@ export default function Quiz() {
 
   if (!isQuizTopic(topic)) return <Navigate to="/" replace />
 
-  const config = quizTopics[topic]
+  const quizTopic = topic
+  const config = quizTopics[quizTopic]
 
   function startQuiz() {
-    if (!isQuizTopic(topic)) return
-    setQuestions(generateSimulatorQuiz(topic, QUIZ_QUESTION_COUNT))
+    setQuestions(generateSimulatorQuiz(quizTopic, QUIZ_QUESTION_COUNT))
     setQuestionIndex(0)
     setSelectedOption(null)
     setTypedAnswer('')
     setFeedback(null)
     setCorrectAnswers(0)
     setScore(0)
+    setBestScore(getQuizStats()[quizTopic].bestScore)
     setElapsedSeconds(0)
     questionStartedAt.current = Date.now()
     setPhase('quiz')
@@ -72,6 +75,12 @@ export default function Quiz() {
 
   function continueQuiz() {
     if (questionIndex === questions.length - 1) {
+      const finalCorrectAnswers = correctAnswers + (feedback?.isCorrect ? 1 : 0)
+      const finalScore = score + (feedback?.points ?? 0)
+      const stats = recordQuizResult(quizTopic, finalCorrectAnswers, finalScore)
+      setCorrectAnswers(finalCorrectAnswers)
+      setScore(finalScore)
+      setBestScore(stats[quizTopic].bestScore)
       setPhase('result')
       return
     }
@@ -105,19 +114,23 @@ export default function Quiz() {
   }
 
   if (phase === 'result') {
+    const accuracy = Math.round((correctAnswers / QUIZ_QUESTION_COUNT) * 100)
     return (
       <div className="mx-auto max-w-2xl">
         <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-7 text-center shadow-sm sm:p-10">
           <div className="text-6xl" aria-hidden="true">🏆</div>
           <p className="mt-4 text-xs font-black tracking-[0.18em] text-emerald-700">QUIZ CONCLUÍDO</p>
           <h1 className="mt-2 text-3xl font-black text-slate-900">{config.title}</h1>
-          <div className="mx-auto my-7 grid max-w-sm grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-3xl font-black text-emerald-600">{correctAnswers}/{QUIZ_QUESTION_COUNT}</div><div className="mt-1 text-xs font-bold text-slate-500">ACERTOS</div></div>
-            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-3xl font-black text-violet-600">{score}</div><div className="mt-1 text-xs font-bold text-slate-500">PONTOS</div></div>
+          <div className="mx-auto my-7 grid max-w-md grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-2xl font-black text-emerald-600">{correctAnswers}/{QUIZ_QUESTION_COUNT}</div><div className="mt-1 text-[11px] font-bold text-slate-500">ACERTOS</div></div>
+            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-2xl font-black text-violet-600">{score}</div><div className="mt-1 text-[11px] font-bold text-slate-500">PONTOS</div></div>
+            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-2xl font-black text-blue-600">{accuracy}%</div><div className="mt-1 text-[11px] font-bold text-slate-500">PRECISÃO</div></div>
+            <div className="rounded-2xl bg-white p-4 shadow-sm"><div className="text-2xl font-black text-amber-500">{bestScore}</div><div className="mt-1 text-[11px] font-bold text-slate-500">MELHOR</div></div>
           </div>
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <button type="button" onClick={startQuiz} className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-violet-600 px-5 font-black text-white hover:bg-violet-700"><RotateCcw size={18} /> Novo desafio</button>
-            <Link to="/aprender" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border-2 border-slate-300 bg-white px-5 font-black text-slate-700 hover:bg-slate-50"><ArrowLeft size={18} /> Voltar para aprender</Link>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+            <Link to="/aprender" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border-2 border-slate-300 bg-white px-5 font-black text-slate-700 hover:bg-slate-50"><ArrowLeft size={18} /> Tela de quizzes</Link>
+            <button type="button" onClick={startQuiz} className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-violet-600 px-5 font-black text-white hover:bg-violet-700"><RotateCcw size={18} /> Fazer novamente</button>
+            <Link to={config.simulatorPath} className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border-2 border-cyan-300 bg-cyan-50 px-5 font-black text-cyan-800 hover:bg-cyan-100"><ExternalLink size={18} /> Ir para o simulador</Link>
           </div>
         </section>
       </div>
