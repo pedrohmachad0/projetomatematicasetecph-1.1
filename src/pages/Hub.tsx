@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Triangle, Plus, Minus, Sparkles, MonitorSmartphone, Filter } from 'lucide-react'
+import { Triangle, Plus, Minus, Divide, Sparkles, MonitorSmartphone, Filter } from 'lucide-react'
 import { mathContents } from '../data/mathContent'
 
 const simulatorVisuals = {
@@ -19,6 +19,11 @@ const simulatorVisuals = {
     icon: Minus,
     color: '#7c3aed',
     badge: 'RETA NUMÉRICA · DESLOCAMENTO',
+  },
+  fracoes: {
+    icon: Divide,
+    color: '#4f46e5',
+    badge: 'NÚMEROS RACIONAIS · VISUALIZAÇÃO',
   },
 } as const
 
@@ -77,11 +82,7 @@ export default function Hub() {
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-xs font-bold text-slate-600">
             Etapa de ensino
-            <select
-              value={educationFilter}
-              onChange={(event) => setEducationFilter(event.target.value as EducationFilter)}
-              className="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
+            <select value={educationFilter} onChange={(event) => setEducationFilter(event.target.value as EducationFilter)} className="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
               <option value="todos">Todas as etapas</option>
               <option value="fundamental-2">Fundamental II</option>
               <option value="medio">Ensino Médio</option>
@@ -90,16 +91,8 @@ export default function Hub() {
 
           <label className="text-xs font-bold text-slate-600">
             Categoria
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category === 'todas' ? 'Todas as categorias' : category}
-                </option>
-              ))}
+            <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+              {categories.map((category) => <option key={category} value={category}>{category === 'todas' ? 'Todas as categorias' : category}</option>)}
             </select>
           </label>
         </div>
@@ -112,40 +105,17 @@ export default function Hub() {
           const Icon = visual.icon
 
           return (
-            <motion.div
-              key={content.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.08, duration: 0.4 }}
-              className="h-full"
-            >
-              <Link
-                to={`/${content.simulator}`}
-                id={`card-${content.id}`}
-                aria-label={`Abrir ${content.title}`}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-300 hover:shadow-xl active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 touch-manipulation"
-              >
-                <div
-                  className="relative flex h-28 shrink-0 flex-col items-center justify-center text-white sm:h-32"
-                  style={{ background: `linear-gradient(135deg, ${visual.color} 0%, #3b82f6 100%)` }}
-                >
-                  <div className="rounded-xl border border-white/20 bg-white/15 p-2.5 sm:rounded-2xl sm:p-3">
-                    <Icon size={28} className="sm:h-9 sm:w-9" />
-                  </div>
-                  <span className="mt-1.5 rounded-full border border-white/20 bg-white/20 px-2 py-0.5 text-center text-[10px] font-bold tracking-widest sm:mt-2 sm:px-2.5 sm:py-1 sm:text-[11px]">
-                    {visual.badge}
-                  </span>
+            <motion.div key={content.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08, duration: 0.4 }} className="h-full">
+              <Link to={`/${content.simulator}`} id={`card-${content.id}`} aria-label={`Abrir ${content.title}`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-300 hover:shadow-xl active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 touch-manipulation">
+                <div className="relative flex h-28 shrink-0 flex-col items-center justify-center text-white sm:h-32" style={{ background: `linear-gradient(135deg, ${visual.color} 0%, #3b82f6 100%)` }}>
+                  <div className="rounded-xl border border-white/20 bg-white/15 p-2.5 sm:rounded-2xl sm:p-3"><Icon size={28} className="sm:h-9 sm:w-9" /></div>
+                  <span className="mt-1.5 rounded-full border border-white/20 bg-white/20 px-2 py-0.5 text-center text-[10px] font-bold tracking-widest sm:mt-2 sm:px-2.5 sm:py-1 sm:text-[11px]">{visual.badge}</span>
                 </div>
                 <div className="flex flex-1 flex-col p-4 sm:p-5 lg:p-6">
-                  <div className="mb-2 flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">{content.grade}</span>
-                    <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">{content.category}</span>
-                  </div>
+                  <div className="mb-2 flex flex-wrap gap-1.5"><span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">{content.grade}</span><span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">{content.category}</span></div>
                   <h2 className="mb-1.5 text-[17px] font-black leading-tight text-slate-900 sm:text-[19px]">{content.title}</h2>
                   <p className="mb-3 flex-1 text-[13px] leading-relaxed text-slate-600 sm:mb-4 sm:text-[14px]">{content.description}</p>
-                  <span className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-bold transition-all group-hover:gap-2.5 group-active:gap-1" style={{ color: visual.color }}>
-                    Abrir simulador <span aria-hidden="true">→</span>
-                  </span>
+                  <span className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-bold transition-all group-hover:gap-2.5 group-active:gap-1" style={{ color: visual.color }}>Abrir simulador <span aria-hidden="true">→</span></span>
                 </div>
               </Link>
             </motion.div>
@@ -153,37 +123,15 @@ export default function Hub() {
         })}
       </section>
 
-      {availableContents.length === 0 && (
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-          <h2 className="text-lg font-black text-slate-900">Nenhum conteúdo encontrado</h2>
-          <p className="mt-1 text-sm text-slate-600">Tente trocar os filtros para encontrar outro conteúdo.</p>
-        </section>
-      )}
+      {availableContents.length === 0 && <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><h2 className="text-lg font-black text-slate-900">Nenhum conteúdo encontrado</h2><p className="mt-1 text-sm text-slate-600">Tente trocar os filtros para encontrar outro conteúdo.</p></section>}
 
       <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-4 sm:mt-10 sm:p-6 md:p-7">
         <h2 className="mb-3 text-xs font-black tracking-widest text-slate-500 sm:mb-4 sm:text-sm">ESTRUTURA PREPARADA PARA EXPANSÃO</h2>
         <div className="grid grid-cols-1 gap-4 text-sm text-slate-600 sm:grid-cols-2 sm:gap-6">
-          <div>
-            <div className="text-sm font-bold text-slate-800">Fundamental II</div>
-            <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
-              {['6º ano', '7º ano', '8º ano', '9º ano'].map((grade) => (
-                <span key={grade} className="rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-semibold sm:px-2.5">{grade}</span>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm font-bold text-slate-800">Ensino Médio</div>
-            <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
-              {['1º ano', '2º ano', '3º ano'].map((grade) => (
-                <span key={grade} className="rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 sm:px-2.5">{grade}</span>
-              ))}
-            </div>
-          </div>
+          <div><div className="text-sm font-bold text-slate-800">Fundamental II</div><div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">{['6º ano', '7º ano', '8º ano', '9º ano'].map((grade) => <span key={grade} className="rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-semibold sm:px-2.5">{grade}</span>)}</div></div>
+          <div><div className="text-sm font-bold text-slate-800">Ensino Médio</div><div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">{['1º ano', '2º ano', '3º ano'].map((grade) => <span key={grade} className="rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 sm:px-2.5">{grade}</span>)}</div></div>
         </div>
-        <p className="mt-4 text-[11px] leading-relaxed text-slate-500 sm:text-xs">
-          O Hub agora lê os conteúdos disponíveis diretamente de <code className="break-all rounded bg-slate-100 px-1 py-0.5 text-slate-700">src/data/mathContent.ts</code>.
-          Assim, novos simuladores podem entrar no catálogo sem duplicar informações na página.
-        </p>
+        <p className="mt-4 text-[11px] leading-relaxed text-slate-500 sm:text-xs">O Hub agora lê os conteúdos disponíveis diretamente de <code className="break-all rounded bg-slate-100 px-1 py-0.5 text-slate-700">src/data/mathContent.ts</code>. Assim, novos simuladores podem entrar no catálogo sem duplicar informações na página.</p>
       </section>
     </div>
   )
