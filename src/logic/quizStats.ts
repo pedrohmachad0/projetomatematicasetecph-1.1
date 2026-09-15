@@ -13,6 +13,10 @@ export const QUIZ_STATS_STORAGE_KEY = 'pemfm-quiz-stats'
 
 const emptyTopicStats = (): QuizTopicStats => ({ attempts: 0, answeredQuestions: 0, correctAnswers: 0, bestScore: 0 })
 
+function safeNonNegativeInteger(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0
+}
+
 export function getQuizStats(): QuizStats {
   const emptyStats: QuizStats = {
     soma: emptyTopicStats(),
@@ -42,10 +46,10 @@ function normalizeTopicStats(value: object, topic: QuizTopic): QuizTopicStats {
   if (!candidate || typeof candidate !== 'object') return emptyTopicStats()
 
   return {
-    attempts: typeof candidate.attempts === 'number' ? candidate.attempts : 0,
-    answeredQuestions: typeof candidate.answeredQuestions === 'number' ? candidate.answeredQuestions : 0,
-    correctAnswers: typeof candidate.correctAnswers === 'number' ? candidate.correctAnswers : 0,
-    bestScore: typeof candidate.bestScore === 'number' ? candidate.bestScore : 0,
+    attempts: safeNonNegativeInteger(candidate.attempts),
+    answeredQuestions: safeNonNegativeInteger(candidate.answeredQuestions),
+    correctAnswers: safeNonNegativeInteger(candidate.correctAnswers),
+    bestScore: safeNonNegativeInteger(candidate.bestScore),
   }
 }
 
@@ -54,10 +58,16 @@ export function recordQuizResult(topic: QuizTopic, correctAnswers: number, score
   const current = stats[topic]
   stats[topic] = {
     attempts: current.attempts + 1,
-    answeredQuestions: current.answeredQuestions + questionCount,
-    correctAnswers: current.correctAnswers + correctAnswers,
-    bestScore: Math.max(current.bestScore, score),
+    answeredQuestions: current.answeredQuestions + safeNonNegativeInteger(questionCount),
+    correctAnswers: current.correctAnswers + safeNonNegativeInteger(correctAnswers),
+    bestScore: Math.max(current.bestScore, safeNonNegativeInteger(score)),
   }
-  localStorage.setItem(QUIZ_STATS_STORAGE_KEY, JSON.stringify(stats))
+
+  try {
+    localStorage.setItem(QUIZ_STATS_STORAGE_KEY, JSON.stringify(stats))
+  } catch {
+    // Quiz completion must not crash when storage is blocked or full.
+  }
+
   return stats
 }
