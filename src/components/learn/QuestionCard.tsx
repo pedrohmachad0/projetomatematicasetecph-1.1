@@ -39,11 +39,11 @@ export default function QuestionCard({
 
       {question.answerMode === 'choice' && question.options && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Alternativas de resposta">
-          {question.options.map((option) => {
+          {question.options.map((option, optionIndex) => {
             const isSelected = selectedOption === option
             return (
               <button
-                key={String(option)}
+                key={`${question.id}-option-${optionIndex}`}
                 type="button"
                 disabled={isAnswered}
                 aria-pressed={isSelected}
