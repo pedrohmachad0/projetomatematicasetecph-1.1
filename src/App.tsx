@@ -4,6 +4,7 @@ import Hub from './pages/Hub'
 import Pitagoras from './pages/Pitagoras'
 import CalcSoma from './pages/CalcSoma'
 import CalcSubtracao from './pages/CalcSubtracao'
+import Fracoes from './pages/Fracoes'
 import Aprender from './pages/Aprender'
 import Quiz from './pages/Quiz'
 
@@ -16,6 +17,7 @@ function App() {
           <Route path="pitagoras" element={<Pitagoras />} />
           <Route path="soma" element={<CalcSoma />} />
           <Route path="subtracao" element={<CalcSubtracao />} />
+          <Route path="fracoes" element={<Fracoes />} />
           <Route path="aprender" element={<Aprender />} />
           <Route path="quiz/:topic" element={<Quiz />} />
         </Route>

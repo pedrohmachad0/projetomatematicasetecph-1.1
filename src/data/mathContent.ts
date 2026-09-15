@@ -1,6 +1,6 @@
 /**
- * Estrutura preparada para expansão futura da plataforma
- * conforme seção 31 das regras do projeto.
+ * Catálogo central dos conteúdos da plataforma.
+ * Novos simuladores devem ser registrados aqui para aparecerem no Hub.
  */
 
 export type EducationLevel = 'fundamental-2' | 'medio'
@@ -19,16 +19,6 @@ export interface MathContent {
 
 export const mathContents: MathContent[] = [
   {
-    id: 'pitagoras',
-    title: 'Explorador de Pitágoras',
-    description: 'Visualize o Teorema de Pitágoras e a classificação de triângulos pelo ângulo.',
-    educationLevel: 'fundamental-2',
-    grade: '9º ano',
-    category: 'Geometria',
-    simulator: 'pitagoras',
-    available: true,
-  },
-  {
     id: 'soma',
     title: 'Cálculo Mental – Soma',
     description: 'Compensação aditiva com material dourado.',
@@ -46,6 +36,26 @@ export const mathContents: MathContent[] = [
     grade: '6º ano',
     category: 'Aritmética e Números',
     simulator: 'subtracao',
+    available: true,
+  },
+  {
+    id: 'fracoes',
+    title: 'Explorador de Frações',
+    description: 'Visualize partes de um inteiro, equivalência, simplificação e porcentagem.',
+    educationLevel: 'fundamental-2',
+    grade: '6º ano',
+    category: 'Frações e Números Racionais',
+    simulator: 'fracoes',
+    available: true,
+  },
+  {
+    id: 'pitagoras',
+    title: 'Explorador de Pitágoras',
+    description: 'Visualize o Teorema de Pitágoras e a classificação de triângulos pelo ângulo.',
+    educationLevel: 'fundamental-2',
+    grade: '9º ano',
+    category: 'Geometria',
+    simulator: 'pitagoras',
     available: true,
   },
 ]

@@ -43,13 +43,7 @@ function additionQuestion(maxResult: number, index: number, random: RandomSource
   const b = randomInteger(1, Math.max(1, maxResult - a), random)
   const result = a + b
   const inverse = index % 3 === 2
-  return withOptions({
-    id: `soma-${index}-${a}-${b}`,
-    prompt: inverse ? `${a} + X = ${result}. Quanto vale X?` : `${a} + ${b} = ?`,
-    answer: inverse ? b : result,
-    answerMode: answerModeFor(index),
-    explanation: inverse ? `${result} − ${a} = ${b}, então X vale ${b}.` : `${a} + ${b} = ${result}.`,
-  }, random)
+  return withOptions({ id: `soma-${index}-${a}-${b}`, prompt: inverse ? `${a} + X = ${result}. Quanto vale X?` : `${a} + ${b} = ?`, answer: inverse ? b : result, answerMode: answerModeFor(index), explanation: inverse ? `${result} − ${a} = ${b}, então X vale ${b}.` : `${a} + ${b} = ${result}.` }, random)
 }
 
 function subtractionQuestion(maxValue: number, index: number, random: RandomSource): QuizQuestion {
@@ -57,13 +51,7 @@ function subtractionQuestion(maxValue: number, index: number, random: RandomSour
   const subtrahend = randomInteger(1, Math.max(1, minuend), random)
   const result = minuend - subtrahend
   const inverse = index % 3 === 2
-  return withOptions({
-    id: `sub-${index}-${minuend}-${subtrahend}`,
-    prompt: inverse ? `${minuend} − X = ${result}. Quanto vale X?` : `${minuend} − ${subtrahend} = ?`,
-    answer: inverse ? subtrahend : result,
-    answerMode: answerModeFor(index),
-    explanation: inverse ? `A diferença entre ${minuend} e ${result} é ${subtrahend}.` : `${minuend} − ${subtrahend} = ${result}.`,
-  }, random)
+  return withOptions({ id: `sub-${index}-${minuend}-${subtrahend}`, prompt: inverse ? `${minuend} − X = ${result}. Quanto vale X?` : `${minuend} − ${subtrahend} = ?`, answer: inverse ? subtrahend : result, answerMode: answerModeFor(index), explanation: inverse ? `A diferença entre ${minuend} e ${result} é ${subtrahend}.` : `${minuend} − ${subtrahend} = ${result}.` }, random)
 }
 
 function multiplicationQuestion(index: number, random: RandomSource): QuizQuestion {
@@ -71,13 +59,7 @@ function multiplicationQuestion(index: number, random: RandomSource): QuizQuesti
   const b = randomInteger(2, 10, random)
   const result = a * b
   const inverse = index % 3 === 2
-  return withOptions({
-    id: `mult-${index}-${a}-${b}`,
-    prompt: inverse ? `${a} × X = ${result}. Quanto vale X?` : `${a} × ${b} = ?`,
-    answer: inverse ? b : result,
-    answerMode: answerModeFor(index),
-    explanation: inverse ? `${result} ÷ ${a} = ${b}, então X vale ${b}.` : `${a} grupos de ${b} formam ${result}.`,
-  }, random)
+  return withOptions({ id: `mult-${index}-${a}-${b}`, prompt: inverse ? `${a} × X = ${result}. Quanto vale X?` : `${a} × ${b} = ?`, answer: inverse ? b : result, answerMode: answerModeFor(index), explanation: inverse ? `${result} ÷ ${a} = ${b}, então X vale ${b}.` : `${a} grupos de ${b} formam ${result}.` }, random)
 }
 
 function pythagorasQuestion(index: number, random: RandomSource): QuizQuestion {
@@ -94,11 +76,45 @@ function pythagorasQuestion(index: number, random: RandomSource): QuizQuestion {
   }
   const triples = [[3, 4, 5], [5, 12, 13], [6, 8, 10], [9, 12, 15]]
   const [a, b, c] = triples[randomInteger(0, triples.length - 1, random)]
-  if (type === 2) {
-    return withOptions({ id: `pit-side-${index}-${a}-${b}`, prompt: `Em um triângulo retângulo, os catetos medem ${a} e ${b}. Quanto mede a hipotenusa?`, answer: c, answerMode: answerModeFor(index), explanation: `${a}² + ${b}² = ${c}², então a hipotenusa mede ${c}.` }, random)
-  }
+  if (type === 2) return withOptions({ id: `pit-side-${index}-${a}-${b}`, prompt: `Em um triângulo retângulo, os catetos medem ${a} e ${b}. Quanto mede a hipotenusa?`, answer: c, answerMode: answerModeFor(index), explanation: `${a}² + ${b}² = ${c}², então a hipotenusa mede ${c}.` }, random)
   const sum = a ** 2 + b ** 2
   return withOptions({ id: `pit-square-${index}-${a}-${b}`, prompt: `Quanto vale ${a}² + ${b}²?`, answer: sum, answerMode: answerModeFor(index), explanation: `${a}² + ${b}² = ${a ** 2} + ${b ** 2} = ${sum}.` }, random)
+}
+
+function fractionQuestion(index: number, random: RandomSource): QuizQuestion {
+  const numerator = randomInteger(1, 8, random)
+  const denominator = randomInteger(Math.max(2, numerator + 1), 12, random)
+  const type = index % 4
+
+  if (type === 0) {
+    const answer = numerator / denominator
+    return withOptions({ id: `frac-decimal-${index}-${numerator}-${denominator}`, prompt: `Qual é a fração ${numerator}/${denominator} em forma decimal aproximada?`, answer: Number(answer.toFixed(2)), answerMode: answerModeFor(index), explanation: `${numerator} ÷ ${denominator} ≈ ${answer.toFixed(2)}.` }, random)
+  }
+
+  if (type === 1) {
+    const multiplier = randomInteger(2, 4, random)
+    const answer = `${numerator * multiplier}/${denominator * multiplier}`
+    const candidates = [
+      answer,
+      `${numerator + 1}/${denominator + 1}`,
+      `${numerator * multiplier}/${denominator + 1}`,
+      `${numerator + 2}/${denominator + 2}`,
+      `${numerator * multiplier + 1}/${denominator * multiplier + 1}`,
+    ]
+    const options = Array.from(new Set(candidates)).slice(0, 3)
+    return { id: `frac-equivalent-${index}-${numerator}-${denominator}`, prompt: `Qual fração é equivalente a ${numerator}/${denominator}?`, answer, answerMode: 'choice', options: shuffleItems(options, random), explanation: `Multiplicando numerador e denominador por ${multiplier}: ${numerator}/${denominator} = ${answer}.` }
+  }
+
+  const divisor = index % 2 === 0 ? 1 : 2
+  const canSimplify = divisor > 1 && numerator % divisor === 0 && denominator % divisor === 0
+  const simplifiedNumerator = canSimplify ? numerator / divisor : numerator
+  const simplifiedDenominator = canSimplify ? denominator / divisor : denominator
+  const answer = `${simplifiedNumerator}/${simplifiedDenominator}`
+  const distractors = canSimplify
+    ? [`${numerator}/${denominator}`, `${denominator}/${numerator}`]
+    : [`${numerator + 1}/${denominator + 1}`, `${denominator}/${numerator}`]
+  const options = Array.from(new Set([answer, ...distractors])).slice(0, 3)
+  return { id: `frac-simplify-${index}-${numerator}-${denominator}`, prompt: `Qual é a forma simplificada de ${numerator}/${denominator}?`, answer, answerMode: 'choice', options: shuffleItems(options, random), explanation: canSimplify ? `Dividindo os dois termos por ${divisor}: ${numerator}/${denominator} = ${answer}.` : `${numerator}/${denominator} já está na forma mais simples.` }
 }
 
 function uniqueQuestions(factory: (index: number) => QuizQuestion, quantity: number): QuizQuestion[] {
@@ -127,7 +143,7 @@ export function generateLearningQuestions(levelId: string, quantity: number, ran
 }
 
 export function generateSimulatorQuiz(topic: QuizTopic, quantity: number, random: RandomSource = Math.random): QuizQuestion[] {
-  return uniqueQuestions((index) => topic === 'soma' ? additionQuestion(120, index, random) : topic === 'subtracao' ? subtractionQuestion(120, index, random) : pythagorasQuestion(index, random), quantity)
+  return uniqueQuestions((index) => topic === 'soma' ? additionQuestion(120, index, random) : topic === 'subtracao' ? subtractionQuestion(120, index, random) : topic === 'pitagoras' ? pythagorasQuestion(index, random) : fractionQuestion(index, random), quantity)
 }
 
 export function isCorrectAnswer(question: QuizQuestion, submittedAnswer: QuizAnswer): boolean {
