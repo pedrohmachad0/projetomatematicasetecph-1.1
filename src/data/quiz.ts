@@ -1,6 +1,6 @@
 export type QuizAnswerMode = 'choice' | 'input'
 export type QuizAnswer = number | string
-export type QuizTopic = 'soma' | 'subtracao' | 'pitagoras'
+export type QuizTopic = 'soma' | 'subtracao' | 'pitagoras' | 'fracoes'
 
 export interface QuizQuestion {
   id: string
@@ -25,4 +25,5 @@ export const quizTopics: Record<QuizTopic, QuizTopicConfig> = {
   soma: { title: 'Quiz de Soma', description: 'Somas, compensação e parcelas desconhecidas.', color: '#2563eb', icon: '➕', simulatorPath: '/soma' },
   subtracao: { title: 'Quiz de Subtração', description: 'Diferenças, deslocamentos e termos desconhecidos.', color: '#7c3aed', icon: '➖', simulatorPath: '/subtracao' },
   pitagoras: { title: 'Quiz de Pitágoras', description: 'Lados, áreas, ângulos e classificação de triângulos.', color: '#0891b2', icon: '📐', simulatorPath: '/pitagoras' },
+  fracoes: { title: 'Quiz de Frações', description: 'Partes do inteiro, equivalência, simplificação e porcentagem.', color: '#4f46e5', icon: '½', simulatorPath: '/fracoes' },
 }
