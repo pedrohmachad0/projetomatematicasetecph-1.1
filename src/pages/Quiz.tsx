@@ -44,18 +44,18 @@ export default function Quiz() {
 
   if (!isQuizTopic(topic)) return <Navigate to="/" replace />
 
-  const config = quizTopics[topic]
+  const quizTopic = topic
+  const config = quizTopics[quizTopic]
 
   function startQuiz() {
-    if (!isQuizTopic(topic)) return
-    setQuestions(generateSimulatorQuiz(topic, QUIZ_QUESTION_COUNT))
+    setQuestions(generateSimulatorQuiz(quizTopic, QUIZ_QUESTION_COUNT))
     setQuestionIndex(0)
     setSelectedOption(null)
     setTypedAnswer('')
     setFeedback(null)
     setCorrectAnswers(0)
     setScore(0)
-    setBestScore(getQuizStats()[topic].bestScore)
+    setBestScore(getQuizStats()[quizTopic].bestScore)
     setElapsedSeconds(0)
     questionStartedAt.current = Date.now()
     setPhase('quiz')
@@ -77,10 +77,10 @@ export default function Quiz() {
     if (questionIndex === questions.length - 1) {
       const finalCorrectAnswers = correctAnswers + (feedback?.isCorrect ? 1 : 0)
       const finalScore = score + (feedback?.points ?? 0)
-      const stats = recordQuizResult(topic, finalCorrectAnswers, finalScore)
+      const stats = recordQuizResult(quizTopic, finalCorrectAnswers, finalScore)
       setCorrectAnswers(finalCorrectAnswers)
       setScore(finalScore)
-      setBestScore(stats[topic].bestScore)
+      setBestScore(stats[quizTopic].bestScore)
       setPhase('result')
       return
     }
