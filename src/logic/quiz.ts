@@ -94,7 +94,12 @@ function fractionQuestion(index: number, random: RandomSource): QuizQuestion {
   if (type === 1) {
     const multiplier = randomInteger(2, 4, random)
     const answer = `${numerator * multiplier}/${denominator * multiplier}`
-    return { id: `frac-equivalent-${index}-${numerator}-${denominator}`, prompt: `Qual fração é equivalente a ${numerator}/${denominator}?`, answer, answerMode: 'choice', options: shuffleItems([answer, `${numerator + 1}/${denominator + 1}`, `${numerator * multiplier}/${denominator + 1}`], random), explanation: `Multiplicando numerador e denominador por ${multiplier}: ${numerator}/${denominator} = ${answer}.` }
+    const options = Array.from(new Set([
+      answer,
+      `${numerator + 1}/${denominator + 1}`,
+      `${numerator * multiplier}/${denominator + 1}`,
+    ]))
+    return { id: `frac-equivalent-${index}-${numerator}-${denominator}`, prompt: `Qual fração é equivalente a ${numerator}/${denominator}?`, answer, answerMode: 'choice', options: shuffleItems(options, random), explanation: `Multiplicando numerador e denominador por ${multiplier}: ${numerator}/${denominator} = ${answer}.` }
   }
 
   const divisor = index % 2 === 0 ? 1 : 2
