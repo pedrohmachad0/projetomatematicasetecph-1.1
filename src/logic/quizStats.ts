@@ -11,18 +11,14 @@ export type QuizStats = Record<QuizTopic, QuizTopicStats>
 
 export const QUIZ_STATS_STORAGE_KEY = 'pemfm-quiz-stats'
 
-const emptyTopicStats = (): QuizTopicStats => ({
-  attempts: 0,
-  answeredQuestions: 0,
-  correctAnswers: 0,
-  bestScore: 0,
-})
+const emptyTopicStats = (): QuizTopicStats => ({ attempts: 0, answeredQuestions: 0, correctAnswers: 0, bestScore: 0 })
 
 export function getQuizStats(): QuizStats {
   const emptyStats: QuizStats = {
     soma: emptyTopicStats(),
     subtracao: emptyTopicStats(),
     pitagoras: emptyTopicStats(),
+    fracoes: emptyTopicStats(),
   }
 
   try {
@@ -34,6 +30,7 @@ export function getQuizStats(): QuizStats {
       soma: normalizeTopicStats(stored, 'soma'),
       subtracao: normalizeTopicStats(stored, 'subtracao'),
       pitagoras: normalizeTopicStats(stored, 'pitagoras'),
+      fracoes: normalizeTopicStats(stored, 'fracoes'),
     }
   } catch {
     return emptyStats
@@ -52,12 +49,12 @@ function normalizeTopicStats(value: object, topic: QuizTopic): QuizTopicStats {
   }
 }
 
-export function recordQuizResult(topic: QuizTopic, correctAnswers: number, score: number): QuizStats {
+export function recordQuizResult(topic: QuizTopic, correctAnswers: number, score: number, questionCount: number): QuizStats {
   const stats = getQuizStats()
   const current = stats[topic]
   stats[topic] = {
     attempts: current.attempts + 1,
-    answeredQuestions: current.answeredQuestions + 5,
+    answeredQuestions: current.answeredQuestions + questionCount,
     correctAnswers: current.correctAnswers + correctAnswers,
     bestScore: Math.max(current.bestScore, score),
   }
