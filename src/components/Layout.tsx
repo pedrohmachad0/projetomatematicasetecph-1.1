@@ -37,7 +37,7 @@ export default function Layout() {
           <button type="button" onClick={() => setIsDark((current) => !current)} aria-pressed={isDark} aria-label={isDark ? 'Ativar tema claro' : 'Ativar tema escuro'} className="order-2 inline-flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-lg border border-white/25 bg-white/10 px-2.5 py-2 text-xs font-bold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:order-3 sm:px-3">{isDark ? <Sun size={16} /> : <Moon size={16} />}<span className="hidden sm:inline">{isDark ? 'Tema claro' : 'Tema escuro'}</span></button>
         </div>
       </header>
-      <main id="conteudo" className="flex-1 max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 pt-[118px] sm:pt-[96px] md:pt-[104px] pb-4 sm:pb-6 md:pb-8"><Outlet /></main>
+      <main id="conteudo" className="flex-1 max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 pt-[214px] sm:pt-[150px] md:pt-[112px] pb-4 sm:pb-6 md:pb-8"><Outlet /></main>
       <footer className="border-t border-blue-100 py-3 sm:py-4 px-3"><p className="text-center text-xs sm:text-sm text-blue-400 leading-tight">Plataforma de Simuladores Matemáticos Interativos · PEMFM</p></footer>
     </div>
   )
