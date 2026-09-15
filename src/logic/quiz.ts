@@ -98,10 +98,15 @@ function fractionQuestion(index: number, random: RandomSource): QuizQuestion {
   }
 
   const divisor = index % 2 === 0 ? 1 : 2
-  const simplifiedNumerator = divisor > 1 && numerator % divisor === 0 && denominator % divisor === 0 ? numerator / divisor : numerator
-  const simplifiedDenominator = divisor > 1 && numerator % divisor === 0 && denominator % divisor === 0 ? denominator / divisor : denominator
+  const canSimplify = divisor > 1 && numerator % divisor === 0 && denominator % divisor === 0
+  const simplifiedNumerator = canSimplify ? numerator / divisor : numerator
+  const simplifiedDenominator = canSimplify ? denominator / divisor : denominator
   const answer = `${simplifiedNumerator}/${simplifiedDenominator}`
-  return { id: `frac-simplify-${index}-${numerator}-${denominator}`, prompt: `Qual é a forma simplificada de ${numerator}/${denominator}?`, answer, answerMode: 'choice', options: shuffleItems([answer, `${numerator}/${denominator}`, `${denominator}/${numerator}`], random), explanation: simplifiedNumerator === numerator ? `${numerator}/${denominator} já está na forma mais simples.` : `Dividindo os dois termos por ${divisor}: ${numerator}/${denominator} = ${answer}.` }
+  const distractors = canSimplify
+    ? [`${numerator}/${denominator}`, `${denominator}/${numerator}`]
+    : [`${numerator + 1}/${denominator + 1}`, `${denominator}/${numerator}`]
+  const options = Array.from(new Set([answer, ...distractors])).slice(0, 3)
+  return { id: `frac-simplify-${index}-${numerator}-${denominator}`, prompt: `Qual é a forma simplificada de ${numerator}/${denominator}?`, answer, answerMode: 'choice', options: shuffleItems(options, random), explanation: canSimplify ? `Dividindo os dois termos por ${divisor}: ${numerator}/${denominator} = ${answer}.` : `${numerator}/${denominator} já está na forma mais simples.` }
 }
 
 function uniqueQuestions(factory: (index: number) => QuizQuestion, quantity: number): QuizQuestion[] {
