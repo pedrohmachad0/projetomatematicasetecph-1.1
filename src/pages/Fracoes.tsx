@@ -18,6 +18,16 @@ function formatDecimal(value: number): string {
   return value.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 }
 
+function FractionDisplay({ numerator, denominator, size = 'large' }: { numerator: number; denominator: number; size?: 'large' | 'small' }) {
+  return (
+    <span className={`inline-flex flex-col items-center justify-center align-middle font-black leading-none ${size === 'large' ? 'text-4xl sm:text-6xl' : 'text-xl sm:text-2xl'}`} aria-label={`${numerator} sobre ${denominator}`}>
+      <span className="px-3">{numerator}</span>
+      <span className="h-1 w-full min-w-12 rounded-full bg-current" />
+      <span className="px-3 pt-1">{denominator}</span>
+    </span>
+  )
+}
+
 export default function Fracoes() {
   const [numerator, setNumerator] = useState(1)
   const [denominator, setDenominator] = useState(4)
@@ -59,14 +69,14 @@ export default function Fracoes() {
               <button type="button" onClick={reset} aria-label="Resetar fração" className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600 hover:bg-slate-50"><RotateCcw size={14} /> Resetar</button>
             </div>
 
-            <div className="mb-6 flex items-center justify-center gap-4 text-4xl font-black text-slate-900 sm:gap-6 sm:text-6xl" aria-live="polite">
-              <span>{numerator}</span><span className="h-px w-14 bg-slate-900 sm:w-20" /><span>{denominator}</span>
+            <div className="mb-6 flex items-center justify-center text-slate-900" aria-live="polite">
+              <FractionDisplay numerator={numerator} denominator={denominator} />
             </div>
 
             <div className="rounded-3xl bg-slate-50 p-5 sm:p-8">
-              <div className="mb-3 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-500">
+              <div className="mb-3 flex items-center justify-between gap-3 text-xs font-black uppercase tracking-wide text-slate-500">
                 <span>Inteiro: {denominator} partes iguais</span>
-                <span>{numerator}/{denominator}</span>
+                <span><FractionDisplay numerator={numerator} denominator={denominator} size="small" /></span>
               </div>
               <div className="grid min-h-24 gap-1.5 rounded-2xl border-4 border-indigo-950 bg-white p-1.5 sm:min-h-32" style={{ gridTemplateColumns: `repeat(${denominator}, minmax(0, 1fr))` }} role="img" aria-label={`${numerator} de ${denominator} partes do inteiro destacadas`}>
                 {Array.from({ length: denominator }, (_, index) => (
@@ -101,7 +111,7 @@ export default function Fracoes() {
             <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:p-6">
               <h2 className="text-lg font-black text-emerald-950">Frações equivalentes</h2>
               <p className="mt-1 text-sm text-emerald-900">Multiplique os dois termos pelo mesmo número para manter o valor.</p>
-              <div className="mt-4 flex items-center justify-center gap-2 text-2xl font-black text-emerald-800 sm:text-3xl"><span>{numerator}/{denominator}</span><span>=</span><span>{equivalentNumerator}/{equivalentDenominator}</span></div>
+              <div className="mt-4 flex items-center justify-center gap-3 text-emerald-800"><FractionDisplay numerator={numerator} denominator={denominator} size="small" /><span className="text-2xl font-black">=</span><FractionDisplay numerator={equivalentNumerator} denominator={equivalentDenominator} size="small" /></div>
               <label className="mt-4 block text-xs font-bold text-emerald-900">Multiplicador: {equivalenceMultiplier}<input type="range" min="2" max="5" value={equivalenceMultiplier} onChange={(event) => setEquivalenceMultiplier(Number(event.target.value))} className="mt-2 w-full accent-emerald-600" /></label>
               <p className="mt-3 text-xs leading-relaxed text-emerald-800">{numerator} × {equivalenceMultiplier} = {equivalentNumerator} e {denominator} × {equivalenceMultiplier} = {equivalentDenominator}; a proporção permanece igual.</p>
             </div>
