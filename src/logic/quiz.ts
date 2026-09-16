@@ -94,13 +94,7 @@ function fractionQuestion(index: number, random: RandomSource): QuizQuestion {
   if (type === 1) {
     const multiplier = randomInteger(2, 4, random)
     const answer = `${numerator * multiplier}/${denominator * multiplier}`
-    const candidates = [
-      answer,
-      `${numerator + 1}/${denominator + 1}`,
-      `${numerator * multiplier}/${denominator + 1}`,
-      `${numerator + 2}/${denominator + 2}`,
-      `${numerator * multiplier + 1}/${denominator * multiplier + 1}`,
-    ]
+    const candidates = [answer, `${numerator + 1}/${denominator + 1}`, `${numerator * multiplier}/${denominator + 1}`, `${numerator + 2}/${denominator + 2}`, `${numerator * multiplier + 1}/${denominator * multiplier + 1}`]
     const options = Array.from(new Set(candidates)).slice(0, 3)
     return { id: `frac-equivalent-${index}-${numerator}-${denominator}`, prompt: `Qual fração é equivalente a ${numerator}/${denominator}?`, answer, answerMode: 'choice', options: shuffleItems(options, random), explanation: `Multiplicando numerador e denominador por ${multiplier}: ${numerator}/${denominator} = ${answer}.` }
   }
@@ -110,11 +104,26 @@ function fractionQuestion(index: number, random: RandomSource): QuizQuestion {
   const simplifiedNumerator = canSimplify ? numerator / divisor : numerator
   const simplifiedDenominator = canSimplify ? denominator / divisor : denominator
   const answer = `${simplifiedNumerator}/${simplifiedDenominator}`
-  const distractors = canSimplify
-    ? [`${numerator}/${denominator}`, `${denominator}/${numerator}`]
-    : [`${numerator + 1}/${denominator + 1}`, `${denominator}/${numerator}`]
+  const distractors = canSimplify ? [`${numerator}/${denominator}`, `${denominator}/${numerator}`] : [`${numerator + 1}/${denominator + 1}`, `${denominator}/${numerator}`]
   const options = Array.from(new Set([answer, ...distractors])).slice(0, 3)
   return { id: `frac-simplify-${index}-${numerator}-${denominator}`, prompt: `Qual é a forma simplificada de ${numerator}/${denominator}?`, answer, answerMode: 'choice', options: shuffleItems(options, random), explanation: canSimplify ? `Dividindo os dois termos por ${divisor}: ${numerator}/${denominator} = ${answer}.` : `${numerator}/${denominator} já está na forma mais simples.` }
+}
+
+function percentageQuestion(index: number, random: RandomSource): QuizQuestion {
+  const base = randomInteger(2, 20, random) * 10
+  const percentage = [10, 20, 25, 50, 75][randomInteger(0, 4, random)]
+  const amount = (base * percentage) / 100
+  const type = index % 3
+
+  if (type === 1) {
+    return withOptions({ id: `pct-discount-${index}-${base}-${percentage}`, prompt: `Um produto custa R$ ${base} e recebe ${percentage}% de desconto. Qual é o preço final?`, answer: base - amount, answerMode: answerModeFor(index), explanation: `${percentage}% de R$ ${base} é R$ ${amount}. O preço final é R$ ${base - amount}.` }, random)
+  }
+
+  if (type === 2) {
+    return withOptions({ id: `pct-increase-${index}-${base}-${percentage}`, prompt: `Um valor de ${base} aumenta ${percentage}%. Qual é o novo valor?`, answer: base + amount, answerMode: answerModeFor(index), explanation: `O acréscimo é ${amount}; ${base} + ${amount} = ${base + amount}.` }, random)
+  }
+
+  return withOptions({ id: `pct-part-${index}-${base}-${percentage}`, prompt: `Quanto é ${percentage}% de ${base}?`, answer: amount, answerMode: answerModeFor(index), explanation: `${base} × ${percentage} ÷ 100 = ${amount}.` }, random)
 }
 
 function uniqueQuestions(factory: (index: number) => QuizQuestion, quantity: number): QuizQuestion[] {
@@ -143,7 +152,7 @@ export function generateLearningQuestions(levelId: string, quantity: number, ran
 }
 
 export function generateSimulatorQuiz(topic: QuizTopic, quantity: number, random: RandomSource = Math.random): QuizQuestion[] {
-  return uniqueQuestions((index) => topic === 'soma' ? additionQuestion(120, index, random) : topic === 'subtracao' ? subtractionQuestion(120, index, random) : topic === 'pitagoras' ? pythagorasQuestion(index, random) : fractionQuestion(index, random), quantity)
+  return uniqueQuestions((index) => topic === 'soma' ? additionQuestion(120, index, random) : topic === 'subtracao' ? subtractionQuestion(120, index, random) : topic === 'pitagoras' ? pythagorasQuestion(index, random) : topic === 'fracoes' ? fractionQuestion(index, random) : percentageQuestion(index, random), quantity)
 }
 
 export function isCorrectAnswer(question: QuizQuestion, submittedAnswer: QuizAnswer): boolean {

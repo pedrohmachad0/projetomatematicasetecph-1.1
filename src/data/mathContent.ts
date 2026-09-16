@@ -49,6 +49,16 @@ export const mathContents: MathContent[] = [
     available: true,
   },
   {
+    id: 'porcentagem',
+    title: 'Explorador de Porcentagem',
+    description: 'Entenda porcentagens, descontos e acréscimos com visualização em 100 partes.',
+    educationLevel: 'fundamental-2',
+    grade: '7º ano',
+    category: 'Razão, Proporção e Porcentagem',
+    simulator: 'porcentagem',
+    available: true,
+  },
+  {
     id: 'pitagoras',
     title: 'Explorador de Pitágoras',
     description: 'Visualize o Teorema de Pitágoras e a classificação de triângulos pelo ângulo.',

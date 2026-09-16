@@ -25,20 +25,22 @@ export default function QuestionCard({
   onSubmit,
 }: QuestionCardProps) {
   const canSubmit = question.answerMode === 'choice' ? selectedOption !== null : typedAnswer.trim().length > 0
+  const questionTitleId = `question-title-${question.id}`
+  const answerInputId = `typed-answer-${question.id}`
 
   return (
-    <section aria-labelledby="question-title" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+    <section aria-labelledby={questionTitleId} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
       <div className="mb-6 flex items-center justify-between gap-3 text-sm font-bold text-slate-500">
         <span>Questão {questionNumber} de {totalQuestions}</span>
         <span className="rounded-full bg-violet-50 px-3 py-1 text-xs tracking-wide text-violet-700">DESAFIO</span>
       </div>
 
-      <h2 id="question-title" className="mb-8 text-center text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+      <h2 id={questionTitleId} className="mb-8 text-center text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
         {question.prompt}
       </h2>
 
       {question.answerMode === 'choice' && question.options && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Alternativas de resposta">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Alternativas de resposta">
           {question.options.map((option, optionIndex) => {
             const isSelected = selectedOption === option
             return (
@@ -69,11 +71,12 @@ export default function QuestionCard({
             if (canSubmit && !isAnswered) onSubmit()
           }}
         >
-          <label className="sr-only" htmlFor="typed-answer">Digite sua resposta</label>
+          <label className="sr-only" htmlFor={answerInputId}>Digite sua resposta</label>
           <input
-            id="typed-answer"
+            id={answerInputId}
             type="number"
             inputMode="numeric"
+            autoComplete="off"
             value={typedAnswer}
             disabled={isAnswered}
             onChange={(event) => onTypedAnswerChange(event.target.value)}
