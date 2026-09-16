@@ -18,9 +18,24 @@ function formatDecimal(value: number): string {
   return value.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 }
 
+function polarPoint(angle: number, radius = 42): [number, number] {
+  const radians = (angle - 90) * (Math.PI / 180)
+  return [50 + radius * Math.cos(radians), 50 + radius * Math.sin(radians)]
+}
+
+function sectorPath(index: number, total: number): string {
+  const startAngle = (index / total) * 360
+  const endAngle = ((index + 1) / total) * 360
+  const [startX, startY] = polarPoint(startAngle)
+  const [endX, endY] = polarPoint(endAngle)
+  const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0
+
+  return `M 50 50 L ${startX} ${startY} A 42 42 0 ${largeArcFlag} 1 ${endX} ${endY} Z`
+}
+
 export default function Fracoes() {
-  const [numerator, setNumerator] = useState(3)
-  const [denominator, setDenominator] = useState(8)
+  const [numerator, setNumerator] = useState(1)
+  const [denominator, setDenominator] = useState(4)
   const [equivalenceMultiplier, setEquivalenceMultiplier] = useState(2)
 
   const simplified = useMemo(() => {
@@ -32,17 +47,16 @@ export default function Fracoes() {
   const percentage = decimal * 100
   const equivalentNumerator = numerator * equivalenceMultiplier
   const equivalentDenominator = denominator * equivalenceMultiplier
-  const filledParts = Array.from({ length: denominator }, (_, index) => index < numerator)
 
   function reset() {
-    setNumerator(3)
-    setDenominator(8)
+    setNumerator(1)
+    setDenominator(4)
     setEquivalenceMultiplier(2)
   }
 
   return (
     <PresentationMode title="Explorador de Frações">
-      <div className="mx-auto max-w-6xl overflow-x-hidden">
+      <div className="mx-auto max-w-6xl">
         <Link to="/" className="mb-4 inline-flex min-h-[44px] items-center gap-1.5 rounded text-xs font-medium text-blue-700 hover:underline sm:mb-6 sm:text-sm">
           <ArrowLeft size={16} /> Voltar ao início
         </Link>
@@ -50,29 +64,34 @@ export default function Fracoes() {
         <header className="mb-5 text-center sm:mb-7 sm:text-left">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1.5 text-xs font-black text-indigo-800"><Divide size={15} /> FUNDAMENTAL II · 6º ANO</div>
           <h1 className="text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl md:text-5xl">Explorador de Frações</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg">Visualize partes de um inteiro, compare a fração com sua forma decimal e descubra frações equivalentes e simplificadas.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg">Visualize um inteiro dividido em partes iguais e observe quantas dessas partes a fração representa.</p>
         </header>
 
         <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-5 flex items-center justify-between gap-3">
-              <div><h2 className="text-lg font-black text-slate-900 sm:text-xl">Monte sua fração</h2><p className="text-xs text-slate-500 sm:text-sm">O numerador indica partes preenchidas; o denominador divide o inteiro.</p></div>
+              <div><h2 className="text-lg font-black text-slate-900 sm:text-xl">Monte sua fração</h2><p className="text-xs text-slate-500 sm:text-sm">O denominador divide o inteiro em partes iguais; o numerador mostra quantas são consideradas.</p></div>
               <button type="button" onClick={reset} aria-label="Resetar fração" className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600 hover:bg-slate-50"><RotateCcw size={14} /> Resetar</button>
             </div>
 
-            <div className="mb-6 flex items-center justify-center gap-3 text-4xl font-black text-slate-900 sm:gap-5 sm:text-6xl" aria-live="polite">
+            <div className="mb-5 flex items-center justify-center gap-3 text-4xl font-black text-slate-900 sm:gap-5 sm:text-6xl" aria-live="polite">
               <span>{numerator}</span><span className="h-px w-14 bg-slate-900 sm:w-20" /><span>{denominator}</span>
             </div>
+
+            <div className="mb-5 flex justify-center rounded-3xl bg-slate-50 p-4 sm:p-6">
+              <svg viewBox="0 0 100 100" className="h-56 w-56 max-w-full drop-shadow-sm sm:h-72 sm:w-72" role="img" aria-label={`${numerator} de ${denominator} partes do inteiro preenchidas`}>
+                {Array.from({ length: denominator }, (_, index) => (
+                  <path key={index} d={sectorPath(index, denominator)} className={index < numerator ? 'fill-indigo-500 stroke-white' : 'fill-white stroke-slate-300'} strokeWidth="0.8" />
+                ))}
+                <circle cx="50" cy="50" r="42" fill="none" className="stroke-indigo-900" strokeWidth="1.2" />
+              </svg>
+            </div>
+            <p className="mb-5 text-center text-xs font-semibold text-slate-500">O inteiro foi dividido em {denominator} partes iguais. {numerator} parte{numerator === 1 ? '' : 's'} está{numerator === 1 ? '' : 'ão'} destacada{numerator === 1 ? '' : 's'}.</p>
 
             <div className="space-y-5">
               <label className="block text-sm font-bold text-slate-700">Numerador: <span className="text-indigo-700">{numerator}</span><input type="range" min="0" max={denominator} value={numerator} onChange={(event) => setNumerator(Number(event.target.value))} className="mt-2 w-full accent-indigo-600" /></label>
               <label className="block text-sm font-bold text-slate-700">Denominador: <span className="text-indigo-700">{denominator}</span><input type="range" min="1" max="20" value={denominator} onChange={(event) => { const next = Number(event.target.value); setDenominator(next); setNumerator((value) => Math.min(value, next)) }} className="mt-2 w-full accent-indigo-600" /></label>
             </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-              {filledParts.map((filled, index) => <div key={index} aria-label={`Parte ${index + 1}: ${filled ? 'preenchida' : 'vazia'}`} className={`h-10 rounded-lg border-2 transition sm:h-12 ${filled ? 'border-indigo-600 bg-indigo-500 shadow-sm' : 'border-slate-200 bg-slate-50'}`} />)}
-            </div>
-            <p className="mt-3 text-center text-xs font-semibold text-slate-500">{numerator} de {denominator} partes preenchidas</p>
           </section>
 
           <section className="space-y-5">
