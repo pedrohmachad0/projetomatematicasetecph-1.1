@@ -24,8 +24,10 @@
 }
 
 html {
+  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -33,6 +35,7 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
