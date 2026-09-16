@@ -27,7 +27,7 @@ export default function Layout() {
   }, [isDark])
 
   return (
-    <div className={`app-shell min-h-screen flex flex-col overflow-x-clip selection:bg-blue-200 ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 via-white to-blue-100'}`}>
+    <div className={`app-shell min-h-screen flex flex-col selection:bg-blue-200 ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 via-white to-blue-100'}`}>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 bg-white text-blue-800 px-3 py-1.5 rounded-lg border shadow text-sm font-medium">Pular para conteúdo</a>
       <header className="relative z-50 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-600 shadow-lg">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3.5 flex flex-wrap items-center gap-2 sm:gap-3">
