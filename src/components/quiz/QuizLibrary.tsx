@@ -16,14 +16,14 @@ export default function QuizLibrary() {
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">Cada partida tem 5 questões aleatórias. Seus resultados ficam salvos neste dispositivo para acompanhar sua evolução.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {topics.map(([topic, config]) => {
           const topicStats = stats[topic]
           const accuracy = topicStats.answeredQuestions > 0 ? Math.round((topicStats.correctAnswers / topicStats.answeredQuestions) * 100) : 0
 
           return (
-            <article key={topic} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <div className="mb-4 flex items-center gap-3"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-50 text-2xl" aria-hidden="true">{config.icon}</span><h3 className="text-xl font-black text-slate-900">{config.title}</h3></div>
+            <article key={topic} className="flex min-w-0 flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+              <div className="mb-4 flex items-start gap-3"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-50 text-2xl" aria-hidden="true">{config.icon}</span><h3 className="min-w-0 text-lg font-black leading-tight text-slate-900 sm:text-xl">{config.title}</h3></div>
               <p className="mb-5 flex-1 text-sm leading-relaxed text-slate-600">{config.description}</p>
               <div className="mb-4 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl bg-slate-50 p-2.5"><p className="text-lg font-black text-slate-900">{topicStats.attempts}</p><p className="text-[10px] font-black tracking-wide text-slate-500">PARTIDAS</p></div><div className="rounded-xl bg-slate-50 p-2.5"><p className="text-lg font-black text-emerald-600">{accuracy}%</p><p className="text-[10px] font-black tracking-wide text-slate-500">PRECISÃO</p></div><div className="rounded-xl bg-slate-50 p-2.5"><p className="text-lg font-black text-amber-500">{topicStats.bestScore}</p><p className="text-[10px] font-black tracking-wide text-slate-500">MELHOR</p></div></div>
               <p className="mb-4 inline-flex items-center gap-1.5 text-xs font-bold text-violet-700"><Clock3 size={15} /> 100 pontos + bônus por velocidade</p>
