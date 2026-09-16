@@ -18,21 +18,6 @@ function formatDecimal(value: number): string {
   return value.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 }
 
-function polarPoint(angle: number, radius = 42): [number, number] {
-  const radians = (angle - 90) * (Math.PI / 180)
-  return [50 + radius * Math.cos(radians), 50 + radius * Math.sin(radians)]
-}
-
-function sectorPath(index: number, total: number): string {
-  const startAngle = (index / total) * 360
-  const endAngle = ((index + 1) / total) * 360
-  const [startX, startY] = polarPoint(startAngle)
-  const [endX, endY] = polarPoint(endAngle)
-  const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0
-
-  return `M 50 50 L ${startX} ${startY} A 42 42 0 ${largeArcFlag} 1 ${endX} ${endY} Z`
-}
-
 export default function Fracoes() {
   const [numerator, setNumerator] = useState(1)
   const [denominator, setDenominator] = useState(4)
@@ -43,7 +28,7 @@ export default function Fracoes() {
     return { numerator: numerator / divisor, denominator: denominator / divisor }
   }, [numerator, denominator])
 
-  const decimal = numerator / denominator
+  const decimal = denominator === 0 ? 0 : numerator / denominator
   const percentage = decimal * 100
   const equivalentNumerator = numerator * equivalenceMultiplier
   const equivalentDenominator = denominator * equivalenceMultiplier
@@ -64,33 +49,42 @@ export default function Fracoes() {
         <header className="mb-5 text-center sm:mb-7 sm:text-left">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1.5 text-xs font-black text-indigo-800"><Divide size={15} /> FUNDAMENTAL II · 6º ANO</div>
           <h1 className="text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl md:text-5xl">Explorador de Frações</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg">Visualize um inteiro dividido em partes iguais e observe quantas dessas partes a fração representa.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg">Entenda uma fração dividindo um inteiro em partes iguais e destacando somente as partes escolhidas.</p>
         </header>
 
         <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-5 flex items-center justify-between gap-3">
-              <div><h2 className="text-lg font-black text-slate-900 sm:text-xl">Monte sua fração</h2><p className="text-xs text-slate-500 sm:text-sm">O denominador divide o inteiro em partes iguais; o numerador mostra quantas são consideradas.</p></div>
+              <div><h2 className="text-lg font-black text-slate-900 sm:text-xl">Monte sua fração</h2><p className="text-xs text-slate-500 sm:text-sm">O denominador divide o inteiro em partes iguais; o numerador indica quantas partes serão destacadas.</p></div>
               <button type="button" onClick={reset} aria-label="Resetar fração" className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600 hover:bg-slate-50"><RotateCcw size={14} /> Resetar</button>
             </div>
 
-            <div className="mb-5 flex items-center justify-center gap-3 text-4xl font-black text-slate-900 sm:gap-5 sm:text-6xl" aria-live="polite">
+            <div className="mb-6 flex items-center justify-center gap-4 text-4xl font-black text-slate-900 sm:gap-6 sm:text-6xl" aria-live="polite">
               <span>{numerator}</span><span className="h-px w-14 bg-slate-900 sm:w-20" /><span>{denominator}</span>
             </div>
 
-            <div className="mb-5 flex justify-center rounded-3xl bg-slate-50 p-4 sm:p-6">
-              <svg viewBox="0 0 100 100" className="h-56 w-56 max-w-full drop-shadow-sm sm:h-72 sm:w-72" role="img" aria-label={`${numerator} de ${denominator} partes do inteiro preenchidas`}>
+            <div className="rounded-3xl bg-slate-50 p-5 sm:p-8">
+              <div className="mb-3 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-500">
+                <span>Inteiro: {denominator} partes iguais</span>
+                <span>{numerator}/{denominator}</span>
+              </div>
+              <div className="grid min-h-24 gap-1.5 rounded-2xl border-4 border-indigo-950 bg-white p-1.5 sm:min-h-32" style={{ gridTemplateColumns: `repeat(${denominator}, minmax(0, 1fr))` }} role="img" aria-label={`${numerator} de ${denominator} partes do inteiro destacadas`}>
                 {Array.from({ length: denominator }, (_, index) => (
-                  <path key={index} d={sectorPath(index, denominator)} className={index < numerator ? 'fill-indigo-500 stroke-white' : 'fill-white stroke-slate-300'} strokeWidth="0.8" />
+                  <div key={index} className={`relative flex items-center justify-center rounded-lg border-2 text-sm font-black transition-colors sm:text-base ${index < numerator ? 'border-indigo-600 bg-indigo-500 text-white' : 'border-slate-300 bg-slate-50 text-slate-400'}`}>
+                    {index + 1}
+                  </div>
                 ))}
-                <circle cx="50" cy="50" r="42" fill="none" className="stroke-indigo-900" strokeWidth="1.2" />
-              </svg>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-center text-xs font-bold sm:text-sm">
+                <div className="rounded-xl bg-indigo-100 p-3 text-indigo-900"><strong className="block text-lg sm:text-xl">{numerator}</strong>partes destacadas</div>
+                <div className="rounded-xl bg-slate-200 p-3 text-slate-700"><strong className="block text-lg sm:text-xl">{denominator}</strong>partes no inteiro</div>
+              </div>
             </div>
-            <p className="mb-5 text-center text-xs font-semibold text-slate-500">O inteiro foi dividido em {denominator} partes iguais. {numerator} parte{numerator === 1 ? '' : 's'} está{numerator === 1 ? '' : 'ão'} destacada{numerator === 1 ? '' : 's'}.</p>
+            <p className="mb-5 mt-4 text-center text-xs font-semibold text-slate-500">O inteiro foi dividido em {denominator} partes iguais. {numerator} parte{numerator === 1 ? '' : 's'} está{numerator === 1 ? '' : 'ão'} destacada{numerator === 1 ? '' : 's'}.</p>
 
             <div className="space-y-5">
               <label className="block text-sm font-bold text-slate-700">Numerador: <span className="text-indigo-700">{numerator}</span><input type="range" min="0" max={denominator} value={numerator} onChange={(event) => setNumerator(Number(event.target.value))} className="mt-2 w-full accent-indigo-600" /></label>
-              <label className="block text-sm font-bold text-slate-700">Denominador: <span className="text-indigo-700">{denominator}</span><input type="range" min="1" max="20" value={denominator} onChange={(event) => { const next = Number(event.target.value); setDenominator(next); setNumerator((value) => Math.min(value, next)) }} className="mt-2 w-full accent-indigo-600" /></label>
+              <label className="block text-sm font-bold text-slate-700">Denominador: <span className="text-indigo-700">{denominator}</span><input type="range" min="1" max="12" value={denominator} onChange={(event) => { const next = Number(event.target.value); setDenominator(next); setNumerator((value) => Math.min(value, next)) }} className="mt-2 w-full accent-indigo-600" /></label>
             </div>
           </section>
 
@@ -101,7 +95,7 @@ export default function Fracoes() {
                 <div className="rounded-2xl bg-white p-3"><div className="text-2xl font-black text-indigo-700">{formatDecimal(decimal)}</div><div className="text-[11px] font-bold text-slate-500">FORMA DECIMAL</div></div>
                 <div className="rounded-2xl bg-white p-3"><div className="text-2xl font-black text-indigo-700">{formatDecimal(percentage)}%</div><div className="text-[11px] font-bold text-slate-500">PORCENTAGEM</div></div>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-indigo-900">A fração representa <strong>{formatDecimal(decimal)}</strong> de um inteiro. Como o numerador é {numerator} e o denominador é {denominator}, dividimos {numerator} por {denominator}.</p>
+              <p className="mt-4 text-sm leading-relaxed text-indigo-900">A fração representa <strong>{formatDecimal(decimal)}</strong> de um inteiro. O numerador é {numerator}, e o denominador é {denominator}: por isso, dividimos {numerator} por {denominator}.</p>
             </div>
 
             <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:p-6">
