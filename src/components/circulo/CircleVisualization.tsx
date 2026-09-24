@@ -210,7 +210,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               strokeWidth="6"
               strokeLinecap="round"
               initial={{ pathLength: 0 }}
-              style={{ pathLength: measuredArcLength }}
+              pathLength={measuredArcLength}
             />
 
             <line x1={piCircleCx-piCircleR} y1={piCircleCy} x2={piCircleCx+piCircleR} y2={piCircleCy} stroke="#111827" strokeWidth="4" />
@@ -281,7 +281,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               strokeWidth="6"
               strokeLinecap="round"
               initial={{ pathLength: 0 }}
-              style={{ pathLength: remainderProgress }}
+              pathLength={remainderProgress}
             />
 
             <motion.text
