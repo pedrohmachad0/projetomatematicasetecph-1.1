@@ -57,28 +57,56 @@ const piArcPath = (startDegrees: number, endDegrees: number) => {
 const getRulerGeometry = (degrees: number) => {
   const clamped = Math.min(359.8, Math.max(0, degrees))
   const current = circlePoint(clamped)
-
-  // A régua tem exatamente o comprimento do diâmetro e fica tangente
-  // ao círculo no ponto que está sendo alcançado.
-  if (clamped < 12) {
-    return {
-      x1: current.x,
-      y1: current.y,
-      x2: current.x,
-      y2: current.y,
-    }
-  }
-
   const radians = (clamped * Math.PI) / 180
   const tangentX = -Math.sin(radians)
   const tangentY = -Math.cos(radians)
 
+  // A régua "encosta" primeiro na borda e cresce até atingir exatamente
+  // o comprimento do diâmetro. Depois disso, ela apenas desliza pela tangente.
+  const rulerProgress = Math.max(0, Math.min(1, (clamped - 4) / 14))
+  const rulerLength = piDiameter * rulerProgress
+
   return {
     x1: current.x,
     y1: current.y,
-    x2: current.x + tangentX * piDiameter,
-    y2: current.y + tangentY * piDiameter,
+    x2: current.x + tangentX * rulerLength,
+    y2: current.y + tangentY * rulerLength,
   }
+}
+
+const getRulerDetailPath = (degrees: number) => {
+  const clamped = Math.min(359.8, Math.max(0, degrees))
+  if (clamped < 4) return ''
+
+  const current = circlePoint(clamped)
+  const radians = (clamped * Math.PI) / 180
+  const tangentX = -Math.sin(radians)
+  const tangentY = -Math.cos(radians)
+  const normalX = Math.cos(radians)
+  const normalY = -Math.sin(radians)
+  const rulerProgress = Math.max(0, Math.min(1, (clamped - 4) / 14))
+  const rulerLength = piDiameter * rulerProgress
+  const parts: string[] = []
+
+  const addTick = (distance: number, size: number) => {
+    const centerX = current.x + tangentX * distance
+    const centerY = current.y + tangentY * distance
+    parts.push(
+      'M ' + (centerX - normalX * size) + ' ' + (centerY - normalY * size) +
+      ' L ' + (centerX + normalX * size) + ' ' + (centerY + normalY * size)
+    )
+  }
+
+  addTick(0, 8)
+  addTick(rulerLength, 8)
+
+  if (rulerLength > 20) {
+    addTick(rulerLength * 0.25, 5)
+    addTick(rulerLength * 0.5, 6)
+    addTick(rulerLength * 0.75, 5)
+  }
+
+  return parts.join(' ')
 }
 
 export default function CircleVisualization({ state, mode, angle, onModeChange }: Props) {
@@ -94,8 +122,10 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
   const rulerY1 = useTransform(sweep, (value) => getRulerGeometry(value).y1)
   const rulerX2 = useTransform(sweep, (value) => getRulerGeometry(value).x2)
   const rulerY2 = useTransform(sweep, (value) => getRulerGeometry(value).y2)
+  const rulerDetailPath = useTransform(sweep, (value) => getRulerDetailPath(value))
   const rulerOpacity = useTransform(sweep, (value) => {
-    if (value < 12) return 0
+    if (value < 4) return 0
+    if (value < 10) return (value - 4) / 6
     if (value > 354) return Math.max(0, (360 - value) / 6)
     return 1
   })
@@ -229,22 +259,33 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               )
             })}
 
-            <motion.circle
-              cx={currentX}
-              cy={currentY}
-              r="7"
-              fill="#f43f5e"
-              style={{ opacity: rulerOpacity }}
-            />
-
             <motion.line
               x1={rulerX1}
               y1={rulerY1}
               x2={rulerX2}
               y2={rulerY2}
               stroke="#111827"
-              strokeWidth="6"
+              strokeWidth="8"
               strokeLinecap="round"
+              style={{ opacity: rulerOpacity }}
+            />
+
+            <motion.path
+              d={rulerDetailPath}
+              fill="none"
+              stroke="#64748b"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              style={{ opacity: rulerOpacity }}
+            />
+
+            <motion.circle
+              cx={currentX}
+              cy={currentY}
+              r="8"
+              fill="#ffffff"
+              stroke="#f43f5e"
+              strokeWidth="4"
               style={{ opacity: rulerOpacity }}
             />
 
