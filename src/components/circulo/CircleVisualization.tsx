@@ -65,3 +65,4 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
 
     {mode === 'desenrolar' && <button type="button" onClick={() => onModeChange('medidas')} className="mt-2 min-h-[44px] rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Voltar ao círculo</button>}
   </div>
+}
