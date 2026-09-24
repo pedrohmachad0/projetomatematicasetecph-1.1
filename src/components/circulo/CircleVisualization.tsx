@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { CircleDot, RotateCcw } from 'lucide-react'
 import { formatNumber, getArcLength, getChordLength, getSectorArea, type CircleMode, type CircleState } from '../../logic/circulo'
 
@@ -60,60 +60,6 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
     if (mode === 'circunferencia') setAnimationKey((value) => value + 1)
   }, [mode])
 
-  const rulerProgress = useMotionValue(0)
-  const remainderProgress = useMotionValue(0)
-  const rulerAngle = useTransform(rulerProgress, (progress) => progress * diameterArcDegrees * 3)
-  const rulerEndX = useTransform(rulerAngle, (degrees) => circlePoint(degrees).x)
-  const rulerEndY = useTransform(rulerAngle, (degrees) => circlePoint(degrees).y)
-  const rulerStartX = useTransform(rulerAngle, (degrees) => {
-    const radians = (degrees * Math.PI) / 180
-    return circlePoint(degrees).x - Math.sin(radians) * piDiameterLength
-  })
-  const rulerStartY = useTransform(rulerAngle, (degrees) => {
-    const radians = (degrees * Math.PI) / 180
-    return circlePoint(degrees).y + Math.cos(radians) * piDiameterLength
-  })
-  const arcProgresses = [
-    useTransform(rulerProgress, [0, 1 / 3], [0, 1]),
-    useTransform(rulerProgress, [1 / 3, 2 / 3], [0, 1]),
-    useTransform(rulerProgress, [2 / 3, 1], [0, 1]),
-  ]
-  const labelOpacities = [
-    useTransform(rulerProgress, [0.25, 0.33], [0, 1]),
-    useTransform(rulerProgress, [0.58, 0.66], [0, 1]),
-    useTransform(rulerProgress, [0.91, 1], [0, 1]),
-  ]
-  const remainderOpacity = useTransform(remainderProgress, [0.15, 0.85], [0, 1])
-  const resultOpacity = useTransform(remainderProgress, [0.55, 1], [0, 1])
-  const boundaryOpacities = [
-    useTransform(rulerProgress, [0, 0.02], [1, 1]),
-    useTransform(rulerProgress, [0.31, 0.34], [0, 1]),
-    useTransform(rulerProgress, [0.64, 0.67], [0, 1]),
-    useTransform(rulerProgress, [0.97, 1], [0, 1]),
-  ]
-
-  useEffect(() => {
-    if (mode !== 'circunferencia') return
-
-    rulerProgress.set(0)
-    remainderProgress.set(0)
-
-    const rulerAnimation = animate(rulerProgress, 1, {
-      delay: 0.8,
-      duration: 9.6,
-      ease: 'linear',
-    })
-    const remainderAnimation = animate(remainderProgress, 1, {
-      delay: 10.9,
-      duration: 1.1,
-      ease: 'easeOut',
-    })
-
-    return () => {
-      rulerAnimation.stop()
-      remainderAnimation.stop()
-    }
-  }, [animationKey, mode, remainderProgress, rulerProgress])
 
   return (
     <div className="w-full">
@@ -198,7 +144,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               Por que π = 3,14159...?
             </text>
             <text x="450" y="65" textAnchor="middle" className="fill-slate-500 text-[14px] font-semibold">
-              O mesmo comprimento do diâmetro é marcado sobre a borda do círculo.
+              Usamos o mesmo comprimento do diâmetro para marcar a borda do círculo.
             </text>
 
             <rect x="155" y="92" width="590" height="370" rx="20" fill="#eff6ff" />
@@ -226,7 +172,12 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                   cy={p.y}
                   r="6"
                   fill="#f43f5e"
-                  style={{ opacity: boundaryOpacities[index] }}
+                  initial={{ opacity: index === 0 ? 1 : 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    delay: index === 1 ? 3.35 : index === 2 ? 6.15 : index === 3 ? 8.95 : 0,
+                    duration: 0.25,
+                  }}
                 />
               )
             })}
@@ -239,7 +190,9 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                 stroke="#111827"
                 strokeWidth="5"
                 strokeLinecap="round"
-                style={{ pathLength: arcProgresses[index] }}
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 2.7, delay: 0.9 + index * 2.7, ease: "linear" }}
               />
             ))}
 
@@ -249,7 +202,9 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               stroke="#f43f5e"
               strokeWidth="7"
               strokeLinecap="round"
-              style={{ pathLength: remainderProgress }}
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.2, delay: 9.1, ease: "easeOut" }}
             />
 
             {[0, 1, 2].map((index) => {
@@ -261,44 +216,60 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                   y={p.y}
                   textAnchor="middle"
                   className="fill-slate-900 text-[22px] font-black"
-                  style={{ opacity: labelOpacities[index] }}
+                  initial={{ opacity: 0, y: p.y + 5 }}
+                  animate={{ opacity: 1, y: p.y }}
+                  transition={{ delay: 3.55 + index * 2.7, duration: 0.35 }}
                 >
                   {index + 1}
                 </motion.text>
               )
             })}
 
-            <motion.g style={{ opacity: rulerProgress }}>
-              <motion.line
-                x1={rulerStartX}
-                y1={rulerStartY}
-                x2={rulerEndX}
-                y2={rulerEndY}
+            <motion.g
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, rotate: -diameterArcDegrees * 3 }}
+              transition={{
+                opacity: { delay: 0.2, duration: 0.35 },
+                rotate: { delay: 0.8, duration: 9.4, ease: "linear" },
+              }}
+              style={{
+                transformBox: "view-box",
+                transformOrigin: piCircleCx + "px " + piCircleCy + "px",
+              }}
+            >
+              <line
+                x1={piCircleCx + piCircleR}
+                y1={piCircleCy}
+                x2={piCircleCx + piCircleR}
+                y2={piCircleCy - piDiameterLength}
                 stroke="#111827"
                 strokeWidth="5"
                 strokeLinecap="round"
               />
-              <motion.circle
-                cx={rulerEndX}
-                cy={rulerEndY}
-                r="7"
-                fill="#f43f5e"
-              />
-
+              <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="7" fill="#f43f5e" />
             </motion.g>
 
-            <motion.g style={{ opacity: remainderOpacity }}>
+            <motion.g
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 10.45, duration: 0.45 }}
+            >
               <path d="M 515 398 L 548 438" stroke="#dc2626" strokeWidth="4" strokeLinecap="round" />
               <path d="M 548 438 L 538 422 M 548 438 L 531 435" stroke="#dc2626" strokeWidth="4" strokeLinecap="round" />
               <text x="585" y="442" textAnchor="middle" className="fill-red-600 text-[26px] font-black">
                 0,14159 D
               </text>
               <text x="585" y="466" textAnchor="middle" className="fill-slate-700 text-[13px] font-semibold">
-                é o trecho que sobra.
+                é o pequeno trecho que sobra.
               </text>
             </motion.g>
 
-            <motion.g style={{ opacity: resultOpacity }}>
+            <motion.g
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 11.1, duration: 0.5 }}
+              style={{ transformOrigin: "450px 529px" }}
+            >
               <rect x="315" y="500" width="270" height="58" rx="10" fill="#b91c1c" />
               <text x="450" y="538" textAnchor="middle" className="fill-yellow-300 text-[28px] font-black">
                 3,14159...
@@ -310,7 +281,9 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               y="594"
               textAnchor="middle"
               className="fill-slate-600 text-[14px] font-semibold"
-              style={{ opacity: resultOpacity }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 11.45, duration: 0.4 }}
             >
               3 diâmetros completos + 0,14159 diâmetro = π
             </motion.text>
@@ -333,3 +306,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
             </button>
           </div>
         </div>
+      )}
+    </div>
+  )
+}
