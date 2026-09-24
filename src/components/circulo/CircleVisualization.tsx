@@ -204,7 +204,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
 
             <motion.g
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1, rotate: diameterArcDegrees * 3 }}
+              animate={{ opacity: 1, rotate: -diameterArcDegrees * 3 }}
               transition={{ opacity: { delay: 0.2, duration: 0.3 }, rotate: { delay: 0.8, duration: 9.4, ease: "linear" } }}
               style={{ transformOrigin: piCircleCx + "px " + piCircleCy + "px" }}
             >
@@ -235,7 +235,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
 
             <motion.text
               x="450"
-              y="592"
+              y="545"
               textAnchor="middle"
               className="fill-slate-600 text-[14px] font-semibold"
               initial={{ opacity: 0 }}
