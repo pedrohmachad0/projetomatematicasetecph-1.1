@@ -55,8 +55,9 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
         <motion.circle cx={cx} cy={cy} r={r} fill="none" stroke="#2563eb" strokeWidth="7" strokeLinecap="round" initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:1.8}} />
         <motion.circle r="9" fill="#1d4ed8" initial={{cx:cx+r,cy}} animate={{cx:[cx+r,cx,cx-r,cx,cx+r],cy:[cy,cy-r,cy,cy+r,cy]}} transition={{duration:1.8,ease:'linear'}} />
         <motion.line x1="80" y1="410" x2="820" y2="410" stroke="#2563eb" strokeWidth="14" strokeLinecap="round" initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:1.8,delay:1.3}} />
-        {[0,1,2].map(i => <g key={i}><line x1={80+i*240} y1="382" x2={80+i*240} y2="438" stroke="#1e40af" strokeWidth="2"/><text x={200+i*240} y="370" textAnchor="middle" className="fill-blue-800 text-[16px] font-black">{i+1}D</text></g>)}
-        <text x="450" y="470" textAnchor="middle" className="fill-slate-600 text-[15px] font-bold">C ÷ D = {formatNumber(state.ratio,5)} ≈ π</text>
+        {[0,1,2].map(i => <g key={i}><line x1={80+i*235} y1="382" x2={80+i*235} y2="438" stroke="#1e40af" strokeWidth="2"/><text x={197.5+i*235} y="370" textAnchor="middle" className="fill-blue-800 text-[16px] font-black">{i+1}D</text></g>)}
+        <text x="785" y="370" textAnchor="middle" className="fill-blue-700 text-[14px] font-black">+{formatNumber(state.ratio-3,5)}D</text>
+        <text x="450" y="470" textAnchor="middle" className="fill-slate-600 text-[15px] font-bold">C = {formatNumber(state.ratio,5)} × D · C ÷ D = π</text>
       </>}
 
       {mode !== 'desenrolar' && <text x="450" y="470" textAnchor="middle" className="fill-slate-500 text-[13px] font-semibold">{mode === 'area' ? `Setor de ${angle}° · área = ${formatNumber(sector)} u²` : mode === 'angulos' ? `corda = ${formatNumber(chord)} u · arco = ${formatNumber(arc)} u` : 'Altere os controles e observe a geometria em tempo real.'}</text>}
