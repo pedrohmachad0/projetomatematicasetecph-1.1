@@ -32,20 +32,20 @@ const arcPath = (startDeg: number, endDeg: number) => {
 }
 
 const piCircleCx = 450
-const piCircleCy = 275
-const piCircleR = 150
+const piCircleCy = 285
+const piCircleR = 130
 const piDiameterLength = piCircleR * 2
 const diameterArcDegrees = 360 / Math.PI
 const piArcEnds = [0, diameterArcDegrees, diameterArcDegrees * 2, diameterArcDegrees * 3]
 const circlePoint = (degrees: number, radius = piCircleR) => {
-  const radians = (-degrees * Math.PI) / 180
+  const radians = (degrees * Math.PI) / 180
   return { x: piCircleCx + radius * Math.cos(radians), y: piCircleCy + radius * Math.sin(radians) }
 }
 const piArcPath = (startDegrees: number, endDegrees: number) => {
   const startPoint = circlePoint(startDegrees)
   const endPoint = circlePoint(endDegrees)
   const largeArc = endDegrees - startDegrees > 180 ? 1 : 0
-  return 'M ' + startPoint.x + ' ' + startPoint.y + ' A ' + piCircleR + ' ' + piCircleR + ' 0 ' + largeArc + ' 0 ' + endPoint.x + ' ' + endPoint.y
+  return 'M ' + startPoint.x + ' ' + startPoint.y + ' A ' + piCircleR + ' ' + piCircleR + ' 0 ' + largeArc + ' 1 ' + endPoint.x + ' ' + endPoint.y
 }
 
 export default function CircleVisualization({ state, mode, angle, onModeChange }: Props) {
@@ -67,10 +67,10 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
         <div>
           <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
             <CircleDot size={18} className="text-blue-700" />
-            {mode === 'circunferencia' ? 'Desenrolando a circunferência' : 'Laboratório do círculo'}
+            {mode === 'circunferencia' ? 'Medindo a circunferência' : 'Laboratório do círculo'}
           </div>
           <p className="mt-0.5 text-xs text-slate-500">
-            {mode === 'circunferencia' ? 'O círculo rola e revela quanto mede sua própria borda.' : 'A geometria responde às suas escolhas.'}
+            {mode === 'circunferencia' ? 'Uma régua com o tamanho do diâmetro percorre a borda e deixa o caminho marcado.' : 'A geometria responde às suas escolhas.'}
           </p>
         </div>
         <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">r = {formatNumber(state.radius)} u</span>
@@ -148,13 +148,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
             aria-label="Experimento visual em que o comprimento do diâmetro percorre a circunferência em três partes completas e um pequeno trecho restante"
             className="w-full overflow-visible"
           >
-            <defs>
-              <filter id="piSoftShadow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.12" />
-              </filter>
-            </defs>
-
-            <text x="450" y="35" textAnchor="middle" className="fill-slate-900 text-[24px] font-black">
+                        <text x="450" y="35" textAnchor="middle" className="fill-slate-900 text-[24px] font-black">
               Por que π = 3,14159...?
             </text>
             <text x="450" y="59" textAnchor="middle" className="fill-slate-500 text-[13px] font-semibold">
@@ -164,29 +158,27 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
             <rect x="95" y="82" width="710" height="455" rx="24" fill="#eff6ff" />
             <rect x="118" y="105" width="664" height="409" rx="18" fill="#ffffff" opacity="0.82" />
 
-            <g filter="url(#piSoftShadow)">
-              <circle cx={piCircleCx} cy={piCircleCy + 35} r={piCircleR} fill="#ffffff" stroke="#111827" strokeWidth="4" />
-            </g>
+            <circle cx={piCircleCx} cy={piCircleCy} r={piCircleR} fill="#ffffff" stroke="#111827" strokeWidth="4" />
 
             <line
               x1={piCircleCx - piCircleR}
-              y1={piCircleCy + 35}
+              y1={piCircleCy}
               x2={piCircleCx + piCircleR}
-              y2={piCircleCy + 35}
+              y2={piCircleCy}
               stroke="#111827"
               strokeWidth="4"
               strokeLinecap="round"
             />
-            <circle cx={piCircleCx - piCircleR} cy={piCircleCy + 35} r="5" fill="#2563eb" />
-            <circle cx={piCircleCx + piCircleR} cy={piCircleCy + 35} r="5" fill="#2563eb" />
-            <rect x={piCircleCx - 63} y={piCircleCy + 45} width="126" height="25" rx="12.5" fill="#f8fafc" stroke="#cbd5e1" />
-            <text x={piCircleCx} y={piCircleCy + 62} textAnchor="middle" className="fill-slate-800 text-[12px] font-black">
+            <circle cx={piCircleCx - piCircleR} cy={piCircleCy} r="5" fill="#2563eb" />
+            <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="5" fill="#2563eb" />
+            <rect x={piCircleCx - 63} y={piCircleCy + 10} width="126" height="25" rx="12.5" fill="#f8fafc" stroke="#cbd5e1" />
+            <text x={piCircleCx} y={piCircleCy + 27} textAnchor="middle" className="fill-slate-800 text-[12px] font-black">
               DIÂMETRO = 2r
             </text>
 
             <circle
               cx={piCircleCx}
-              cy={piCircleCy + 35}
+              cy={piCircleCy}
               r={piCircleR + 15}
               fill="none"
               stroke="#cbd5e1"
@@ -244,14 +236,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               )
             })}
 
-            <motion.circle
-              cx={circlePoint(0).x}
-              cy={circlePoint(0).y}
-              r="8"
-              fill="#f43f5e"
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 1 }}
-            />
+            <circle cx={circlePoint(0).x} cy={circlePoint(0).y} r="8" fill="#f43f5e" />
 
             <motion.g
               initial={{ opacity: 0, rotate: 0 }}
@@ -262,22 +247,22 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               }}
               style={{
                 transformBox: "view-box",
-                transformOrigin: piCircleCx + "px " + (piCircleCy + 35) + "px",
+                transformOrigin: piCircleCx + "px " + (piCircleCy + "px",
               }}
             >
               <line
                 x1={piCircleCx + piCircleR}
-                y1={piCircleCy + 35}
+                y1={piCircleCy}
                 x2={piCircleCx + piCircleR}
-                y2={piCircleCy + 35 + piDiameterLength}
+                y2={piCircleCy + piDiameterLength}
                 stroke="#111827"
                 strokeWidth="7"
                 strokeLinecap="round"
               />
               <circle cx={piCircleCx + piCircleR} cy={piCircleCy + 35} r="8" fill="#f43f5e" />
-              <circle cx={piCircleCx + piCircleR} cy={piCircleCy + 35 + piDiameterLength} r="6" fill="#111827" />
-              <rect x={piCircleCx + piCircleR + 14} y={piCircleCy + 35 + 92} width="112" height="31" rx="10" fill="#111827" />
-              <text x={piCircleCx + piCircleR + 70} y={piCircleCy + 35 + 113} textAnchor="middle" className="fill-white text-[12px] font-black">
+              <circle cx={piCircleCx + piCircleR} cy={piCircleCy + piDiameterLength} r="6" fill="#111827" />
+              <rect x={piCircleCx + piCircleR + 14} y={piCircleCy + 92} width="112" height="31" rx="10" fill="#111827" />
+              <text x={piCircleCx + piCircleR + 70} y={piCircleCy + 113} textAnchor="middle" className="fill-white text-[12px] font-black">
                 1 diâmetro
               </text>
             </motion.g>
