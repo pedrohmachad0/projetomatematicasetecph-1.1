@@ -133,33 +133,28 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
         </svg>
       ) : (
         <div className="relative">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2.5">
+          <div className="mb-3 flex items-center justify-between gap-2 px-1">
             <div>
-              <p className="text-xs font-black uppercase tracking-wider text-blue-800">Experimento de π</p>
-              <p className="mt-0.5 text-xs font-medium text-slate-600">O diâmetro vira uma régua: ele toca a borda e deixa cada trecho marcado.</p>
+              <p className="text-sm font-black text-slate-800">Por que π = 3,14...?</p>
+              <p className="text-xs font-medium text-slate-500">Um diâmetro é usado como uma régua para medir a borda do círculo.</p>
             </div>
-            <span className="rounded-full border border-blue-200 bg-white px-2.5 py-1 text-xs font-black text-blue-800">1 D = {formatNumber(state.diameter)} u</span>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">1D = {formatNumber(state.diameter)} u</span>
           </div>
 
           <svg
             key={animationKey}
-            viewBox="0 0 900 620"
+            viewBox="0 0 760 500"
             role="img"
-            aria-label="Experimento mostrando o diâmetro sendo usado como régua ao redor da circunferência"
-            className="w-full overflow-visible"
+            aria-label="Experimento que usa o comprimento do diâmetro como uma régua ao redor da circunferência"
+            className="mx-auto block w-full max-w-3xl"
           >
-            <text x="450" y="34" textAnchor="middle" className="fill-slate-900 text-[24px] font-black">
-              Por que π = 3,14159...?
-            </text>
-            <text x="450" y="58" textAnchor="middle" className="fill-slate-500 text-[13px] font-semibold">
-              O mesmo comprimento do diâmetro cabe três vezes na borda — e sobra um pequeno trecho.
-            </text>
+            <rect x="28" y="18" width="704" height="420" rx="22" fill="#eff6ff" />
 
-            <rect x="100" y="80" width="700" height="445" rx="24" fill="#eff6ff" />
-            <rect x="122" y="102" width="656" height="401" rx="18" fill="#ffffff" opacity="0.9" />
+            <text x="380" y="48" textAnchor="middle" className="fill-slate-900 text-[20px] font-black">
+              Pegue o diâmetro e forme um arco
+            </text>
 
             <circle cx={piCircleCx} cy={piCircleCy} r={piCircleR} fill="#ffffff" stroke="#111827" strokeWidth="4" />
-            <circle cx={piCircleCx} cy={piCircleCy} r={piCircleR + 14} fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 8" />
 
             <line
               x1={piCircleCx - piCircleR}
@@ -167,52 +162,43 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               x2={piCircleCx + piCircleR}
               y2={piCircleCy}
               stroke="#111827"
-              strokeWidth="4"
-              strokeLinecap="round"
+              strokeWidth="3"
             />
-            <circle cx={piCircleCx - piCircleR} cy={piCircleCy} r="5" fill="#2563eb" />
-            <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="5" fill="#2563eb" />
-            <rect x={piCircleCx - 67} y={piCircleCy + 11} width="134" height="25" rx="12.5" fill="#f8fafc" stroke="#cbd5e1" />
-            <text x={piCircleCx} y={piCircleCy + 28} textAnchor="middle" className="fill-slate-800 text-[12px] font-black">
-              DIÂMETRO = 2r
+            <text x={piCircleCx} y={piCircleCy + 5} textAnchor="middle" className="fill-slate-900 text-[15px] font-black tracking-widest">
+              DIÂMETRO
             </text>
+
+            <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="7" fill="#f43f5e" />
 
             <path
               d={piArcPath(0, diameterArcDegrees * 3)}
               fill="none"
               stroke="#e2e8f0"
-              strokeWidth="9"
-              strokeLinecap="round"
-            />
-            <path
-              d={piArcPath(diameterArcDegrees * 3, 360)}
-              fill="none"
-              stroke="#ffe4e6"
-              strokeWidth="9"
+              strokeWidth="7"
               strokeLinecap="round"
             />
 
             {[0, 1, 2].map((index) => {
               const startDegrees = piArcEnds[index]
               const endDegrees = piArcEnds[index + 1]
-              const labelPoint = circlePoint((startDegrees + endDegrees) / 2, piCircleR + 27)
+              const midDegrees = (startDegrees + endDegrees) / 2
+              const label = circlePoint(midDegrees, piCircleR + 24)
               return (
                 <motion.g
                   key={index}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.95 + index * 2.6, duration: 0.35 }}
+                  transition={{ delay: 1 + index * 2.25, duration: 0.3 }}
                 >
                   <path
                     d={piArcPath(startDegrees, endDegrees)}
                     fill="none"
                     stroke="#111827"
-                    strokeWidth="7"
+                    strokeWidth="6"
                     strokeLinecap="round"
                   />
-                  <circle cx={labelPoint.x} cy={labelPoint.y} r="17" fill="#111827" />
-                  <text x={labelPoint.x} y={labelPoint.y + 6} textAnchor="middle" className="fill-white text-[14px] font-black">
-                    {index + 1}D
+                  <text x={label.x} y={label.y + 5} textAnchor="middle" className="fill-slate-900 text-[18px] font-black">
+                    {index + 1}
                   </text>
                 </motion.g>
               )
@@ -221,25 +207,39 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
             <motion.g
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 8.75, duration: 0.35 }}
+              transition={{ delay: 7.75, duration: 0.35 }}
             >
               <path
                 d={piArcPath(piArcEnds[3], 360)}
                 fill="none"
                 stroke="#f43f5e"
-                strokeWidth="8"
+                strokeWidth="7"
                 strokeLinecap="round"
               />
-              <circle cx={circlePoint(piArcEnds[3]).x} cy={circlePoint(piArcEnds[3]).y} r="8" fill="#f43f5e" />
+              <circle cx={circlePoint(piArcEnds[3]).x} cy={circlePoint(piArcEnds[3]).y} r="7" fill="#f43f5e" />
             </motion.g>
 
             <motion.g
-              initial={{ opacity: 0, rotate: 0 }}
-              animate={{ opacity: 1, rotate: diameterArcDegrees * 3 }}
-              transition={{
-                opacity: { delay: 0.25, duration: 0.25 },
-                rotate: { delay: 0.8, duration: 7.9, ease: "linear" },
-              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.25 }}
+            >
+              <line
+                x1={piCircleCx + piCircleR}
+                y1={piCircleCy}
+                x2={piCircleCx + piCircleR}
+                y2={piCircleCy + piDiameterLength}
+                stroke="#111827"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+              <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="7" fill="#f43f5e" />
+            </motion.g>
+
+            <motion.g
+              initial={{ rotate: 0 }}
+              animate={{ rotate: -diameterArcDegrees * 3 }}
+              transition={{ delay: 0.55, duration: 7.2, ease: "linear" }}
               style={{ transformOrigin: piCircleCx + "px " + piCircleCy + "px" }}
             >
               <line
@@ -248,91 +248,75 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                 x2={piCircleCx + piCircleR}
                 y2={piCircleCy + piDiameterLength}
                 stroke="#111827"
-                strokeWidth="7"
+                strokeWidth="6"
                 strokeLinecap="round"
               />
-              <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="8" fill="#f43f5e" />
-              <circle cx={piCircleCx + piCircleR} cy={piCircleCy + piDiameterLength} r="6" fill="#111827" />
+              <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="7" fill="#f43f5e" />
             </motion.g>
 
             <motion.g
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 8.85, duration: 0.3 }}
+              transition={{ delay: 7.85, duration: 0.3 }}
             >
               <path
-                d={`M ${circlePoint(piArcEnds[3]).x + 8} ${circlePoint(piArcEnds[3]).y + 2} L 615 430`}
+                d={`M ${circlePoint(piArcEnds[3]).x - 2} ${circlePoint(piArcEnds[3]).y + 4} L 225 395`}
                 fill="none"
                 stroke="#dc2626"
                 strokeWidth="3"
                 strokeLinecap="round"
               />
               <path
-                d="M 615 430 L 604 417 M 615 430 L 599 428"
+                d="M 225 395 L 237 382 M 225 395 L 242 393"
                 fill="none"
                 stroke="#dc2626"
                 strokeWidth="3"
                 strokeLinecap="round"
               />
-              <rect x="615" y="407" width="150" height="48" rx="12" fill="#fff1f2" stroke="#fecdd3" />
-              <text x="690" y="428" textAnchor="middle" className="fill-red-600 text-[19px] font-black">
-                +0,14159D
-              </text>
-              <text x="690" y="445" textAnchor="middle" className="fill-slate-600 text-[10px] font-bold">
-                trecho que sobrou
+              <text x="115" y="405" className="fill-red-600 text-[28px] font-black">
+                0,14
               </text>
             </motion.g>
 
             <motion.g
-              initial={{ opacity: 0, y: 8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 9.35, duration: 0.45 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 8.25, duration: 0.4 }}
             >
-              <rect x="315" y="535" width="270" height="56" rx="12" fill="#b91c1c" />
-              <text x="450" y="571" textAnchor="middle" className="fill-yellow-300 text-[29px] font-black">
-                3,14159...
+              <rect x="285" y="385" width="190" height="48" rx="8" fill="#b91c1c" />
+              <text x="380" y="417" textAnchor="middle" className="fill-yellow-300 text-[25px] font-black">
+                3,14...
               </text>
             </motion.g>
 
-            <motion.text
-              x="450"
-              y="612"
-              textAnchor="middle"
-              className="fill-slate-600 text-[13px] font-semibold"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 9.55, duration: 0.35 }}
-            >
-              3 diâmetros completos + 0,14159 diâmetro = π
-            </motion.text>
+            <text x="380" y="466" textAnchor="middle" className="fill-slate-600 text-[13px] font-semibold">
+              3 diâmetros completos + 0,14 de diâmetro = π
+            </text>
           </svg>
 
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
-              cada trecho preto = 1 diâmetro
-              <span className="ml-2 h-2.5 w-2.5 rounded-full bg-rose-500" />
-              sobra
-            </div>
-            <div className="flex flex-wrap gap-2">
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-slate-500">
+              A linha preta tem exatamente o mesmo comprimento do diâmetro.
+            </p>
+            <div className="flex shrink-0 gap-2">
               <button
                 type="button"
                 onClick={() => setAnimationKey((value) => value + 1)}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                className="inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
               >
-                <RotateCcw size={15} /> Repetir experimento
+                <RotateCcw size={14} /> Repetir
               </button>
               <button
                 type="button"
                 onClick={() => onModeChange('medidas')}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                className="inline-flex min-h-[40px] items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
               >
-                Voltar ao laboratório
+                Voltar
               </button>
             </div>
           </div>
         </div>
-      )}
+      )
     </div>
   )
 }
