@@ -247,7 +247,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               }}
               style={{
                 transformBox: "view-box",
-                transformOrigin: piCircleCx + "px " + (piCircleCy + "px",
+                transformOrigin: piCircleCx + "px " + piCircleCy + "px",
               }}
             >
               <line
@@ -259,7 +259,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                 strokeWidth="7"
                 strokeLinecap="round"
               />
-              <circle cx={piCircleCx + piCircleR} cy={piCircleCy + 35} r="8" fill="#f43f5e" />
+              <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="8" fill="#f43f5e" />
               <circle cx={piCircleCx + piCircleR} cy={piCircleCy + piDiameterLength} r="6" fill="#111827" />
               <rect x={piCircleCx + piCircleR + 14} y={piCircleCy + 92} width="112" height="31" rx="10" fill="#111827" />
               <text x={piCircleCx + piCircleR + 70} y={piCircleCy + 113} textAnchor="middle" className="fill-white text-[12px] font-black">
