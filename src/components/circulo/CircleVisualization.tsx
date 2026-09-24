@@ -55,31 +55,29 @@ const piArcPath = (startDegrees: number, endDegrees: number) => {
 }
 
 const getRulerGeometry = (degrees: number) => {
-  if (degrees < 8) {
+  const clamped = Math.min(359.8, Math.max(0, degrees))
+  const current = circlePoint(clamped)
+
+  // A régua tem exatamente o comprimento do diâmetro e fica tangente
+  // ao círculo no ponto que está sendo alcançado.
+  if (clamped < 12) {
     return {
-      x1: piCircleCx - piCircleR,
-      y1: piCircleCy,
-      x2: piCircleCx + piCircleR,
-      y2: piCircleCy,
+      x1: current.x,
+      y1: current.y,
+      x2: current.x,
+      y2: current.y,
     }
   }
 
-  const clamped = Math.min(359.8, Math.max(0.2, degrees))
-  const segmentIndex = Math.min(2, Math.floor(clamped / piSegmentDegrees))
-  const segmentStart = piArcEnds[segmentIndex]
-  const current = circlePoint(clamped)
-  const anchor = circlePoint(segmentStart)
-  const dx = anchor.x - current.x
-  const dy = anchor.y - current.y
-  const length = Math.hypot(dx, dy)
-  const ux = length > 0.001 ? dx / length : 0
-  const uy = length > 0.001 ? dy / length : 1
+  const radians = (clamped * Math.PI) / 180
+  const tangentX = -Math.sin(radians)
+  const tangentY = -Math.cos(radians)
 
   return {
     x1: current.x,
     y1: current.y,
-    x2: current.x + ux * piDiameter,
-    y2: current.y + uy * piDiameter,
+    x2: current.x + tangentX * piDiameter,
+    y2: current.y + tangentY * piDiameter,
   }
 }
 
@@ -97,11 +95,8 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
   const rulerX2 = useTransform(sweep, (value) => getRulerGeometry(value).x2)
   const rulerY2 = useTransform(sweep, (value) => getRulerGeometry(value).y2)
   const rulerOpacity = useTransform(sweep, (value) => {
-    if (value < 8) return 1
+    if (value < 12) return 0
     if (value > 354) return Math.max(0, (360 - value) / 6)
-    const remainder = value % piSegmentDegrees
-    if (remainder < 2) return remainder / 2
-    if (remainder > piSegmentDegrees - 2) return (piSegmentDegrees - remainder) / 2
     return 1
   })
   const measuredArcLength = useTransform(sweep, (value) => Math.min(1, value / 360))
