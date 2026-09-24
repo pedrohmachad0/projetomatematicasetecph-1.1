@@ -3,15 +3,9 @@ export const MAX_RADIUS = 10
 export const DEFAULT_RADIUS = 4
 export const RADIUS_STEP = 0.5
 
-export type CircleMode = 'medidas' | 'angulos' | 'elementos' | 'area' | 'desenrolar'
+export type CircleMode = 'medidas' | 'circunferencia' | 'angulos' | 'elementos' | 'area'
 
-export interface CircleState {
-  radius: number
-  diameter: number
-  circumference: number
-  area: number
-  ratio: number
-}
+export interface CircleState { radius: number; diameter: number; circumference: number; area: number; ratio: number }
 
 export function getCircleState(radius: number): CircleState {
   const safeRadius = Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, radius))
@@ -21,13 +15,18 @@ export function getCircleState(radius: number): CircleState {
 }
 
 export function getArcLength(radius: number, angle: number) {
-  return (Math.max(0, Math.min(360, angle)) / 360) * 2 * Math.PI * radius
+  const safeAngle = Math.max(0, Math.min(360, angle))
+  return (safeAngle / 360) * 2 * Math.PI * radius
 }
 
 export function getSectorArea(radius: number, angle: number) {
-  return (Math.max(0, Math.min(360, angle)) / 360) * Math.PI * radius ** 2
+  const safeAngle = Math.max(0, Math.min(360, angle))
+  return (safeAngle / 360) * Math.PI * radius ** 2
 }
 
-export function formatNumber(value: number, decimals = 2) {
-  return value.toFixed(decimals).replace('.', ',')
+export function getChordLength(radius: number, angle: number) {
+  const safeAngle = Math.max(0, Math.min(360, angle))
+  return 2 * radius * Math.sin((safeAngle * Math.PI) / 360)
 }
+
+export function formatNumber(value: number, decimals = 2) { return value.toFixed(decimals).replace('.', ',') }
