@@ -203,33 +203,22 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
             </motion.text>
 
             <motion.g
-              initial={{ opacity: 0, x: -40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.25, duration: 0.5 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, rotate: diameterArcDegrees * 3 }}
+              transition={{ opacity: { delay: 0.2, duration: 0.4 }, rotate: { delay: 0.8, duration: 9.4, ease: "linear" } }}
+              style={{ transformOrigin: piCircleCx + "px " + piCircleCy + "px" }}
             >
-              <line x1="270" y1="130" x2="420" y2="130" stroke="#111827" strokeWidth="5" strokeLinecap="round" />
-              <circle cx="420" cy="130" r="6" fill="#f43f5e" />
-              <text x="345" y="116" textAnchor="middle" className="fill-slate-800 text-[13px] font-bold">1 diâmetro</text>
-            </motion.g>
-
-            <motion.g
-              animate={{
-                x: [0, 0, 0, 0],
-                y: [0, 0, 0, 0],
-              }}
-            >
-              <motion.line
-                x1="270"
-                y1="130"
-                x2="420"
-                y2="130"
-                stroke="#f43f5e"
+              <line
+                x1={piCircleCx + piCircleR}
+                y1={piCircleCy}
+                x2={piCircleCx + piCircleR}
+                y2={piCircleCy - 300}
+                stroke="#111827"
                 strokeWidth="5"
                 strokeLinecap="round"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 1, 1, 0] }}
-                transition={{ duration: 10.2, times: [0, 0.08, 0.9, 1], repeat: 0 }}
               />
+              <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="7" fill="#f43f5e" />
+              <text x={piCircleCx + piCircleR + 45} y={piCircleCy - 130} className="fill-slate-800 text-[13px] font-bold">1 diâmetro</text>
             </motion.g>
 
             <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 10.5, duration: 0.5 }}>
