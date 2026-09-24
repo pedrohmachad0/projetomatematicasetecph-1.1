@@ -142,7 +142,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
 
             <circle cx={piCircleCx} cy={piCircleCy} r={piCircleR} fill="#ffffff" stroke="#111827" strokeWidth="4" />
 
-            {piArcEnds.map((degrees, index) => {
+            {piArcEnds.map((degrees) => {
               const p = circlePoint(degrees)
               return <circle key={degrees} cx={p.x} cy={p.y} r="6" fill="#f43f5e" />
             })}
