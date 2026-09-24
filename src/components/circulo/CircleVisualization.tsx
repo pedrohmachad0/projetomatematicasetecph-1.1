@@ -151,7 +151,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               const midPoint = circlePoint((startDegrees + endDegrees) / 2, piCircleR + 30)
 
               return (
-                <div key={index}>
+                <g key={index}>
                   <motion.path
                     d={piArcPath(startDegrees, endDegrees)}
                     fill="none"
@@ -213,7 +213,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                       transition={{ delay: 1.2, duration: 0.2 }}
                     />
                   )}
-                </div>
+                </g>
               )
             })}
 
