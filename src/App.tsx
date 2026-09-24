@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Hub from './pages/Hub'
 import Pitagoras from './pages/Pitagoras'
+import Pi from './pages/Pi'
 import CalcSoma from './pages/CalcSoma'
 import CalcSubtracao from './pages/CalcSubtracao'
 import Fracoes from './pages/Fracoes'
@@ -16,6 +17,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Hub />} />
           <Route path="pitagoras" element={<Pitagoras />} />
+          <Route path="pi" element={<Pi />} />
           <Route path="soma" element={<CalcSoma />} />
           <Route path="subtracao" element={<CalcSubtracao />} />
           <Route path="fracoes" element={<Fracoes />} />
