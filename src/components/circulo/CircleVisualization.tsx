@@ -46,7 +46,6 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
   const chord = getChordLength(state.radius, angle)
   const arc = getArcLength(state.radius, angle)
   const sector = getSectorArea(state.radius, angle)
-  const remainder = state.ratio - 3
 
   useEffect(() => {
     if (mode === 'circunferencia') setAnimationKey((value) => value + 1)
