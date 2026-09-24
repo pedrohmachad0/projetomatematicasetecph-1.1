@@ -218,9 +218,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
 
             {piArcEnds.map((degrees, index) => {
               const marker = circlePoint(degrees)
-              const markerOpacity = index === 0
-                ? useTransform(sweep, (value) => value < 8 ? 1 : 0)
-                : useTransform(sweep, (value) => Math.min(1, Math.max(0, (value - degrees + 5) / 8)))
+              const markerDelay = index === 0 ? 0 : (degrees / 360) * 13 - 0.12
 
               return (
                 <motion.circle
@@ -229,7 +227,9 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                   cy={marker.y}
                   r="7"
                   fill="#f43f5e"
-                  style={{ opacity: markerOpacity }}
+                  initial={{ opacity: index === 0 ? 1 : 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.25, delay: Math.max(0, markerDelay) }}
                 />
               )
             })}
@@ -256,7 +256,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
             {piArcEnds.slice(0, 3).map((startDegrees, index) => {
               const endDegrees = piArcEnds[index + 1]
               const mid = circlePoint((startDegrees + endDegrees) / 2, piCircleR + 28)
-              const opacity = useTransform(sweep, (value) => Math.min(1, Math.max(0, (value - endDegrees + 3) / 8)))
+              const labelDelay = (endDegrees / 360) * 13 - 0.05
 
               return (
                 <motion.text
@@ -265,7 +265,9 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                   y={mid.y}
                   textAnchor="middle"
                   className="fill-slate-900 text-[22px] font-black"
-                  style={{ opacity }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: Math.max(0, labelDelay) }}
                 >
                   {index + 1}
                 </motion.text>
