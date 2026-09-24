@@ -31,11 +31,23 @@ const arcPath = (startDeg: number, endDeg: number) => {
   return 'M ' + s.x + ' ' + s.y + ' A ' + r + ' ' + r + ' 0 ' + (endDeg - startDeg > 180 ? 1 : 0) + ' 1 ' + e.x + ' ' + e.y
 }
 
-const piCircleCx = 450
-const piCircleCy = 285
-const piCircleR = 130
+const piCircleCx = 380
+const piCircleCy = 270
+const piCircleR = 120
 const piDiameterLength = piCircleR * 2
 const diameterArcDegrees = 360 / Math.PI
+const piRulerFrames = Array.from({ length: 73 }, (_, index) => {
+  const degrees = (diameterArcDegrees * 3 * index) / 72
+  const radians = (degrees * Math.PI) / 180
+  const x = piCircleCx + piCircleR * Math.cos(radians)
+  const y = piCircleCy - piCircleR * Math.sin(radians)
+  return {
+    x1: x,
+    y1: y,
+    x2: x + piDiameterLength * Math.sin(radians),
+    y2: y + piDiameterLength * Math.cos(radians),
+  }
+})
 const piArcEnds = [0, diameterArcDegrees, diameterArcDegrees * 2, diameterArcDegrees * 3]
 const circlePoint = (degrees: number, radius = piCircleR) => {
   const radians = (degrees * Math.PI) / 180
@@ -143,12 +155,12 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
 
           <svg
             key={animationKey}
-            viewBox="0 0 760 500"
+            viewBox="0 0 760 560"
             role="img"
             aria-label="Experimento que usa o comprimento do diâmetro como uma régua ao redor da circunferência"
             className="mx-auto block w-full max-w-3xl"
           >
-            <rect x="28" y="18" width="704" height="420" rx="22" fill="#eff6ff" />
+            <rect x="28" y="18" width="704" height="500" rx="22" fill="#eff6ff" />
 
             <text x="380" y="48" textAnchor="middle" className="fill-slate-900 text-[20px] font-black">
               Pegue o diâmetro e forme um arco
@@ -219,22 +231,37 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               <circle cx={circlePoint(piArcEnds[3]).x} cy={circlePoint(piArcEnds[3]).y} r="7" fill="#f43f5e" />
             </motion.g>
 
-            <motion.g
+            <motion.line
+              x1={piRulerFrames[0].x1}
+              y1={piRulerFrames[0].y1}
+              x2={piRulerFrames[0].x2}
+              y2={piRulerFrames[0].y2}
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.25 }}
-            >
-              <line
-                x1={piCircleCx + piCircleR}
-                y1={piCircleCy}
-                x2={piCircleCx + piCircleR}
-                y2={piCircleCy + piDiameterLength}
-                stroke="#111827"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              <circle cx={piCircleCx + piCircleR} cy={piCircleCy} r="7" fill="#f43f5e" />
-            </motion.g>
+              animate={{
+                opacity: 1,
+                x1: piRulerFrames.map((frame) => frame.x1),
+                y1: piRulerFrames.map((frame) => frame.y1),
+                x2: piRulerFrames.map((frame) => frame.x2),
+                y2: piRulerFrames.map((frame) => frame.y2),
+              }}
+              transition={{ delay: 0.5, duration: 7.2, ease: "linear" }}
+              stroke="#111827"
+              strokeWidth="6"
+              strokeLinecap="round"
+            />
+            <motion.circle
+              cx={piRulerFrames[0].x1}
+              cy={piRulerFrames[0].y1}
+              r="7"
+              fill="#f43f5e"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                cx: piRulerFrames.map((frame) => frame.x1),
+                cy: piRulerFrames.map((frame) => frame.y1),
+              }}
+              transition={{ delay: 0.5, duration: 7.2, ease: "linear" }}
+            />
 
             <motion.g
               initial={{ rotate: 0 }}
