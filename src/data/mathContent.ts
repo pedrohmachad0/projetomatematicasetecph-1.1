@@ -68,4 +68,14 @@ export const mathContents: MathContent[] = [
     simulator: 'pitagoras',
     available: true,
   },
+  {
+    id: 'pi',
+    title: 'Explorador de π',
+    description: 'Desenrole a circunferência e descubra a relação constante entre C e D.',
+    educationLevel: 'fundamental-2',
+    grade: '9º ano',
+    category: 'Geometria',
+    simulator: 'pi',
+    available: true,
+  },
 ]

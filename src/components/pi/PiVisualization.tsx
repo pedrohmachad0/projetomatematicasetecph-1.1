@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CircleDot, Ruler } from 'lucide-react'
+import { CircleDot } from 'lucide-react'
 import { formatNumber, type PiState } from '../../logic/pi'
 
 interface Props {
@@ -29,7 +29,7 @@ export default function PiVisualization({ state, isUnrolled }: Props) {
       </div>
 
       <svg
-        viewBox={`0 0 ${viewWidth} 500`}
+        viewBox="0 0 900 500"
         role="img"
         aria-label={`Círculo de diâmetro ${formatNumber(state.diameter)} e circunferência ${formatNumber(state.circumference)}`}
         className="w-full overflow-visible"
@@ -86,12 +86,7 @@ export default function PiVisualization({ state, isUnrolled }: Props) {
             animate={{ width: remainderWidth }}
             transition={{ duration: 0.5, delay: 0.38 }}
           />
-          <text
-            x={barStart + fullWidth + remainderWidth / 2}
-            y="326"
-            textAnchor="middle"
-            className="fill-blue-700 text-[14px] font-black"
-          >
+          <text x={barStart + fullWidth + remainderWidth / 2} y="326" textAnchor="middle" className="fill-blue-700 text-[14px] font-black">
             +{formatNumber(state.remainderRatio, 3)}D
           </text>
 
@@ -108,12 +103,9 @@ export default function PiVisualization({ state, isUnrolled }: Props) {
         </motion.g>
 
         {!isUnrolled && (
-          <g>
-            <Ruler x={390} y={300} size={120} className="text-slate-400" />
-            <text x="450" y="330" textAnchor="middle" className="fill-slate-500 text-[13px] font-semibold">
-              Clique em “Desenrolar” para comparar
-            </text>
-          </g>
+          <text x="450" y="330" textAnchor="middle" className="fill-slate-500 text-[13px] font-semibold">
+            Clique em “Desenrolar” para comparar
+          </text>
         )}
       </svg>
     </div>
