@@ -8,7 +8,6 @@ interface Props {
 }
 
 export default function PiVisualization({ state, isUnrolled }: Props) {
-  const viewWidth = 900
   const barStart = 90
   const barWidth = 720
   const scale = barWidth / state.circumference
