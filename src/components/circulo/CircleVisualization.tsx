@@ -38,14 +38,14 @@ const piDiameterLength = piCircleR * 2
 const diameterArcDegrees = 360 / Math.PI
 const piArcEnds = [0, diameterArcDegrees, diameterArcDegrees * 2, diameterArcDegrees * 3]
 const circlePoint = (degrees: number, radius = piCircleR) => {
-  const radians = (degrees * Math.PI) / 180
+  const radians = (-degrees * Math.PI) / 180
   return { x: piCircleCx + radius * Math.cos(radians), y: piCircleCy + radius * Math.sin(radians) }
 }
 const piArcPath = (startDegrees: number, endDegrees: number) => {
   const startPoint = circlePoint(startDegrees)
   const endPoint = circlePoint(endDegrees)
   const largeArc = endDegrees - startDegrees > 180 ? 1 : 0
-  return 'M ' + startPoint.x + ' ' + startPoint.y + ' A ' + piCircleR + ' ' + piCircleR + ' 0 ' + largeArc + ' 1 ' + endPoint.x + ' ' + endPoint.y
+  return 'M ' + startPoint.x + ' ' + startPoint.y + ' A ' + piCircleR + ' ' + piCircleR + ' 0 ' + largeArc + ' 0 ' + endPoint.x + ' ' + endPoint.y
 }
 
 export default function CircleVisualization({ state, mode, angle, onModeChange }: Props) {
@@ -67,11 +67,11 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
   const rulerEndY = useTransform(rulerAngle, (degrees) => circlePoint(degrees).y)
   const rulerStartX = useTransform(rulerAngle, (degrees) => {
     const radians = (degrees * Math.PI) / 180
-    return circlePoint(degrees).x + Math.sin(radians) * piDiameterLength
+    return circlePoint(degrees).x - Math.sin(radians) * piDiameterLength
   })
   const rulerStartY = useTransform(rulerAngle, (degrees) => {
     const radians = (degrees * Math.PI) / 180
-    return circlePoint(degrees).y - Math.cos(radians) * piDiameterLength
+    return circlePoint(degrees).y + Math.cos(radians) * piDiameterLength
   })
   const arcProgresses = [
     useTransform(rulerProgress, [0, 1 / 3], [0, 1]),
