@@ -85,6 +85,12 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
   ]
   const remainderOpacity = useTransform(remainderProgress, [0.15, 0.85], [0, 1])
   const resultOpacity = useTransform(remainderProgress, [0.55, 1], [0, 1])
+  const boundaryOpacities = [
+    useTransform(rulerProgress, [0, 0.02], [1, 1]),
+    useTransform(rulerProgress, [0.31, 0.34], [0, 1]),
+    useTransform(rulerProgress, [0.64, 0.67], [0, 1]),
+    useTransform(rulerProgress, [0.97, 1], [0, 1]),
+  ]
 
   useEffect(() => {
     if (mode !== 'circunferencia') return
@@ -211,9 +217,18 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
               DIÂMETRO
             </text>
 
-            {piArcEnds.map((degrees) => {
+            {piArcEnds.map((degrees, index) => {
               const p = circlePoint(degrees)
-              return <circle key={degrees} cx={p.x} cy={p.y} r="6" fill="#f43f5e" />
+              return (
+                <motion.circle
+                  key={degrees}
+                  cx={p.x}
+                  cy={p.y}
+                  r="6"
+                  fill="#f43f5e"
+                  style={{ opacity: boundaryOpacities[index] }}
+                />
+              )
             })}
 
             {[0, 1, 2].map((index) => (
@@ -269,13 +284,7 @@ export default function CircleVisualization({ state, mode, angle, onModeChange }
                 r="7"
                 fill="#f43f5e"
               />
-              <motion.text
-                x={piCircleCx + piCircleR + 42}
-                y={piCircleCy - 112}
-                className="fill-slate-800 text-[13px] font-black"
-              >
-                1D
-              </motion.text>
+
             </motion.g>
 
             <motion.g style={{ opacity: remainderOpacity }}>
