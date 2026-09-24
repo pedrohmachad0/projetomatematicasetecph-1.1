@@ -70,8 +70,8 @@ export const mathContents: MathContent[] = [
   },
   {
     id: 'pi',
-    title: 'Explorador de π',
-    description: 'Desenrole a circunferência e descubra a relação constante entre C e D.',
+    title: 'Explorador do Círculo',
+    description: 'Explore raio, diâmetro, circunferência, área, arcos, ângulos e outras relações do círculo.',
     educationLevel: 'fundamental-2',
     grade: '9º ano',
     category: 'Geometria',
