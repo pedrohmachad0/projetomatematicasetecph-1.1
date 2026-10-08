@@ -1,62 +1,176 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Circle, Compass, Info, RotateCcw, Sparkles } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { RotateCcw, SlidersHorizontal } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import CircleVisualization from '../components/circulo/CircleVisualization'
 import { DEFAULT_RADIUS, MAX_RADIUS, MIN_RADIUS, RADIUS_STEP, formatNumber, getCircleState, type CircleMode } from '../logic/circulo'
 
-const modes: Array<{ id: CircleMode; label: string; hint: string }> = [
-  { id: 'medidas', label: 'Medidas', hint: 'raio e diâmetro' },
-  { id: 'circunferencia', label: 'Circunferência', hint: 'descobrir π' },
-  { id: 'angulos', label: 'Arcos e ângulos', hint: 'arco e corda' },
-  { id: 'area', label: 'Área e setor', hint: 'ângulo e área' },
-  { id: 'elementos', label: 'Elementos', hint: 'partes do círculo' },
+const topics: Array<{ id: CircleMode; mark: string; title: string; shortTitle: string; prompt: string; instruction: string }> = [
+  {
+    id: 'circunferencia',
+    mark: 'π',
+    title: 'Descobrir π',
+    shortTitle: 'Descobrir',
+    prompt: 'Quantos diâmetros cabem na volta?',
+    instruction: 'Faça uma estimativa. Depois arraste o ponto rosa ou toque nas marcas para conferir.',
+  },
+  {
+    id: 'medidas',
+    mark: 'r · d',
+    title: 'Raio e diâmetro',
+    shortTitle: 'Raio',
+    prompt: 'Qual é a relação entre raio e diâmetro?',
+    instruction: 'Mude o raio e observe o diâmetro acompanhar: ele mede sempre o dobro.',
+  },
+  {
+    id: 'angulos',
+    mark: '⌒',
+    title: 'Arcos e cordas',
+    shortTitle: 'Arcos',
+    prompt: 'Como o ângulo muda o arco e a corda?',
+    instruction: 'Mova o controle do ângulo e compare o trecho curvo com a linha que liga suas pontas.',
+  },
+  {
+    id: 'area',
+    mark: '◔',
+    title: 'Área do setor',
+    shortTitle: 'Setor',
+    prompt: 'Quanto espaço ocupa esta fatia?',
+    instruction: 'Aumente o ângulo central e veja a área do setor crescer dentro do círculo.',
+  },
+  {
+    id: 'elementos',
+    mark: '○',
+    title: 'Partes do círculo',
+    shortTitle: 'Partes',
+    prompt: 'Onde está cada parte do círculo?',
+    instruction: 'Escolha um elemento para destacá-lo e entender o que ele representa.',
+  },
 ]
 
 export default function Pi() {
   const [radius, setRadius] = useState(DEFAULT_RADIUS)
-  const [mode, setMode] = useState<CircleMode>('medidas')
+  const [mode, setMode] = useState<CircleMode>('circunferencia')
   const [angle, setAngle] = useState(90)
+  const [experimentKey, setExperimentKey] = useState(0)
   const state = getCircleState(radius)
-  const updateRadius = (value: number) => { if (!Number.isFinite(value)) return; const clamped = Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, value)); setRadius(Math.round(clamped / RADIUS_STEP) * RADIUS_STEP) }
-  const reset = () => { setRadius(DEFAULT_RADIUS); setAngle(90); setMode('medidas') }
+  const activeTopic = topics.find(topic => topic.id === mode) ?? topics[0]
 
-  return <PresentationMode title="Explorador do Círculo">
-    <div className="mx-auto max-w-6xl overflow-x-hidden">
-      <Link to="/" className="mb-4 inline-flex min-h-[44px] items-center gap-1.5 text-xs font-medium text-blue-700 hover:underline sm:mb-6 sm:text-sm"><ArrowLeft size={16}/> Voltar ao início</Link>
-      <header className="mb-6 sm:mb-8">
-        <h1 className="text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-3xl md:text-4xl lg:text-5xl"><span className="text-blue-800">◉</span> Explorador do Círculo</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:mt-3 sm:text-base md:text-lg">Manipule o círculo e descubra visualmente como raio, diâmetro, circunferência, área, arcos, ângulos, cordas e setores se relacionam.</p>
-        <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 sm:text-sm"><Sparkles size={14}/> Explore livremente: tudo acontece em tempo real.</p>
-      </header>
-      <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-[390px_1fr]">
-        <aside className="order-2 space-y-4 lg:order-1">
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-            <div className="mb-5 flex items-center justify-between"><div className="flex items-center gap-2"><Circle size={19} className="text-blue-700"/><h2 className="text-base font-bold text-slate-900 sm:text-lg">Controles</h2></div><button type="button" onClick={reset} title="Reiniciar" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"><RotateCcw size={15}/></button></div>
-            <label htmlFor="circle-radius" className="flex items-center justify-between text-xs font-bold uppercase tracking-wide text-slate-600"><span>Raio</span><span className="font-mono text-blue-700">{formatNumber(radius)} u</span></label>
-            <div className="mt-2 flex items-center gap-2"><input id="circle-radius" type="number" min={MIN_RADIUS} max={MAX_RADIUS} step={RADIUS_STEP} value={radius} onChange={e=>updateRadius(Number(e.target.value))} className="min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-base font-black text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"/><span className="font-mono text-sm font-bold text-slate-500">u</span></div>
-            <input aria-label="Ajustar raio" type="range" min={MIN_RADIUS} max={MAX_RADIUS} step={RADIUS_STEP} value={radius} onChange={e=>updateRadius(Number(e.target.value))} className="mt-4 w-full accent-blue-600"/>
-            <div className="mt-1 flex justify-between text-[11px] font-semibold text-slate-400"><span>{MIN_RADIUS} u</span><span>{MAX_RADIUS} u</span></div>
-            <div className="mt-5 grid grid-cols-2 gap-2">{[['RAIO',formatNumber(state.radius)+' u'],['DIÂMETRO',formatNumber(state.diameter)+' u'],['CIRCUNFERÊNCIA',formatNumber(state.circumference)+' u'],['ÁREA',formatNumber(state.area)+' u²']].map(([label,value])=><div key={label} className="rounded-xl border border-slate-200 bg-slate-50 p-3"><div className="text-[10px] font-bold tracking-wide text-slate-500">{label}</div><div className="mt-0.5 text-lg font-black text-slate-800">{value}</div></div>)}</div>
-          </section>
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-600"><Compass size={15} className="text-blue-700"/> Explorar</div>
-            <div className="space-y-2">{modes.map(item => <button key={item.id} type="button" onClick={()=>setMode(item.id)} className={'flex min-h-[50px] w-full items-center justify-between rounded-xl border px-3 text-left transition '+(mode===item.id?'border-blue-300 bg-blue-50 text-blue-900 shadow-sm':'border-slate-200 bg-white text-slate-700 hover:bg-slate-50')}><span className="text-sm font-bold">{item.label}</span><span className="text-[11px] font-medium text-slate-500">{item.hint}</span></button>)}</div>
-            {(mode==='angulos'||mode==='area') && <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-3.5"><div className="flex items-center justify-between"><label htmlFor="circle-angle" className="text-xs font-bold text-blue-800">Ângulo central</label><span className="font-mono text-sm font-black text-blue-900">{angle}°</span></div><input id="circle-angle" type="range" min="0" max="360" step="5" value={angle} onChange={e=>setAngle(Number(e.target.value))} className="mt-3 w-full accent-blue-600"/><div className="mt-1 flex justify-between text-[10px] font-semibold text-blue-600"><span>0°</span><span>180°</span><span>360°</span></div></div>}
-          </section>
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="mb-3 flex items-center gap-2 text-[11px] font-black tracking-widest text-slate-500"><Info size={14}/> RELAÇÕES</div>
-            <div className="space-y-2 text-sm"><div className="rounded-lg bg-slate-50 px-3 py-2.5"><span className="font-mono font-bold text-blue-800">D = 2r</span><span className="ml-2 text-slate-600">{formatNumber(state.diameter)} = 2 × {formatNumber(state.radius)}</span></div><div className="rounded-lg bg-slate-50 px-3 py-2.5"><span className="font-mono font-bold text-blue-800">C = πD</span><span className="ml-2 text-slate-600">{formatNumber(state.circumference)} ≈ π × {formatNumber(state.diameter)}</span></div><div className="rounded-lg bg-slate-50 px-3 py-2.5"><span className="font-mono font-bold text-blue-800">A = πr²</span><span className="ml-2 text-slate-600">{formatNumber(state.area)} ≈ π × {formatNumber(state.radius)}²</span></div></div>
-          </section>
-        </aside>
-        <main className="order-1 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 md:p-6 lg:order-2">
-          <CircleVisualization state={state} mode={mode} angle={angle} onModeChange={setMode}/>
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">{[['r',formatNumber(state.radius)+' u'],['d',formatNumber(state.diameter)+' u'],['C',formatNumber(state.circumference)+' u'],['A',formatNumber(state.area)+' u²']].map(([symbol,value])=><div key={symbol} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center"><div className="font-mono text-xs font-bold text-blue-700">{symbol}</div><div className="text-sm font-black text-slate-800">{value}</div></div>)}</div>
-          <button type="button" onClick={()=>setMode('circunferencia')} className="mt-3 inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-800"><Sparkles size={17}/> Desenrolar a circunferência e descobrir π</button>
-        </main>
-      </div>
-      <motion.section initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} className="mt-4 grid gap-4 sm:mt-6 lg:grid-cols-3"><div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"><div className="text-xs font-black tracking-wide text-blue-700">MEDIDAS</div><h2 className="mt-1 text-base font-black text-slate-900">Raio e diâmetro</h2><p className="mt-1.5 text-sm leading-relaxed text-slate-600">Mude o raio e veja o diâmetro, a área e a circunferência acompanharem a mudança.</p></div><div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"><div className="text-xs font-black tracking-wide text-blue-700">GEOMETRIA</div><h2 className="mt-1 text-base font-black text-slate-900">Arcos, cordas e setores</h2><p className="mt-1.5 text-sm leading-relaxed text-slate-600">Um único ângulo central controla diferentes medidas da mesma região.</p></div><div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"><div className="text-xs font-black tracking-wide text-blue-700">EXPERIMENTO</div><h2 className="mt-1 text-base font-black text-slate-900">Por que aparece π?</h2><p className="mt-1.5 text-sm leading-relaxed text-slate-600">Ao comparar a circunferência com o diâmetro, a mesma razão aparece para qualquer círculo.</p></div></motion.section>
+  const updateRadius = (value: number) => {
+    if (!Number.isFinite(value)) return
+    const clamped = Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, value))
+    setRadius(Math.round(clamped / RADIUS_STEP) * RADIUS_STEP)
+  }
+
+  const reset = () => {
+    setRadius(DEFAULT_RADIUS)
+    setAngle(90)
+    setMode('circunferencia')
+    setExperimentKey(value => value + 1)
+  }
+
+  return <PresentationMode title="Círculo e π">
+    <div className="mx-auto max-w-6xl space-y-3.5 sm:space-y-4">
+      <section aria-labelledby="circle-intro-title" className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0b2851] via-[#164c91] to-[#2869c8] px-5 py-3 text-white shadow-[0_24px_60px_-35px_rgba(30,64,175,0.7)] sm:px-7 sm:py-4 md:px-9">
+        <div className="pointer-events-none absolute -right-10 -top-20 h-64 w-64 rounded-full border border-white/10" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-1 -top-10 h-48 w-48 rounded-full border border-white/10" aria-hidden="true" />
+        <div className="relative flex items-center justify-between gap-3 sm:gap-6">
+          <div className="max-w-3xl">
+            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-blue-100 sm:text-[10px]">Geometria para explorar</p>
+            <h1 id="circle-intro-title" className="mt-1 text-xl font-black leading-tight tracking-tight sm:text-2xl md:text-3xl">O círculo e o número π</h1>
+            <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-blue-50 sm:text-sm">
+              A volta de qualquer círculo mede cerca de <strong className="font-black text-white">3,14 diâmetros</strong>: essa razão é o π.
+            </p>
+          </div>
+          <div className="relative grid h-[58px] w-[58px] shrink-0 place-items-center rounded-full border border-white/40 bg-white/10 shadow-inner sm:h-20 sm:w-20" aria-label="Pi aproximadamente 3,14">
+            <span className="text-3xl font-black leading-none sm:text-4xl">π</span>
+            <span className="absolute -bottom-2 rounded-full border border-white/30 bg-[#123b76] px-2 py-0.5 text-[10px] font-black text-white sm:text-xs">≈ 3,14</span>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="active-circle-topic" className="overflow-hidden rounded-[28px] border border-blue-100 bg-white p-3 shadow-[0_18px_55px_-35px_rgba(30,64,175,0.35)] sm:p-5 md:p-6">
+        <div className="mb-3 border-b border-slate-100 pb-3">
+          <div className="mb-1 flex items-center justify-between gap-3 px-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Explore o círculo</p>
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-blue-700">{topics.length} experiências</span>
+          </div>
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="group" aria-label="Simuladores sobre o círculo">
+            {topics.map(topic => {
+              const selected = mode === topic.id
+              return <button
+                key={topic.id}
+                type="button"
+                aria-pressed={selected}
+                aria-label={topic.title}
+                onClick={() => setMode(topic.id)}
+                className={'group flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl border px-1 py-1 text-center transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 sm:min-h-10 sm:flex-row sm:gap-2 sm:px-2 sm:py-1.5 ' + (selected
+                  ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-sm ring-1 ring-blue-100'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50/60')}
+              >
+                <span className={'grid h-6 min-w-6 shrink-0 place-items-center rounded-lg px-1 font-mono text-[11px] font-black transition sm:h-7 sm:min-w-7 sm:text-xs ' + (selected ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-800')}>{topic.mark}</span>
+                <span className="text-[9px] font-black leading-tight sm:text-left sm:text-[11px] md:text-xs"><span className="sm:hidden">{topic.shortTitle}</span><span className="hidden sm:inline">{topic.title}</span></span>
+              </button>
+            })}
+          </div>
+        </div>
+
+        <header className="mb-2 px-1 text-center sm:mb-3">
+          <p className="text-[9px] font-black uppercase tracking-[0.16em] text-blue-700">Simulador interativo</p>
+          <h2 id="active-circle-topic" className="mt-0.5 text-lg font-black leading-tight tracking-tight text-slate-950 sm:text-xl md:text-2xl">{activeTopic.prompt}</h2>
+          <p className="mx-auto mt-1 max-w-3xl text-[11px] leading-relaxed text-slate-600 sm:text-xs">{activeTopic.instruction}</p>
+        </header>
+
+        <div className="rounded-[24px] bg-[#dce9f7] p-2 sm:p-4 md:p-5">
+          <CircleVisualization key={experimentKey} state={state} mode={mode} angle={angle} />
+
+          {mode === 'medidas' && <div className="mx-auto mt-3 max-w-3xl rounded-2xl border border-white/80 bg-white/90 p-3 shadow-sm sm:px-5 sm:py-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label htmlFor="circle-radius" className="text-sm font-bold text-slate-700">Ajuste o raio</label>
+              <output htmlFor="circle-radius" className="rounded-xl bg-blue-50 px-3 py-1.5 font-mono text-sm font-black text-blue-800">r = {formatNumber(state.radius)} u <span className="px-1 text-blue-300">·</span> d = {formatNumber(state.diameter)} u</output>
+            </div>
+            <input id="circle-radius" aria-label="Ajustar raio do círculo" type="range" min={MIN_RADIUS} max={MAX_RADIUS} step={RADIUS_STEP} value={radius} onChange={event => updateRadius(Number(event.target.value))} className="mt-2 w-full accent-blue-700" />
+            <div className="mt-1 flex justify-between text-[10px] font-semibold text-slate-400"><span>{MIN_RADIUS} u</span><span>{MAX_RADIUS} u</span></div>
+            <p className="mt-2 text-center text-xs font-semibold text-slate-600">O diâmetro passa pelo centro e mede sempre <strong>2 × raio</strong>.</p>
+          </div>}
+
+          {(mode === 'angulos' || mode === 'area') && <div className="mx-auto mt-3 max-w-3xl rounded-2xl border border-white/80 bg-white/90 p-3 shadow-sm sm:px-5 sm:py-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label htmlFor="circle-angle" className="text-sm font-bold text-slate-700">Ângulo central</label>
+              <output htmlFor="circle-angle" className="rounded-xl bg-blue-50 px-3 py-1.5 font-mono text-sm font-black text-blue-800">{angle}°</output>
+            </div>
+            <input id="circle-angle" type="range" min="0" max="360" step="5" value={angle} onChange={event => setAngle(Number(event.target.value))} className="mt-2 w-full accent-blue-700" />
+            <div className="mt-1 flex justify-between text-[10px] font-semibold text-slate-400"><span>0°</span><span>90°</span><span>180°</span><span>270°</span><span>360°</span></div>
+          </div>}
+        </div>
+      </section>
+
+      <details className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-left sm:px-5 [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-2.5 text-sm font-bold text-slate-700 sm:text-base">
+            <SlidersHorizontal size={17} className="text-blue-700" aria-hidden="true" />
+            Testar outro tamanho de círculo
+          </span>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-500">opcional</span>
+        </summary>
+
+        <div className="border-t border-slate-100 px-4 pb-5 pt-4 sm:px-5">
+          <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+            <div>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <label htmlFor="circle-radius-explore" className="text-sm font-bold text-slate-700">Raio do círculo</label>
+                <output htmlFor="circle-radius-explore" className="rounded-lg bg-blue-50 px-2.5 py-1 font-mono text-sm font-black text-blue-800">{formatNumber(radius)} u</output>
+              </div>
+              <input id="circle-radius-explore" type="range" min={MIN_RADIUS} max={MAX_RADIUS} step={RADIUS_STEP} value={radius} onChange={event => updateRadius(Number(event.target.value))} className="w-full accent-blue-700" />
+              <div className="mt-1 flex justify-between text-[11px] font-semibold text-slate-400"><span>{MIN_RADIUS} u</span><span>{MAX_RADIUS} u</span></div>
+            </div>
+
+            <button type="button" onClick={reset} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
+              <RotateCcw size={15} aria-hidden="true" /> Restaurar início
+            </button>
+          </div>
+          {mode === 'circunferencia' && <p className="mt-3 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold leading-relaxed text-blue-900">Mude o raio e repita o experimento: a razão entre a volta e o diâmetro continua próxima de 3,14.</p>}
+        </div>
+      </details>
     </div>
   </PresentationMode>
 }

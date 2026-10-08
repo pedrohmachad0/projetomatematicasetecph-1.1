@@ -8,10 +8,17 @@ export type CircleMode = 'medidas' | 'circunferencia' | 'angulos' | 'elementos' 
 export interface CircleState { radius: number; diameter: number; circumference: number; area: number; ratio: number }
 
 export function getCircleState(radius: number): CircleState {
-  const safeRadius = Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, radius))
+  const finiteRadius = Number.isFinite(radius) ? radius : DEFAULT_RADIUS
+  const safeRadius = Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, finiteRadius))
   const diameter = safeRadius * 2
   const circumference = Math.PI * diameter
   return { radius: safeRadius, diameter, circumference, area: Math.PI * safeRadius ** 2, ratio: circumference / diameter }
+}
+
+/** Distância percorrida ao desenrolar uma fração de uma volta completa. */
+export function getUnrolledDistance(radius: number, progress: number): number {
+  const safeProgress = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0
+  return getCircleState(radius).circumference * safeProgress
 }
 
 export function getArcLength(radius: number, angle: number) {
