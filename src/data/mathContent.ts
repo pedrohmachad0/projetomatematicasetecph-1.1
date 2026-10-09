@@ -68,4 +68,14 @@ export const mathContents: MathContent[] = [
     simulator: 'pitagoras',
     available: true,
   },
+  {
+    id: 'pi',
+    title: 'Explorador do Círculo',
+    description: 'Explore raio, diâmetro, circunferência, área, arcos, ângulos e outras relações do círculo.',
+    educationLevel: 'fundamental-2',
+    grade: '9º ano',
+    category: 'Geometria',
+    simulator: 'pi',
+    available: true,
+  },
 ]
