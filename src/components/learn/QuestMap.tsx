@@ -489,7 +489,6 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
               <span>Interagir</span>
             </button>
           </div>
-          <p className="explore-help">Setas/WASD (segure para andar) · toque no mapa ou joystick no celular · <kbd>E</kbd> interagir · <kbd>J</kbd> diário · <kbd>Esc</kbd> pausa</p>
         </section>
 
       </div>

@@ -192,6 +192,20 @@ export default function Aprender() {
   }
 
   const soundOn = settings.sfx
+  /** Telas de jogo: ocupam a tela toda, sem rolagem nem gestos do navegador. */
+  const inGame = screen === 'explore' || screen === 'battle' || screen === 'blitz' || screen === 'title'
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.toggle('game-locked', inGame)
+    // Bloqueia o zoom por pinça do Safari (gesturestart) enquanto se joga.
+    const blockGesture = (event: Event) => event.preventDefault()
+    if (inGame) document.addEventListener('gesturestart', blockGesture)
+    return () => {
+      root.classList.remove('game-locked')
+      document.removeEventListener('gesturestart', blockGesture)
+    }
+  }, [inGame])
   const heroName = settings.playerName || 'Aventureiro'
   const hasSave = totalXp > 0 || stats.unlocked.length > 0 || questBooks.some((item) => (progresses[item.id]?.completed.length ?? 0) > 0)
 
@@ -418,7 +432,7 @@ export default function Aprender() {
         </div>
       </header>
       )}
-      <div key={screen} className={`screen-transition ${screen === 'battle' ? 'battle-enter' : ''}`}>
+      <div key={screen} className={`screen-transition ${screen === 'battle' ? 'battle-enter' : ''} ${inGame ? 'game-stage' : ''} ${screen === 'explore' ? 'stage-explore' : ''}`} onContextMenu={inGame ? (event) => event.preventDefault() : undefined}>
       {screen === 'title' ? (
         <TitleScreen
           hasSave={hasSave}
@@ -815,7 +829,7 @@ export default function Aprender() {
         </main>
       )}
       </div>
-      {screen !== 'title' && <SchoolCredit className="pb-6 pt-2" />}
+      {!inGame && <SchoolCredit className="pb-6 pt-2" />}
       {menu === 'pause' && (
         <PauseMenu
           canJournal={screen === 'explore'}

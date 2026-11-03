@@ -17,6 +17,7 @@ export default function VirtualJoystick({ onDirection }: Props) {
   const origin = useRef({ x: 0, y: 0 })
   const last = useRef<Direction | null>(null)
   const [stick, setStick] = useState<{ x: number; y: number; dx: number; dy: number } | null>(null)
+  const [used, setUsed] = useState(false)
 
   function local(event: PointerEvent<HTMLDivElement>) {
     const rect = zone.current!.getBoundingClientRect()
@@ -46,6 +47,7 @@ export default function VirtualJoystick({ onDirection }: Props) {
         pointer.current = event.pointerId
         event.currentTarget.setPointerCapture?.(event.pointerId)
         origin.current = local(event)
+        setUsed(true)
         setStick({ ...origin.current, dx: 0, dy: 0 })
       }}
       onPointerMove={(event) => {
@@ -69,7 +71,7 @@ export default function VirtualJoystick({ onDirection }: Props) {
           <span className="joystick-knob" style={{ transform: `translate(${stick.dx}px, ${stick.dy}px)` }} />
         </span>
       ) : (
-        <span className="joystick-hint">arraste para andar</span>
+        !used && <span className="joystick-hint">arraste para andar</span>
       )}
     </div>
   )
