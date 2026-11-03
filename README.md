@@ -23,6 +23,20 @@ Plataforma web educacional com um catálogo de simuladores de Matemática para o
 
 Todos seguem a filosofia do §31.3 de `regrasdoprojeto.md`: interação, cálculo em tempo real, representação visual em SVG, feedback textual e modo apresentação para projetor/TV, com tema claro e escuro.
 
+## MathQuest (`/aprender`)
+
+Mini RPG para aprender Matemática por livros (capítulos) e fases, seguindo os simuladores:
+
+| Livro | Tema | Fases | Simuladores ligados |
+| --- | --- | --- | --- |
+| I · Floresta das Brasas | Soma, subtração e multiplicação | 10 | Soma, Subtração |
+| II · Vila das Frações | Frações, equivalência e porcentagem | 6 | Frações, Porcentagem |
+| III · Montanhas da Álgebra | Equações, média, mediana e moda | 6 | Equações, Estatística |
+| IV · Templo da Geometria | Pitágoras, círculo e trigonometria | 6 | Pitágoras, Círculo, Trigonometria |
+| V · Cidade das Funções | Funções, PA, PG e probabilidade | 6 | Funções, PA e PG, Probabilidade |
+
+Cada fase é um mapa explorável (setas, WASD, toque ou clique) com missões: derrotar monstros, ajudar um morador com um problema do local, consertar a ponte/portão, abrir o baú e ler a placa que leva ao simulador. Depois vem a batalha contra o guardião (3 corações, combos, itens da loja e estrelas). Os mapas são gerados de forma determinística (`src/logic/questMap.ts`) e as perguntas vêm de `src/logic/questTopics.ts`; os testes conferem que todo mapa é jogável e que toda resposta está certa. O **modo professor** (na biblioteca de livros) libera todos os livros e fases.
+
 ## Rodar local
 
 ```bash

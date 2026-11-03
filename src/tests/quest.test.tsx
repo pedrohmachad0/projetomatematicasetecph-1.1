@@ -152,3 +152,26 @@ describe('MathQuest: itens e relâmpago na tela', () => {
     expect(finish).toHaveBeenCalledWith({ score: 0, answered: 0, maxCombo: 0 })
   })
 })
+
+describe('MathQuest: guardiões dos outros livros', () => {
+  afterEach(cleanup)
+  it('a batalha do chefão do Livro II usa perguntas de frações e o guardião do livro', async () => {
+    const { questBooks, guardianQuestions } = await import('../data/questBooks')
+    const { topicBattle } = await import('../logic/questTopics')
+    const book = questBooks[1]
+    const phase = book.phases[5]
+    render(
+      <ChapterBattle
+        level={6}
+        onExit={() => {}}
+        onFinish={() => {}}
+        config={{ title: phase.title, bookLabel: 'LIVRO II', boss: true, enemy: phase.guardian, questions: topicBattle(phase.topics, guardianQuestions(book, 6)) }}
+      />,
+    )
+    expect(screen.getByRole('heading', { level: 1, name: 'Baronesa Metade' })).toBeInTheDocument()
+    expect(screen.getByText('BARONESA')).toBeInTheDocument()
+    expect(screen.getByText(/LIVRO II/)).toBeInTheDocument()
+    expect(screen.getByText(/\/ 10/)).toBeInTheDocument()
+    expect(screen.getByRole('timer', { name: 'Tempo restante' })).toHaveTextContent('03:00')
+  })
+})

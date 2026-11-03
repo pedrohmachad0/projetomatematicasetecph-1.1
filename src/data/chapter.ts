@@ -92,6 +92,8 @@ export type ChapterQuestion = {
   answer: string
   choices?: string[]
   explanation: string
+  /** Dica própria da pergunta; sem ela, a dica é deduzida da expressão. */
+  hint?: string
 }
 export type ChapterProgress = {
   completed: number[]

@@ -59,7 +59,10 @@ export const achievements: Achievement[] = [
   { id: 'grum', title: 'Herói da floresta', description: 'Derrote o Grum.' },
   { id: 'treino', title: 'Aquecimento', description: 'Jogue o Desafio Relâmpago.' },
   { id: 'maratona', title: 'Maratonista', description: 'Faça 15 pontos no Desafio Relâmpago.' },
-  { id: 'estrelas', title: 'Céu estrelado', description: 'Consiga 3 estrelas em todas as 10 fases.' },
+  { id: 'estrelas', title: 'Céu estrelado', description: 'Consiga 3 estrelas em todas as 10 fases do Livro I.' },
+  { id: 'explorador', title: 'Caçador de tesouros', description: 'Abra um baú do tesouro num mapa.' },
+  { id: 'segundo-livro', title: 'Virando a página', description: 'Conclua dois livros da aventura.' },
+  { id: 'biblioteca', title: 'Lenda da biblioteca', description: 'Conclua os cinco livros da aventura.' },
 ]
 
 export const BLITZ_SECONDS = 60

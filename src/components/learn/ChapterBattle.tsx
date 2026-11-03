@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Clock3, Flame, Heart, Hourglass, Search, Shield, Swords, X } from 'lucide-react'
 import { BOSS_SECONDS, chapterLevels, type ChapterQuestion } from '../../data/chapter'
-import { enemies, powerUps, type PowerUpId } from '../../data/quest'
+import { enemies, powerUps, type Enemy, type PowerUpId } from '../../data/quest'
 import { answerMatches, formatTime, generateChapterQuestions, hintForQuestion } from '../../logic/chapter'
-import { damagePerHit, lensEliminations } from '../../logic/quest'
+import { lensEliminations } from '../../logic/quest'
 import { playSound, type SoundEffect } from '../../logic/sound'
 import { PixelFire, PixelOgre, PixelTree } from './PixelArt'
 import PixelCreature from './PixelCreature'
@@ -29,6 +29,16 @@ const powerUpIcons: Record<PowerUpId, typeof Heart> = {
 
 const MAX_LIVES = 3
 
+/** Batalha de qualquer livro. Sem ela, a batalha é a da fase `level` do Livro I. */
+export interface BattleConfig {
+  title: string
+  bookLabel: string
+  boss: boolean
+  /** `null` mostra o Grum. */
+  enemy: Enemy | null
+  questions: ChapterQuestion[]
+}
+
 export default function ChapterBattle({
   level,
   onExit,
@@ -36,8 +46,10 @@ export default function ChapterBattle({
   items,
   onUsePowerUp,
   soundOn = false,
+  config,
 }: {
   level: number
+  config?: BattleConfig
   onExit: () => void
   onFinish: (result: BattleResult) => void
   /** Quantidade de cada item na mochila. Sem esta prop a barra de itens não aparece. */
@@ -46,7 +58,7 @@ export default function ChapterBattle({
   onUsePowerUp?: (id: PowerUpId) => boolean
   soundOn?: boolean
 }) {
-  const [questions] = useState<ChapterQuestion[]>(() => generateChapterQuestions(level))
+  const [questions] = useState<ChapterQuestion[]>(() => config?.questions ?? generateChapterQuestions(level))
   const [index, setIndex] = useState(0)
   const [lives, setLives] = useState(MAX_LIVES)
   const [correct, setCorrect] = useState(0)
@@ -68,13 +80,14 @@ export default function ChapterBattle({
   const input = useRef<HTMLInputElement>(null)
   const firstChoice = useRef<HTMLButtonElement>(null)
   const nextButton = useRef<HTMLButtonElement>(null)
-  const boss = level === 10
-  const enemy = boss ? null : enemies[level - 1]
+  const boss = config ? config.boss : level === 10
+  const enemy = config ? config.enemy : boss ? null : enemies[level - 1]
   const question = questions[index]
   const total = questions.length
   const timeLimit = BOSS_SECONDS + bonusSeconds
   const remaining = Math.max(0, timeLimit - elapsed)
-  const hit = damagePerHit(level)
+  // O guardião cai exatamente no acerto que garante a vitória (só 2 erros são permitidos).
+  const hit = 100 / (total - 2)
   const hp = Math.max(0, 100 - correct * hit)
   const onFire = combo >= 3
   const finishRef = useRef(onFinish)
@@ -230,7 +243,7 @@ export default function ChapterBattle({
     return () => window.removeEventListener('keydown', handleKeyboard)
   })
 
-  const enemyName = boss ? 'GRUM' : enemy!.name
+  const enemyName = enemy ? enemy.name : 'GRUM'
   const mood = hp === 0 && feedback !== false ? 'defeated' : feedback === false && !blocked ? 'laugh' : feedback === true ? 'hurt' : 'idle'
   const caption =
     feedback === true
@@ -243,7 +256,7 @@ export default function ChapterBattle({
           : `${enemyName} contra-atacou! −1 vida`
         : itemMessage ??
           (boss
-            ? '10 perguntas. 8 acertos. Uma grande vitória.'
+            ? `${total} perguntas. ${total - 2} acertos. Uma grande vitória.`
             : `Acerte ${Math.round(100 / hit)} desafios para derrotar ${enemyName}.`)
   const usableItems = items ? powerUps.filter((item) => !item.bossOnly || boss) : []
 
@@ -254,12 +267,12 @@ export default function ChapterBattle({
           <ArrowLeft size={16} /> Voltar à trilha
         </button>
         <span>
-          LIVRO I <span>/</span> FASE {String(level).padStart(2, '0')}
+          {config?.bookLabel ?? 'LIVRO I'} <span>/</span> FASE {String(level).padStart(2, '0')}
         </span>
       </div>
       <div className="battle-heading">
         <div>
-          <h1>{chapterLevels[level - 1].title}</h1>
+          <h1>{config?.title ?? chapterLevels[level - 1].title}</h1>
         </div>
         <div className="battle-counters">
           {combo >= 2 && (
@@ -279,7 +292,7 @@ export default function ChapterBattle({
           </span>
         </div>
       </div>
-      <section className={`battle-arena ${boss ? 'boss-arena' : 'creature-arena'} ${feedback === false && !blocked ? 'player-hit' : ''} ${onFire ? 'arena-on-fire' : ''}`} aria-label="Arena de batalha">
+      <section className={`battle-arena ${enemy ? 'creature-arena' : 'boss-arena'} ${boss && enemy ? 'boss-creature' : ''} ${feedback === false && !blocked ? 'player-hit' : ''} ${onFire ? 'arena-on-fire' : ''}`} aria-label="Arena de batalha">
         <div className="arena-trees">
           {Array.from({ length: 12 }, (_, i) => (
             <PixelTree key={i} />
@@ -292,7 +305,7 @@ export default function ChapterBattle({
               Lv. {level} <Shield size={13} />
             </span>
           </div>
-          <small>{boss ? 'O COLECIONADOR DE NÚMEROS' : enemy!.title}</small>
+          <small>{enemy ? enemy.title : 'O COLECIONADOR DE NÚMEROS'}</small>
           <div className="hp-row">
             <b>HP</b>
             <div className="hp-track">
@@ -303,7 +316,7 @@ export default function ChapterBattle({
         </div>
         <div className="enemy-ground" />
         <div className="enemy-sprite">
-          {boss ? <PixelOgre mood={mood} /> : <PixelCreature kind={enemy!.kind} color={enemy!.color} mood={mood} name={enemy!.name} />}
+          {enemy ? <PixelCreature kind={enemy.kind} color={enemy.color} mood={mood} name={enemy.name} /> : <PixelOgre mood={mood} />}
           {feedback === true && <span key={`slash-${index}`} className="sword-slash" />}
           {feedback === true && (
             <span key={`dmg-${index}`} className={`enemy-damage ${onFire ? 'critical' : ''}`} aria-hidden="true">
@@ -312,7 +325,7 @@ export default function ChapterBattle({
           )}
           {feedback === false && !blocked && (
             <span key={`speech-${index}`} className="ogre-speech">
-              {boss ? 'HA! HA! HA!' : enemy!.taunt}
+              {enemy ? enemy.taunt : 'HA! HA! HA!'}
             </span>
           )}
         </div>

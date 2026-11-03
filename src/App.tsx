@@ -7,10 +7,10 @@ import CalcSoma from './pages/CalcSoma'
 import CalcSubtracao from './pages/CalcSubtracao'
 import Fracoes from './pages/Fracoes'
 import Porcentagem from './pages/Porcentagem'
-import Aprender from './pages/Aprender'
 import NotFound from './pages/NotFound'
 
 const Pi = lazy(() => import('./pages/Pi'))
+const Aprender = lazy(() => import('./pages/Aprender'))
 const Equacoes = lazy(() => import('./pages/Equacoes'))
 const Estatistica = lazy(() => import('./pages/Estatistica'))
 const Funcoes = lazy(() => import('./pages/Funcoes'))
@@ -40,7 +40,7 @@ function App() {
           <Route path="subtracao" element={<CalcSubtracao />} />
           <Route path="fracoes" element={<Fracoes />} />
           <Route path="porcentagem" element={<Porcentagem />} />
-          <Route path="aprender" element={<Aprender />} />
+          <Route path="aprender" element={<Suspense fallback={<Loading />}><Aprender /></Suspense>} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -13,6 +13,7 @@ export interface QuestStats {
   /** Moedas ganhas fora das fases (combos e Desafio Relâmpago). */
   bonusCoins: number
   spentCoins: number
+  chests: number
   items: Record<PowerUpId, number>
   unlocked: string[]
 }
@@ -26,6 +27,7 @@ export const emptyStats = (): QuestStats => ({
   blitzBest: 0,
   bonusCoins: 0,
   spentCoins: 0,
+  chests: 0,
   items: { pocao: 0, lupa: 0, escudo: 0, ampulheta: 0 },
   unlocked: [],
 })
@@ -48,6 +50,7 @@ export function readStats(): QuestStats {
       blitzBest: wholeNumber(parsed.blitzBest),
       bonusCoins: wholeNumber(parsed.bonusCoins),
       spentCoins: wholeNumber(parsed.spentCoins),
+      chests: wholeNumber(parsed.chests),
       items,
       unlocked: Array.isArray(parsed.unlocked) ? parsed.unlocked.filter((id: unknown) => achievements.some((a) => a.id === id)) : [],
     }
@@ -66,25 +69,26 @@ export function writeStats(stats: QuestStats): boolean {
   }
 }
 
-export const questionsInLevel = (level: number) => (level === 10 ? 10 : 8)
+/** A última fase de cada livro é o chefão, com 10 perguntas; as outras têm 8. */
+export const questionsInLevel = (level: number, phases = 10) => (level === phases ? 10 : 8)
 
 /** Acertos necessários para vencer: só são permitidos 2 erros (3 corações). */
-export const hitsToDefeat = (level: number) => questionsInLevel(level) - 2
+export const hitsToDefeat = (level: number, phases = 10) => questionsInLevel(level, phases) - 2
 
 /** Dano por acerto, para que o monstro chegue a 0 de vida exatamente no acerto que garante a vitória. */
-export const damagePerHit = (level: number) => 100 / hitsToDefeat(level)
+export const damagePerHit = (level: number, phases = 10) => 100 / hitsToDefeat(level, phases)
 
 /** 3 estrelas: tudo certo; 2: um erro; 1: venceu. */
-export function starsFor(level: number, correct: number): 0 | 1 | 2 | 3 {
-  const total = questionsInLevel(level)
+export function starsFor(level: number, correct: number, phases = 10): 0 | 1 | 2 | 3 {
+  const total = questionsInLevel(level, phases)
   if (correct >= total) return 3
   if (correct === total - 1) return 2
-  if (correct >= hitsToDefeat(level)) return 1
+  if (correct >= hitsToDefeat(level, phases)) return 1
   return 0
 }
 
-export function totalStars(progress: ChapterProgress): number {
-  return progress.completed.reduce((sum, level) => sum + starsFor(level, progress.best[level]?.correct ?? 0), 0)
+export function totalStars(progress: ChapterProgress, phases = 10): number {
+  return progress.completed.reduce((sum, level) => sum + starsFor(level, progress.best[level]?.correct ?? 0, phases), 0)
 }
 
 /** Moedas extras por combo: 2 moedas por acerto a partir do 3º seguido. */
@@ -115,8 +119,11 @@ export function lensEliminations(question: ChapterQuestion, random = Math.random
   return shuffled.slice(0, Math.min(2, wrong.length - 1))
 }
 
-/** IDs das conquistas que passam a valer agora. */
-export function evaluateAchievements(progress: ChapterProgress, stats: QuestStats): string[] {
+/**
+ * IDs das conquistas que passam a valer agora. `progress` é o do Livro I;
+ * `booksDone` conta quantos livros tiveram o chefão vencido.
+ */
+export function evaluateAchievements(progress: ChapterProgress, stats: QuestStats, booksDone = 0): string[] {
   const done = new Set(progress.completed)
   const allStars = done.size === 10 && progress.completed.every((level) => starsFor(level, progress.best[level]?.correct ?? 0) === 3)
   const rules: Record<string, boolean> = {
@@ -131,13 +138,16 @@ export function evaluateAchievements(progress: ChapterProgress, stats: QuestStat
     treino: stats.blitzPlays > 0,
     maratona: stats.blitzBest >= 15,
     estrelas: allStars,
+    explorador: stats.chests > 0,
+    'segundo-livro': booksDone >= 2,
+    biblioteca: booksDone >= 5,
   }
   return achievements.filter((a) => rules[a.id]).map((a) => a.id)
 }
 
 /** Acrescenta as conquistas novas e informa quais acabaram de ser desbloqueadas. */
-export function unlockAchievements(progress: ChapterProgress, stats: QuestStats) {
-  const now = evaluateAchievements(progress, stats)
+export function unlockAchievements(progress: ChapterProgress, stats: QuestStats, booksDone = 0) {
+  const now = evaluateAchievements(progress, stats, booksDone)
   const fresh = now.filter((id) => !stats.unlocked.includes(id))
   return { stats: fresh.length ? { ...stats, unlocked: [...stats.unlocked, ...fresh] } : stats, fresh }
 }

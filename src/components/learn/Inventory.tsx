@@ -23,9 +23,9 @@ const itemSlots: Partial<Record<number, Slot>> = {
   9: 'right',
   10: 'helmet',
 }
-export const coinsForLevel = (level: number) => (level === 10 ? 100 : 25)
-export const chapterCoins = (progress: ChapterProgress) =>
-  progress.completed.reduce((total, level) => total + coinsForLevel(level), 0)
+export const coinsForLevel = (level: number, total = 10) => (level === total ? 100 : 25)
+export const chapterCoins = (progress: ChapterProgress, total = 10) =>
+  progress.completed.reduce((sum, level) => sum + coinsForLevel(level, total), 0)
 
 export default function Inventory({
   progress,
