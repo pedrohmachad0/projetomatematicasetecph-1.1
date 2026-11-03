@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import NumberPad from './NumberPad'
 import { ArrowLeft, Check, Clock3, Flame, X, Zap } from 'lucide-react'
 import type { ChapterQuestion } from '../../data/chapter'
 import { BLITZ_SECONDS } from '../../data/quest'
@@ -157,22 +158,7 @@ export default function BlitzChallenge({ unlocked, best, soundOn, onExit, onFini
               ))}
             </div>
           ) : (
-            <div className="number-answer">
-              <label htmlFor="blitz-answer">Sua resposta</label>
-              <input
-                ref={input}
-                id="blitz-answer"
-                type="text"
-                inputMode="numeric"
-                autoComplete="off"
-                value={answer}
-                disabled={flash !== null}
-                onChange={(event) => {
-                  if (/^\d{0,5}$/.test(event.target.value)) setAnswer(event.target.value)
-                }}
-                placeholder="Digite e aperte Enter"
-              />
-            </div>
+            <NumberPad id="blitz-answer" inputRef={input} value={answer} onChange={setAnswer} disabled={flash !== null} placeholder="Digite e aperte Enter" />
           )}
           {!question.choices && (
             <button className="rpg-button submit-answer" type="submit" disabled={!answer.trim() || flash !== null}>

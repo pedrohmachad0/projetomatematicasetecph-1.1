@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import NumberPad from './NumberPad'
 import { ArrowRight, Check, Heart, Swords, X } from 'lucide-react'
 import type { ChapterQuestion } from '../../data/chapter'
 import type { Enemy } from '../../data/quest'
@@ -161,22 +162,7 @@ export default function EncounterDialog({ kind, title, subtitle, intro, topics, 
               ))}
             </div>
           ) : (
-            <div className="number-answer">
-              <label htmlFor="encounter-answer">Sua resposta</label>
-              <input
-                ref={input}
-                id="encounter-answer"
-                type="text"
-                inputMode="numeric"
-                autoComplete="off"
-                value={answer}
-                disabled={feedback !== null}
-                onChange={(event) => {
-                  if (/^\d{0,5}$/.test(event.target.value)) setAnswer(event.target.value)
-                }}
-                placeholder="Digite aqui…"
-              />
-            </div>
+            <NumberPad id="encounter-answer" inputRef={input} value={answer} onChange={setAnswer} disabled={feedback !== null} />
           )}
           {feedback === null && (
             <button className="rpg-button submit-answer" type="submit" disabled={!answer.trim()}>

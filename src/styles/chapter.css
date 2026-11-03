@@ -5363,3 +5363,96 @@ html[data-theme='dark'] .game-stage:not(.stage-explore) {
   font-weight: 600;
   opacity: 0.75;
 }
+
+/* Teclado numérico do jogo (telas de toque): o teclado do celular não abre. */
+.number-answer.with-pad input {
+  caret-color: transparent;
+  pointer-events: none;
+}
+.number-pad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+.number-pad-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  border: 2px solid #d9dfcc;
+  border-radius: 4px;
+  background: #fafaf1;
+  box-shadow: 0 3px #e0e5d2;
+  color: #365038;
+  font: 400 30px 'VT323', monospace;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.number-pad-key:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px #e0e5d2;
+  background: #eef3df;
+}
+.number-pad-key:disabled {
+  opacity: 0.45;
+}
+.number-pad-key.number-pad-action {
+  background: #f1ead2;
+  color: #7a5c22;
+  font-size: 24px;
+}
+html[data-theme='dark'] .number-pad-key {
+  border-color: #3b4a3f;
+  background: #1f2b25;
+  box-shadow: 0 3px #111a15;
+  color: #e6edd6;
+}
+html[data-theme='dark'] .number-pad-key.number-pad-action {
+  background: #2b2a1d;
+  color: #f6d27a;
+}
+/* Telas baixas (celular pequeno ou deitado): teclado em duas fileiras, para o botão de responder caber. */
+@media (max-height: 700px) and (pointer: coarse) {
+  .number-pad {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .number-pad-key {
+    min-height: 44px;
+    font-size: 26px;
+  }
+  .number-pad-key[data-key='1'] { order: 1; }
+  .number-pad-key[data-key='2'] { order: 2; }
+  .number-pad-key[data-key='3'] { order: 3; }
+  .number-pad-key[data-key='4'] { order: 4; }
+  .number-pad-key[data-key='5'] { order: 5; }
+  .number-pad-key[data-key='apagar'] { order: 6; }
+  .number-pad-key[data-key='6'] { order: 7; }
+  .number-pad-key[data-key='7'] { order: 8; }
+  .number-pad-key[data-key='8'] { order: 9; }
+  .number-pad-key[data-key='9'] { order: 10; }
+  .number-pad-key[data-key='0'] { order: 11; }
+  .number-pad-key[data-key='limpar'] { order: 12; }
+  .number-answer.with-pad input {
+    padding: 8px;
+  }
+  .encounter .submit-answer,
+  .battle-question .submit-answer {
+    margin-top: 12px;
+  }
+}
+@media (max-height: 700px) and (pointer: coarse) {
+  .encounter-portrait {
+    width: 64px !important;
+    height: 64px !important;
+  }
+  .encounter-head h2 {
+    font-size: 24px !important;
+  }
+  .encounter .encounter-intro {
+    margin-bottom: 0;
+  }
+}

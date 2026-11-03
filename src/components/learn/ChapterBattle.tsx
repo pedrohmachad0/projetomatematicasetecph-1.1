@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import NumberPad from './NumberPad'
 import { ArrowLeft, ArrowRight, Backpack, Check, Clock3, Flame, Footprints, Heart, Hourglass, Search, Shield, Swords, Wind, X, Zap } from 'lucide-react'
 import { BOSS_SECONDS, chapterLevels, type ChapterQuestion } from '../../data/chapter'
 import { enemies, powerUps, type Enemy, type PowerUpId } from '../../data/quest'
@@ -593,22 +594,7 @@ export default function ChapterBattle({
                   })}
                 </div>
               ) : (
-                <div className="number-answer">
-                  <label htmlFor="number-answer">Sua resposta</label>
-                  <input
-                    ref={input}
-                    id="number-answer"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    value={answer}
-                    onChange={(event) => {
-                      if (/^\d{0,5}$/.test(event.target.value)) setAnswer(event.target.value)
-                    }}
-                    placeholder="Digite aqui…"
-                    aria-describedby="question-expression"
-                  />
-                </div>
+                <NumberPad id="number-answer" inputRef={input} value={answer} onChange={setAnswer} describedBy="question-expression" />
               )}
               <button className="rpg-button submit-answer" type="submit" disabled={!answer.trim()} aria-keyshortcuts="Enter Space">
                 {action?.type === 'dodge' ? <Wind size={17} /> : <Swords size={17} />} Confirmar
