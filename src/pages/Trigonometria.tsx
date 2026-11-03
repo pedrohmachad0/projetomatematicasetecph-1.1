@@ -4,6 +4,7 @@ import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
 import NumberControl from '../components/ui/NumberControl'
 import TipBox from '../components/ui/TipBox'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import {
   NOTABLE_ANGLES,
   cosine,
@@ -176,6 +177,15 @@ export default function Trigonometria() {
         </div>
       </div>
 
+      <ChallengeCard
+        simulator="trigonometria"
+        goals={[
+          { id: 'seno-meio', text: 'Ache o ângulo do 2º quadrante com seno igual a 1/2.', met: angle === 150 },
+          { id: 'cos-menos-um', text: 'Ache o ângulo com cosseno igual a −1.', met: cos === -1 },
+          { id: 'tg-um', text: 'Ache o ângulo do 3º quadrante com tangente igual a 1.', met: q === 3 && tan === 1 },
+          { id: 'tg-nao-existe', text: 'Ache um ângulo em que a tangente não existe.', met: tan === null },
+        ]}
+      />
       <TipBox>
         <strong>Relação fundamental:</strong> como o raio vale 1, o cosseno, o seno e o raio formam um triângulo retângulo. Pelo Teorema de Pitágoras, sen²θ + cos²θ = 1 para qualquer ângulo.
       </TipBox>

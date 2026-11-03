@@ -13,6 +13,7 @@ import AreaPanel from '../components/pitagoras/AreaPanel'
 import ClassificationMessage from '../components/pitagoras/ClassificationMessage'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
+import ChallengeCard from '../components/ui/ChallengeCard'
 
 export default function Pitagoras() {
   const [angle, setAngle] = useState(90)
@@ -112,6 +113,15 @@ export default function Pitagoras() {
           </div>
         </div>
       </div>
+      <ChallengeCard
+        simulator="pitagoras"
+        goals={[
+          { id: 'agudo-meio', text: 'Deixe o triângulo acutângulo com C² entre 100 e 150.', met: areaC > 100 && areaC < 150 },
+          { id: 'equilatero', text: 'Deixe o lado C igual aos outros dois (triângulo equilátero).', met: angle === 60 },
+          { id: 'c2-300', text: 'Faça a área C² passar de 300.', met: areaC > 300 },
+          { id: 'c2-50', text: 'Faça a área C² ficar menor que 50.', met: areaC < 50 },
+        ]}
+      />
     </div>
     </PresentationMode>
   )

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Lightbulb, Minus, Plus, RotateCcw } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import { calculateDiscount, calculateIncrease, calculatePercentage, formatPercentage } from '../logic/percentage'
 
 type Mode = 'percentage' | 'discount' | 'increase'
@@ -59,6 +60,15 @@ export default function Porcentagem() {
           {mode === 'percentage' ? <p className="mt-4 text-sm text-slate-600">A porcentagem indica quantas partes de cada 100 estão sendo consideradas.</p> : <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600">{mode === 'discount' ? <Minus size={16} /> : <Plus size={16} />} O cálculo mostra o impacto percentual sobre o valor base.</p>}
         </div>
       </section>
+      <ChallengeCard
+        simulator="porcentagem"
+        goals={[
+          { id: 'dez-350', text: 'Descubra quanto é 10% de 350.', met: mode === 'percentage' && value === 350 && percentage === 10 },
+          { id: 'desconto-120', text: 'Dê um desconto em 150 para o preço final ficar 120.', met: mode === 'discount' && value === 150 && result.total === 120 },
+          { id: 'acrescimo-250', text: 'Faça 200 virar 250 com um acréscimo.', met: mode === 'increase' && value === 200 && result.total === 250 },
+          { id: 'metade', text: 'Mostre 50% de um valor maior que 1.000.', met: mode === 'percentage' && value > 1000 && percentage === 50 },
+        ]}
+      />
       <div className="mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900"><Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={20} /><p><strong>Dica:</strong> 25% é a mesma coisa que dividir por 4, e 50% é a metade. Experimente mudar os valores e observe a grade.</p></div>
     </PresentationMode>
   )

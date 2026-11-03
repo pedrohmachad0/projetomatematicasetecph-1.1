@@ -7,6 +7,7 @@ import Panel from '../components/ui/Panel'
 import NumberControl from '../components/ui/NumberControl'
 import SegmentedControl from '../components/ui/SegmentedControl'
 import TipBox from '../components/ui/TipBox'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import { classify, formatTerm as fmt, sum, terms, type ProgressionKind } from '../logic/progressoes'
 
 const COLOR = '#7c3aed'
@@ -139,6 +140,15 @@ export default function Progressoes() {
         </div>
       </div>
 
+      <ChallengeCard
+        simulator="progressoes"
+        goals={[
+          { id: 'pa-30', text: 'Monte uma PA cujo 8º termo seja 30.', met: isPa && values.length >= 8 && values[7] === 30 },
+          { id: 'pg-48', text: 'Monte uma PG cujo 5º termo seja 48.', met: !isPa && values.length >= 5 && values[4] === 48 },
+          { id: 'pa-decrescente', text: 'Monte uma PA decrescente com 10 termos, todos positivos.', met: isPa && step < 0 && n >= 10 && values.every((value) => value > 0) },
+          { id: 'soma-mil', text: 'Faça a soma dos termos passar de 1.000.', met: total > 1000 },
+        ]}
+      />
       <TipBox>
         <strong>Compare:</strong> com a₁ = 1, a PA de razão 2 chega a 23 no 12º termo; a PG de razão 2 chega a 2048. Somar sempre o mesmo valor gera crescimento linear; multiplicar gera crescimento exponencial.
       </TipBox>

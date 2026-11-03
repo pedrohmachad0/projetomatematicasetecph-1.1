@@ -6,6 +6,7 @@ import Panel from '../components/ui/Panel'
 import NumberControl from '../components/ui/NumberControl'
 import SegmentedControl from '../components/ui/SegmentedControl'
 import TipBox from '../components/ui/TipBox'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import CartesianPlane from '../components/graph/CartesianPlane'
 import { createScale, plotPath } from '../logic/plane'
 import {
@@ -135,6 +136,15 @@ export default function Funcoes() {
         </div>
       </div>
 
+      <ChallengeCard
+        simulator="funcoes"
+        goals={[
+          { id: 'decrescente-3', text: 'Faça uma reta decrescente que corte o eixo y em 3.', met: kind === 'afim' && a < 0 && b === 3 },
+          { id: 'raiz-menos-2', text: 'Faça uma função afim com raiz em x = −2.', met: kind === 'afim' && a !== 0 && -b / a === -2 },
+          { id: 'sem-raiz', text: 'Monte uma parábola que não toque o eixo x.', met: isQuadratic && delta < 0 },
+          { id: 'vertice', text: 'Monte uma parábola com vértice em (2, −1).', met: isQuadratic && top !== null && top.x === 2 && top.y === -1 },
+        ]}
+      />
       <TipBox>
         <strong>Experimente:</strong> na função afim, mude só o <strong>b</strong> e veja a reta subir ou descer sem mudar a inclinação. Na quadrática, deixe <strong>Δ</strong> negativo e observe a parábola deixar de tocar o eixo x.
       </TipBox>

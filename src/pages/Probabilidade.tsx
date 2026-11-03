@@ -6,6 +6,7 @@ import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
 import SegmentedControl from '../components/ui/SegmentedControl'
 import TipBox from '../components/ui/TipBox'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import { experiments, formatPercent, maxDeviation, relativeFrequencies, runTrials, theoretical, type ExperimentId } from '../logic/probabilidade'
 
 const OBSERVED = '#be123c'
@@ -152,6 +153,15 @@ export default function Probabilidade() {
         </div>
       </div>
 
+      <ChallengeCard
+        simulator="probabilidade"
+        goals={[
+          { id: 'mil', text: 'Faça pelo menos 1.000 lançamentos de um experimento.', met: total >= 1000 },
+          { id: 'sete', text: 'Com dois dados, veja o 7 sair mais vezes que qualquer outra soma (30+ lançamentos).', met: id === 'dois-dados' && total >= 30 && counts.every((count, i) => i === 5 || count < counts[5]) },
+          { id: 'perto', text: 'Com o dado, deixe todas as frequências a menos de 1 ponto percentual da teórica.', met: id === 'dado' && total >= 100 && maxDeviation(experiment, counts) < 0.01 },
+          { id: 'sorte', text: 'Com a moeda, tire 3 lançamentos e todos dão o mesmo lado.', met: id === 'moeda' && total === 3 && (counts[0] === 3 || counts[1] === 3) },
+        ]}
+      />
       <TipBox>
         {id === 'dois-dados' ? (
           <>

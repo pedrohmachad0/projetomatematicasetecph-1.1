@@ -4,6 +4,7 @@ import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
 import TipBox from '../components/ui/TipBox'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import { describeModes, frequencies, mean, median, modes, range, sortValues } from '../logic/estatistica'
 
 const MIN = 0
@@ -179,6 +180,15 @@ export default function Estatistica() {
         </div>
       </div>
 
+      <ChallengeCard
+        simulator="estatistica"
+        goals={[
+          { id: 'bimodal', text: 'Monte um conjunto com exatamente duas modas.', met: found.length === 2 },
+          { id: 'amodal', text: 'Monte um conjunto de pelo menos 5 valores sem moda.', met: found.length === 0 && values.length >= 5 },
+          { id: 'media-oito', text: 'Deixe a média exatamente 8 com pelo menos 6 valores.', met: values.length >= 6 && Math.abs(average - 8) < 1e-9 },
+          { id: 'media-mediana', text: 'Com 9 valores ou mais, deixe a média igual à mediana.', met: values.length >= 9 && Math.abs(average - middle) < 1e-9 },
+        ]}
+      />
       <TipBox>
         <strong>Experimente:</strong> escolha “Com um valor discrepante”. A nota 0 puxa a média para baixo, mas quase não mexe na mediana. Por isso a mediana é mais resistente a valores muito diferentes dos outros.
       </TipBox>

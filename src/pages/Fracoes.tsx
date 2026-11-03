@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Lightbulb, RotateCcw, ArrowRight } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
+import ChallengeCard from '../components/ui/ChallengeCard'
 
 function gcd(a: number, b: number): number {
   let left = Math.abs(a)
@@ -75,6 +76,15 @@ export default function Fracoes() {
           </section>
         </div>
 
+        <ChallengeCard
+          simulator="fracoes"
+          goals={[
+            { id: 'meio-oitavos', text: 'Monte uma fração equivalente a 1/2 usando 8 partes.', met: numerator === 4 && denominator === 8 },
+            { id: 'setenta-cinco', text: 'Mostre uma fração que vale 75%.', met: numerator > 0 && numerator * 4 === denominator * 3 },
+            { id: 'dois-tercos', text: 'Monte uma fração diferente de 2/3 que se simplifica para 2/3.', met: simplified.numerator === 2 && simplified.denominator === 3 && denominator !== 3 },
+            { id: 'inteiro', text: 'Represente um inteiro completo dividido em 5 partes.', met: numerator === 5 && denominator === 5 },
+          ]}
+        />
         <section className="mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900"><Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={20} /><p><strong>Forma simplificada:</strong> {numerator}/{denominator} = {simplified.numerator}/{simplified.denominator}. Dividimos numerador e denominador pelo maior divisor comum ({gcd(numerator, denominator)}).</p></section>
       </div>
     </PresentationMode>
