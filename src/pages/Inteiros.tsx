@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Footprints, RotateCcw } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
@@ -32,8 +32,10 @@ function NumberLine({ start, delta, shown, compare }: { start: number; delta: nu
   const k = compact ? 1.7 : 1
   const W = compact ? 520 : 860
   const pad = 22 * k
-  const y = 92 * k
-  const H = 150 * k
+  const y = compact ? 112 * k : 140
+  const H = compact ? 170 * k : 196
+  // Personagem maior no computador.
+  const ck = compact ? 1 : 1.45
   const dir = Math.sign(delta)
   // No celular a reta mostra só o trecho usado, com casas maiores.
   const used = [0, start, start + delta, compare ?? 0]
@@ -71,13 +73,28 @@ function NumberLine({ start, delta, shown, compare }: { start: number; delta: nu
             return <path key={i} d={`M ${x(from)} ${y - 4} Q ${mid} ${y - 34 * k} ${x(to)} ${y - 4}`} fill="none" stroke={color} strokeWidth={2.5 * k} strokeLinecap="round" />
           })}
           <circle cx={x(start)} cy={y} r={7 * k} fill="#ffffff" stroke={color} strokeWidth={3 * k} />
-          <g transform={`translate(${x(now)} ${y - 44 * k})`} style={{ transition: 'transform 0.25s ease' }}>
-            <rect x={-24 * k} y={-16 * k} width={48 * k} height={26 * k} rx={8 * k} fill={color} />
-            <text y={3 * k} textAnchor="middle" fontSize={15 * k} fontWeight={900} fill="#ffffff">
-              {fmt(now)}
-            </text>
-            <path d={`M ${-6 * k} ${10 * k} L 0 ${18 * k} L ${6 * k} ${10 * k} Z`} fill={color} />
-          </g>
+          {/* Explorador que pula casa por casa */}
+          <motion.g initial={false} animate={{ x: x(now) }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}>
+            <motion.g key={shown} initial={{ y: 0 }} animate={{ y: shown > 0 ? [0, -26 * k, 0] : 0 }} transition={{ duration: 0.26, ease: 'easeOut' }}>
+              <g transform={`translate(0 ${y}) scale(${ck}) translate(0 ${-y})`}>
+              <ellipse cx={0} cy={y - 2} rx={9 * k} ry={2.5 * k} fill="#000000" opacity={0.15} />
+              <g transform={`scale(${dir < 0 ? -1 : 1} 1)`}>
+                <rect x={-6 * k} y={y - 22 * k} width={4 * k} height={16 * k} rx={2 * k} fill="#1e293b" />
+                <rect x={2 * k} y={y - 22 * k} width={4 * k} height={16 * k} rx={2 * k} fill="#1e293b" />
+                <rect x={-9 * k} y={y - 40 * k} width={18 * k} height={21 * k} rx={6 * k} fill={color} />
+                <circle cx={0} cy={y - 48 * k} r={9 * k} fill="#f2c9a0" />
+                <path d={`M ${-9 * k} ${y - 50 * k} Q 0 ${y - 62 * k} ${9 * k} ${y - 50 * k} Z`} fill="#7c2d12" />
+                <circle cx={3.5 * k} cy={y - 48 * k} r={1.6 * k} fill="#1e293b" />
+                <path d={`M ${0} ${y - 44 * k} q ${3 * k} ${2 * k} ${6 * k} 0`} fill="none" stroke="#1e293b" strokeWidth={1.2 * k} strokeLinecap="round" />
+              </g>
+              <rect x={-22 * k} y={y - 84 * k} width={44 * k} height={22 * k} rx={7 * k} fill="#ffffff" stroke={color} strokeWidth={2.5 * k} />
+              <line x1={0} x2={0} y1={y - 62 * k} y2={y - 56 * k} stroke={color} strokeWidth={2 * k} />
+              <text y={y - 68 * k} textAnchor="middle" fontSize={14 * k} fontWeight={900} fill={color}>
+                {fmt(now)}
+              </text>
+              </g>
+            </motion.g>
+          </motion.g>
         </>
       ) : (
         <>

@@ -7,6 +7,7 @@ import TipBox from '../components/ui/TipBox'
 import ChallengeCard from '../components/ui/ChallengeCard'
 import Fact from '../components/ui/Fact'
 import CartesianPlane from '../components/graph/CartesianPlane'
+import Bacteria from '../components/exponencial/Bacteria'
 import { createScale, plotPath } from '../logic/plane'
 import { expBehavior, expValue, logValue } from '../logic/exponencial'
 
@@ -100,6 +101,9 @@ export default function Exponencial() {
           </Panel>
         </div>
       </div>
+      <Panel className="mt-4 sm:mt-6" title="Colônia de bactérias">
+        <Bacteria />
+      </Panel>
       <Panel className="mt-4 sm:mt-6" title="Tabela de valores">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[320px] text-center font-mono text-sm">

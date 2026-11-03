@@ -7,6 +7,7 @@ import TipBox from '../components/ui/TipBox'
 import ChallengeCard from '../components/ui/ChallengeCard'
 import Fact from '../components/ui/Fact'
 import { talesMissing, talesSegments } from '../logic/tales'
+import TreeShadow from '../components/tales/TreeShadow'
 
 const W = 440
 const H = 380
@@ -145,6 +146,10 @@ export default function Tales() {
             </button>
           </div>
         </div>
+      </Panel>
+
+      <Panel className="mt-4 sm:mt-6" title="Medindo uma árvore pela sombra">
+        <TreeShadow />
       </Panel>
 
       <ChallengeCard

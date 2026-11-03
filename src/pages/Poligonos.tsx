@@ -1,5 +1,5 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Footprints, Triangle } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
@@ -82,7 +82,16 @@ function PolygonMode() {
                 <g>
                   <line x1={at[0]} y1={at[1]} x2={at[0] + 60 * Math.cos(dir)} y2={at[1] + 60 * Math.sin(dir)} stroke="#dc2626" strokeWidth={2} strokeDasharray="5 4" />
                   <path d={arc(at[0], at[1], 34, dir, dir + ext)} fill="#dc2626" fillOpacity={0.3} />
-                  <circle cx={at[0]} cy={at[1]} r={9} fill="#dc2626" stroke="#ffffff" strokeWidth={3} />
+                  {/* Tartaruga que anda pelo contorno, virando em cada canto */}
+                  <motion.g initial={false} animate={{ x: at[0], y: at[1], rotate: (Math.atan2(pts[1][1] - pts[0][1], pts[1][0] - pts[0][0]) * 180) / Math.PI + walk.shown * (360 / n) }} transition={{ type: 'spring', stiffness: 160, damping: 16 }}>
+                    <ellipse cx={0} cy={0} rx={15} ry={12} fill="#15803d" stroke="#14532d" strokeWidth={2} />
+                    <path d="M -8 -6 L 0 -9 L 8 -6 L 8 6 L 0 9 L -8 6 Z" fill="#4ade80" opacity={0.6} />
+                    <circle cx={18} cy={0} r={6} fill="#86efac" stroke="#14532d" strokeWidth={1.5} />
+                    <circle cx={20} cy={-2} r={1.4} fill="#14532d" />
+                    {[[-9, -12], [9, -12], [-9, 12], [9, 12]].map(([lx, ly], k) => (
+                      <ellipse key={k} cx={lx} cy={ly} rx={4} ry={3} fill="#86efac" stroke="#14532d" strokeWidth={1} />
+                    ))}
+                  </motion.g>
                 </g>
               )
             })()}

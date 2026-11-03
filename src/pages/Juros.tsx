@@ -8,6 +8,7 @@ import ChallengeCard from '../components/ui/ChallengeCard'
 import Fact from '../components/ui/Fact'
 import { useCompact } from '../components/ui/useCompact'
 import { money, table } from '../logic/juros'
+import PiggyBanks from '../components/juros/PiggyBanks'
 
 const SIMPLE = '#1d4ed8'
 const COMPOUND = '#4d7c0f'
@@ -77,6 +78,8 @@ export default function Juros() {
             No mês {shown}: os juros simples renderam {money(simpleInterest)} e os compostos, {money(compoundInterest)}. Diferença: {money(compoundInterest - simpleInterest)}.
             {shown <= 1 && ' No primeiro mês os dois são iguais: a diferença só aparece quando os juros começam a render juros.'}
           </p>
+          <h3 className="mb-2 mt-4 text-sm font-black text-slate-800">Os cofrinhos no mês {shown}</h3>
+          <PiggyBanks capital={capital} simple={at.simple} compound={at.compound} money={money} />
         </Panel>
         <div className="space-y-4">
           <Panel title="Aplicação">
