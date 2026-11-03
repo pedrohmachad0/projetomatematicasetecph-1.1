@@ -3,6 +3,7 @@ import { RotateCcw, SlidersHorizontal } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import CircleVisualization from '../components/circulo/CircleVisualization'
+import DiameterWrap from '../components/circulo/DiameterWrap'
 import { DEFAULT_RADIUS, MAX_RADIUS, MIN_RADIUS, RADIUS_STEP, formatNumber, getCircleState, type CircleMode } from '../logic/circulo'
 
 const topics: Array<{ id: CircleMode; mark: string; title: string; shortTitle: string; prompt: string; instruction: string }> = [
@@ -13,6 +14,14 @@ const topics: Array<{ id: CircleMode; mark: string; title: string; shortTitle: s
     shortTitle: 'Descobrir',
     prompt: 'Quantos diâmetros cabem na volta?',
     instruction: 'Faça uma estimativa. Depois arraste o ponto rosa ou toque nas marcas para conferir.',
+  },
+  {
+    id: 'dobrar',
+    mark: '1·2·3',
+    title: 'Dobrar o diâmetro',
+    shortTitle: 'Dobrar',
+    prompt: 'Quantos diâmetros cabem na volta?',
+    instruction: 'Use o diâmetro como régua: a cada clique ele gira até a borda e se dobra sobre a circunferência.',
   },
   {
     id: 'medidas',
@@ -81,7 +90,7 @@ export default function Pi() {
             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Explore o círculo</p>
             <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-blue-700">{topics.length} experiências</span>
           </div>
-          <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="group" aria-label="Simuladores sobre o círculo">
+          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-2" role="group" aria-label="Simuladores sobre o círculo">
             {topics.map(topic => {
               const selected = mode === topic.id
               return <button
@@ -108,7 +117,7 @@ export default function Pi() {
         </header>
 
         <div className="rounded-[24px] bg-[#dce9f7] p-2 sm:p-4 md:p-5">
-          <CircleVisualization key={experimentKey} state={state} mode={mode} angle={angle} />
+          {mode === 'dobrar' ? <DiameterWrap key={experimentKey} /> : <CircleVisualization key={experimentKey} state={state} mode={mode} angle={angle} />}
 
           {mode === 'medidas' && <div className="mx-auto mt-3 max-w-3xl rounded-2xl border border-white/80 bg-white/90 p-3 shadow-sm sm:px-5 sm:py-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
