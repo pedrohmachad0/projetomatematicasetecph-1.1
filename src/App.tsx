@@ -8,7 +8,6 @@ import CalcSubtracao from './pages/CalcSubtracao'
 import Fracoes from './pages/Fracoes'
 import Porcentagem from './pages/Porcentagem'
 import Aprender from './pages/Aprender'
-import Quiz from './pages/Quiz'
 
 const Pi = lazy(() => import('./pages/Pi'))
 
@@ -25,7 +24,6 @@ function App() {
           <Route path="fracoes" element={<Fracoes />} />
           <Route path="porcentagem" element={<Porcentagem />} />
           <Route path="aprender" element={<Aprender />} />
-          <Route path="quiz/:topic" element={<Quiz />} />
         </Route>
       </Routes>
     </BrowserRouter>
