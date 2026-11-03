@@ -5,6 +5,7 @@ import { additionProblems, type AdditionProblem } from '../data/additionProblems
 import { transferir, isDezenaExata, podeTransferir } from '../logic/adicao'
 import MaterialDourado from '../components/soma/MaterialDourado'
 import PresentationMode from '../components/PresentationMode'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import SimulatorHeader from '../components/SimulatorHeader'
 
 const MAX_VALUE = 120
@@ -91,7 +92,7 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
         </AnimatePresence>
         </div>
 
-        <div className="mx-auto mt-2 min-h-[58px] max-w-2xl">
+        <div className="mx-auto mt-2 max-w-2xl">
           {(isADezena || isBDezena) && (
             <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left">
               <Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={16} />
@@ -112,6 +113,15 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
         </div>
         <MaterialDourado valor={b} label="PARCELA B" destacado={isBDezena} cor="#7c3aed" />
       </div>
+      <ChallengeCard
+        simulator="soma"
+        goals={[
+          { id: 'dezena', text: 'Transfira unidades até uma parcela virar dezena exata (como 12 + 27 → 10 + 29).', met: constante && (isADezena || isBDezena) && a !== problema.a },
+          { id: 'duas-dezenas', text: 'Deixe as duas parcelas como dezenas exatas sem mudar a soma (dica: tente 26 + 14).', met: constante && isADezena && isBDezena && a > 0 && b > 0 },
+          { id: 'zero', text: 'Passe todas as unidades para um lado só, até a outra parcela virar 0.', met: constante && (a === 0 || b === 0) },
+          { id: 'cinquenta', text: 'Edite os números e monte uma conta que dá exatamente 50.', met: soma === 50 && (a !== problema.a || b !== problema.b) },
+        ]}
+      />
     </>
   )
 }

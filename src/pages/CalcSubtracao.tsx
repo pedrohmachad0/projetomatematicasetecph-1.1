@@ -5,6 +5,7 @@ import { subtractionProblems, type SubtractionProblem } from '../data/subtractio
 import { deslocar, isDezenaExata, podeDeslocar } from '../logic/subtracao'
 import RetaNumerica from '../components/subtracao/RetaNumerica'
 import PresentationMode from '../components/PresentationMode'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import SimulatorHeader from '../components/SimulatorHeader'
 
 const MAX_VALUE = 120
@@ -130,7 +131,7 @@ function SubtracaoWorkspace({ problema }: { problema: SubtractionProblem }) {
       </div>
 
       <div className="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:mb-6 sm:p-4 md:p-6">
-        <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
+        <div>
           <RetaNumerica
             minuendo={minuendo}
             subtraendo={subtraendo}
@@ -161,6 +162,15 @@ function SubtracaoWorkspace({ problema }: { problema: SubtractionProblem }) {
           Ex.: <span className="font-mono">27 − 12 = 15</span> → <span className="font-mono font-bold">25 − 10 = 15</span> (−2). Distância igual!
         </p>
       </div>
+      <ChallengeCard
+        simulator="subtracao"
+        goals={[
+          { id: 'dezena', text: 'Desloque os dois números até o subtraendo virar dezena exata.', met: constante && isDezena && desl !== 0 },
+          { id: 'para-cima', text: 'Chegue a uma dezena exata deslocando para cima (+1 ou +5).', met: constante && isDezena && desl > 0 },
+          { id: 'zero', text: 'Desloque até o subtraendo virar 0: a conta fica óbvia!', met: constante && subtraendo === 0 },
+          { id: 'propria', text: 'Edite os números e crie uma conta com diferença 25.', met: diferenca === 25 && (minuendo !== problema.minuendo || subtraendo !== problema.subtraendo) },
+        ]}
+      />
     </>
   )
 }

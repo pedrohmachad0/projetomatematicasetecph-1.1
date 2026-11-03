@@ -281,3 +281,14 @@ html[data-theme='dark'] .accent-text {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
+
+/* Controles deslizantes com área de toque confortável no celular. */
+input[type='range'] {
+  min-height: 32px;
+  touch-action: pan-y;
+  cursor: pointer;
+}
+input[type='checkbox'] {
+  min-width: 20px;
+  min-height: 20px;
+}
