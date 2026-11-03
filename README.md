@@ -38,6 +38,12 @@ Plataforma web educacional com um catálogo de simuladores de Matemática para o
 
 Todos seguem a filosofia do §31.3 de `regrasdoprojeto.md`: interação, cálculo em tempo real, representação visual em SVG, feedback textual, desafios que se completam sozinhos e modo apresentação para projetor/TV, com tema claro e escuro. Todos funcionam no celular: controles grandes, arrastar por toque e desenhos que se adaptam a telas estreitas.
 
+## Para o professor
+
+- **Guia do professor** em cada simulador: objetivo, roteiro em sala, perguntas para a turma, erros comuns e tempo sugerido (`src/data/teacherGuides.ts`). Fica fechado por padrão e não aparece na projeção.
+- **Modo apresentação**: tela cheia, zoom de 100% a 150%, caneta com quatro cores e borracha para riscar por cima do simulador, e botão para esconder os desafios.
+- **MathQuest em sala**: o *modo professor* libera todos os livros e abre o **painel do professor** (fases concluídas, estrelas, melhor resultado, atalho para a fase e para o simulador de cada fase, com opção de imprimir). Nas configurações, o **modo turma** tira o limite de tempo do chefão e aumenta as letras da batalha para a turma ler no projetor.
+
 ## MathQuest (`/aprender`)
 
 Mini RPG para aprender Matemática por livros (capítulos) e fases, seguindo os simuladores. Abre numa tela de título (Continuar, Novo jogo com nome do aventureiro, Como jogar, Configurações), tem menu de pausa (Esc/P), música própria em chiptune gerada no navegador (`src/data/music.ts`), caixas de diálogo com texto digitado, transições de tela e tela cheia.

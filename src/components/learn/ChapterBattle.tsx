@@ -58,6 +58,7 @@ export default function ChapterBattle({
   items,
   onUsePowerUp,
   soundOn = false,
+  classroom = false,
   config,
   heroName = 'Você',
 }: {
@@ -71,6 +72,8 @@ export default function ChapterBattle({
   /** Deve gastar o item e devolver `true` quando ele puder ser usado. */
   onUsePowerUp?: (id: PowerUpId) => boolean
   soundOn?: boolean
+  /** Modo turma: sem limite de tempo (a turma discute antes de responder) e letras maiores. */
+  classroom?: boolean
 }) {
   const boss = config ? config.boss : level === 10
   const enemy = config ? config.enemy : boss ? null : enemies[level - 1]
@@ -104,6 +107,8 @@ export default function ChapterBattle({
   const input = useRef<HTMLInputElement>(null)
   const effectId = useRef(0)
   const timeLimit = BOSS_SECONDS + bonusSeconds
+  // No modo turma o chefão não tem cronômetro: a turma pode discutir cada conta.
+  const timed = boss && !classroom
   const remaining = Math.max(0, timeLimit - elapsed)
   const title = config?.title ?? chapterLevels[level - 1].title
 
@@ -127,14 +132,14 @@ export default function ChapterBattle({
       if (finished.current) return
       const seconds = secondsSince(started)
       setElapsed(seconds)
-      if (boss && seconds >= latest.current.timeLimit) {
+      if (timed && seconds >= latest.current.timeLimit) {
         finished.current = true
         playSound('defeat', soundOn)
         latest.current.report(false, 'time', latest.current.timeLimit, 0)
       }
     }, 200)
     return () => window.clearInterval(timer)
-  }, [boss, started, soundOn])
+  }, [timed, started, soundOn])
 
   useEffect(() => {
     if (stage === 'question') (input.current ?? firstButton.current)?.focus()
@@ -182,7 +187,7 @@ export default function ChapterBattle({
 
   function submit() {
     if (stage !== 'question' || !question || !action || !answer.trim() || finished.current) return
-    if (boss && secondsSince(started) >= timeLimit) {
+    if (timed && secondsSince(started) >= timeLimit) {
       finished.current = true
       report(false, 'time', timeLimit, playerHp)
       return
@@ -377,7 +382,7 @@ export default function ChapterBattle({
   const showHeroNumber = (stage === 'enemy' || stage === 'over' || stage === 'result') && (effect?.target === 'player' || effect?.target === 'dodge' || effect?.target === 'heal')
 
   return (
-    <main className="battle-page turn-battle" id="conteudo">
+    <main className={`battle-page turn-battle ${classroom ? 'classroom-mode' : ''}`} id="conteudo">
       <div className="battle-breadcrumb">
         <span>
           <Swords size={14} /> BATALHA
@@ -388,9 +393,9 @@ export default function ChapterBattle({
       </div>
       <div className="battle-heading">
         <h1>{title}</h1>
-        <span className={`timer ${boss && remaining <= 30 ? 'urgent' : ''}`} role="timer" aria-label={boss ? 'Tempo restante' : 'Tempo decorrido'}>
+        <span className={`timer ${timed && remaining <= 30 ? 'urgent' : ''}`} role="timer" aria-label={timed ? 'Tempo restante' : 'Tempo decorrido'}>
           <Clock3 size={17} />
-          {formatTime(endTime !== null ? (boss ? timeLimit - endTime : endTime) : boss ? remaining : elapsed)}
+          {formatTime(endTime !== null ? (timed ? timeLimit - endTime : endTime) : timed ? remaining : elapsed)}
         </span>
       </div>
 
@@ -630,7 +635,7 @@ export default function ChapterBattle({
             <h2 id="exit-title">Fugir da batalha?</h2>
             <p>
               Esta tentativa será encerrada. As fases que você já concluiu continuam salvas.
-              {boss ? ' O cronômetro continua correndo.' : ''}
+              {timed ? ' O cronômetro continua correndo.' : ''}
             </p>
             <div className="modal-actions">
               <button autoFocus className="rpg-button" onClick={() => setExitConfirm(false)}>

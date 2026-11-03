@@ -30,6 +30,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { emptyProgress, type ChapterProgress } from '../data/chapter'
+import TeacherDashboard from '../components/learn/TeacherDashboard'
 import { questBooks, guardianQuestions, type QuestBook } from '../data/questBooks'
 import { type PowerUpId } from '../data/quest'
 import { getContent } from '../data/mathContent'
@@ -142,6 +143,7 @@ export default function Aprender() {
   const [selected, setSelected] = useState(() => Math.min(progress.completed.length + 1, total))
   const [screen, setScreen] = useState<Screen>('title')
   const [menu, setMenu] = useState<'pause' | 'settings' | 'howto' | null>(null)
+  const [dashboard, setDashboard] = useState(false)
   const [settings, setSettings] = useState<GameSettings>(readSettings)
   const [journalRequest, setJournalRequest] = useState(0)
   const [fullscreen, setFullscreen] = useState(false)
@@ -283,6 +285,18 @@ export default function Aprender() {
     setSelected(Math.min(nextProgress.completed.length + 1, next.phases.length))
     setPanel(null)
     setScreen('map')
+  }
+
+  /** Painel do professor: vai para a trilha do livro com a fase escolhida selecionada. */
+  function openPhaseFromDashboard(index: number, phase: number) {
+    const next = questBooks[index]
+    setBookId(next.id)
+    writeValue(BOOK_STORAGE, next.id)
+    setSelected(phase)
+    setPanel(null)
+    setDashboard(false)
+    setScreen('map')
+    toTop()
   }
 
   function spendPowerUp(id: PowerUpId) {
@@ -465,7 +479,7 @@ export default function Aprender() {
           paused={menu !== null}
         />
       ) : screen === 'battle' ? (
-        <ChapterBattle key={attempt} level={selected} config={battleConfig} heroName={heroName} onExit={() => setScreen(complete ? 'map' : 'explore')} onFinish={finish} items={stats.items} onUsePowerUp={spendPowerUp} soundOn={soundOn} />
+        <ChapterBattle key={attempt} level={selected} config={battleConfig} heroName={heroName} onExit={() => setScreen(complete ? 'map' : 'explore')} onFinish={finish} items={stats.items} onUsePowerUp={spendPowerUp} soundOn={soundOn} classroom={settings.classroom} />
       ) : screen === 'blitz' ? (
         <BlitzChallenge key={attempt} unlocked={Math.min(livro1.completed.length + 1, 10)} best={stats.blitzBest} soundOn={soundOn} onExit={() => setScreen('map')} onFinish={finishBlitz} />
       ) : screen === 'blitz-result' && blitzResult ? (
@@ -849,6 +863,7 @@ export default function Aprender() {
       )}
       {menu === 'settings' && <SettingsPanel settings={settings} onChange={updateSettings} onClose={() => setMenu(screen === 'title' ? null : 'pause')} />}
       {menu === 'howto' && <HowToPlay onClose={() => setMenu(null)} />}
+      {dashboard && <TeacherDashboard progresses={progresses} onClose={() => setDashboard(false)} onOpenPhase={openPhaseFromDashboard} />}
       {inventoryOpen && <Inventory progress={livro1} coins={coins} onClose={() => setInventoryOpen(false)} />}
       {panel === 'shop' && <ShopPanel coins={coins} items={stats.items} onBuy={buy} onClose={() => setPanel(null)} />}
       {panel === 'achievements' && <AchievementsPanel unlocked={stats.unlocked} onClose={() => setPanel(null)} />}
@@ -899,6 +914,11 @@ export default function Aprender() {
                 <small>Libera todos os livros e fases para usar em sala, sem precisar jogar na ordem.</small>
               </span>
             </label>
+            {teacher && (
+              <button type="button" className="rpg-button teacher-dashboard-open" onClick={() => setDashboard(true)}>
+                <GraduationCap size={17} /> Abrir o painel do professor
+              </button>
+            )}
             <p>
               {booksDoneCount}/{questBooks.length} livros concluídos.
             </p>

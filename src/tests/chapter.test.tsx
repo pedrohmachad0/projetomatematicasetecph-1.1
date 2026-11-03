@@ -267,6 +267,15 @@ describe('batalha por turnos', () => {
     expect(finish).toHaveBeenCalledWith(expect.objectContaining({ won: false, reason: 'time', seconds: BOSS_SECONDS }))
   })
 
+  it('no modo turma o chefe não tem limite de tempo e as letras ficam maiores', () => {
+    const finish = vi.fn()
+    const { container } = render(<ChapterBattle level={10} onExit={() => {}} onFinish={finish} classroom />)
+    act(() => vi.advanceTimersByTime((BOSS_SECONDS + 30) * 1000))
+    expect(finish).not.toHaveBeenCalled()
+    expect(screen.getByRole('timer', { name: 'Tempo decorrido' })).toBeInTheDocument()
+    expect(container.querySelector('.classroom-mode')).not.toBeNull()
+  })
+
   it('fugir pede confirmação', () => {
     const exit = vi.fn()
     render(<ChapterBattle level={1} onExit={exit} onFinish={() => {}} />)

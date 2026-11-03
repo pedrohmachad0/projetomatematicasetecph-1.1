@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { BookOpen, Gamepad2, Home, Map, Maximize2, Minimize2, Music, Play, RotateCcw, Settings, Sparkles, Volume2, X } from 'lucide-react'
+import { BookOpen, Gamepad2, Home, Map, Maximize2, Minimize2, Music, Play, RotateCcw, Settings, Sparkles, Volume2, X, Presentation } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cleanName, type GameSettings, type TextSpeed } from '../../logic/settings'
 import { HeroSprite } from './MapSprites'
 import PixelCreature from './PixelCreature'
 import { PixelOgre, PixelTree } from './PixelArt'
 
-function Overlay({ title, kicker, onClose, children, className = '' }: { title: string; kicker: string; onClose: () => void; children: ReactNode; className?: string }) {
+export function Overlay({ title, kicker, onClose, children, className = '' }: { title: string; kicker: string; onClose: () => void; children: ReactNode; className?: string }) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -68,6 +68,13 @@ export function SettingsPanel({ settings, onChange, onClose }: { settings: GameS
             ))}
           </div>
         </div>
+        <label className="setting-row">
+          <span>
+            <Presentation size={16} /> Modo turma (projetor)
+            <small className="setting-note">Sem limite de tempo no chefão e letras maiores na batalha, para a turma responder junta.</small>
+          </span>
+          <input type="checkbox" checked={settings.classroom} onChange={(event) => onChange({ ...settings, classroom: event.target.checked })} />
+        </label>
         <label className="setting-row setting-column">
           <span>Nome do aventureiro</span>
           <input type="text" value={settings.playerName} maxLength={14} onChange={(event) => onChange({ ...settings, playerName: cleanName(event.target.value) })} placeholder="Seu nome" />
