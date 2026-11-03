@@ -51,7 +51,6 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
       <svg
         viewBox="0 0 440 380"
         width="100%"
-        height="auto"
         className="w-full max-w-[520px] h-auto max-h-[280px] sm:max-h-[360px] overflow-visible block"
         role="img"
         aria-label={`Triângulo com ângulo ${angle} graus, lados iguais ${sideA} e terceiro lado ${sideC}`}
@@ -60,8 +59,7 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
         <motion.polygon
           key={`sqA-${angle}`}
           points={poly(sqA)}
-          fill="#f1f5f9"
-          stroke="#cbd5e1"
+          style={{ fill: 'var(--svg-fill)', stroke: 'var(--svg-stroke)' }}
           strokeWidth={2}
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -70,8 +68,7 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
         <motion.polygon
           key={`sqB-${angle}`}
           points={poly(sqB)}
-          fill="#f1f5f9"
-          stroke="#cbd5e1"
+          style={{ fill: 'var(--svg-fill)', stroke: 'var(--svg-stroke)' }}
           strokeWidth={2}
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -118,7 +115,7 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
           {angle}°
         </text>
 
-        <text x={(O.x + A.x) / 2} y={O.y + 18} textAnchor="middle" fontSize={12} fontWeight={700} fill="#475569">
+        <text x={(O.x + A.x) / 2} y={O.y + 18} textAnchor="middle" fontSize={12} fontWeight={700} style={{ fill: 'var(--svg-text)' }}>
           {sideA}
         </text>
         <text
@@ -127,7 +124,7 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
           textAnchor="middle"
           fontSize={12}
           fontWeight={700}
-          fill="#475569"
+          style={{ fill: 'var(--svg-text)' }}
           transform={`rotate(${-angle / 2} ${(O.x + B.x) / 2} ${(O.y + B.y) / 2})`}
         >
           {sideB}
@@ -138,21 +135,21 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
 
         {showAllAngles && (
           <>
-            <path d={baseMarkerA.path} fill="none" stroke="#475569" strokeWidth={2} strokeLinecap="round" />
-            <path d={baseMarkerB.path} fill="none" stroke="#475569" strokeWidth={2} strokeLinecap="round" />
-            <text x={baseMarkerA.label.x} y={baseMarkerA.label.y + 4} textAnchor="middle" fontSize={12} fontWeight={800} fill="#475569">
+            <path d={baseMarkerA.path} fill="none" style={{ stroke: 'var(--svg-text)' }} strokeWidth={2} strokeLinecap="round" />
+            <path d={baseMarkerB.path} fill="none" style={{ stroke: 'var(--svg-text)' }} strokeWidth={2} strokeLinecap="round" />
+            <text x={baseMarkerA.label.x} y={baseMarkerA.label.y + 4} textAnchor="middle" fontSize={12} fontWeight={800} style={{ fill: 'var(--svg-text)' }}>
               {formattedBaseAngle}°
             </text>
-            <text x={baseMarkerB.label.x} y={baseMarkerB.label.y + 4} textAnchor="middle" fontSize={12} fontWeight={800} fill="#475569">
+            <text x={baseMarkerB.label.x} y={baseMarkerB.label.y + 4} textAnchor="middle" fontSize={12} fontWeight={800} style={{ fill: 'var(--svg-text)' }}>
               {formattedBaseAngle}°
             </text>
           </>
         )}
 
-        <text x={(sqA[0].x + sqA[2].x) / 2} y={(sqA[0].y + sqA[2].y) / 2 + 4} textAnchor="middle" fontSize={11} fontWeight={800} fill="#64748b">
+        <text x={(sqA[0].x + sqA[2].x) / 2} y={(sqA[0].y + sqA[2].y) / 2 + 4} textAnchor="middle" fontSize={11} fontWeight={800} style={{ fill: 'var(--svg-muted)' }}>
           {sideA * sideA}
         </text>
-        <text x={(sqB[0].x + sqB[2].x) / 2} y={(sqB[0].y + sqB[2].y) / 2 + 4} textAnchor="middle" fontSize={11} fontWeight={800} fill="#64748b">
+        <text x={(sqB[0].x + sqB[2].x) / 2} y={(sqB[0].y + sqB[2].y) / 2 + 4} textAnchor="middle" fontSize={11} fontWeight={800} style={{ fill: 'var(--svg-muted)' }}>
           {sideB * sideB}
         </text>
         <text x={(sqC[0].x + sqC[2].x) / 2} y={(sqC[0].y + sqC[2].y) / 2 + 4} textAnchor="middle" fontSize={13} fontWeight={900} fill={color}>
@@ -166,7 +163,7 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
         </p>
       )}
 
-      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-2 sm:mt-1 text-[10px] sm:text-[11px] text-slate-400 px-2 text-center">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-2 sm:mt-1 text-[10px] sm:text-[11px] text-slate-500 px-2 text-center">
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-sm bg-slate-200 border border-slate-300 shrink-0" /> Quadrados fixos (A², B²)
         </span>

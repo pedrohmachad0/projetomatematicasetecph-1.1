@@ -71,7 +71,7 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
                 x2={scale(v)}
                 y1={yLine - (isMajor ? 14 : 7)}
                 y2={yLine + (isMajor ? 14 : 7)}
-                stroke={isTen ? '#1e293b' : '#94a3b8'}
+                style={{ stroke: isTen ? 'var(--svg-ink)' : 'var(--svg-axis)' }}
                 strokeWidth={isTen ? 2 : 1.2}
               />
               {isMajor && (
@@ -81,24 +81,24 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
                   textAnchor="middle"
                   fontSize={isTen ? 11 : 10}
                   fontWeight={isTen ? 800 : 600}
-                  fill={isTen ? '#0f172a' : '#475569'}
+                  style={{ fill: isTen ? 'var(--svg-ink)' : 'var(--svg-text)' }}
                 >
                   {v}
                 </text>
               )}
-              {isTen && <circle cx={scale(v)} cy={yLine} r={2.5} fill="#0f172a" opacity={0.15} />}
+              {isTen && <circle cx={scale(v)} cy={yLine} r={2.5} style={{ fill: 'var(--svg-ink)' }} opacity={0.15} />}
             </g>
           )
         })}
 
         {/* posições originais discretas */}
         <g opacity={0.35}>
-          <circle cx={scale(origMinuendo)} cy={yLine + 36} r={5} fill="none" stroke="#64748b" strokeWidth={1.5} strokeDasharray="3 3" />
-          <text x={scale(origMinuendo)} y={yLine + 50} textAnchor="middle" fontSize={9} fill="#64748b" fontWeight={600}>
+          <circle cx={scale(origMinuendo)} cy={yLine + 36} r={5} fill="none" style={{ stroke: 'var(--svg-muted)' }} strokeWidth={1.5} strokeDasharray="3 3" />
+          <text x={scale(origMinuendo)} y={yLine + 50} textAnchor="middle" fontSize={9} style={{ fill: 'var(--svg-muted)' }} fontWeight={600}>
             orig {origMinuendo}
           </text>
-          <circle cx={scale(origSubtraendo)} cy={yLine + 36} r={5} fill="none" stroke="#64748b" strokeWidth={1.5} strokeDasharray="3 3" />
-          <text x={scale(origSubtraendo)} y={yLine + 50} textAnchor="middle" fontSize={9} fill="#64748b" fontWeight={600}>
+          <circle cx={scale(origSubtraendo)} cy={yLine + 36} r={5} fill="none" style={{ stroke: 'var(--svg-muted)' }} strokeWidth={1.5} strokeDasharray="3 3" />
+          <text x={scale(origSubtraendo)} y={yLine + 50} textAnchor="middle" fontSize={9} style={{ fill: 'var(--svg-muted)' }} fontWeight={600}>
             orig {origSubtraendo}
           </text>
         </g>
@@ -115,7 +115,7 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
               cx={scale(subtraendo)}
               cy={yLine}
               r={12}
-              fill={isDezena ? '#fef3c7' : 'white'}
+              style={{ fill: isDezena ? '#fef3c7' : 'var(--svg-surface)' }}
               stroke={isDezena ? '#f59e0b' : '#7c3aed'}
               strokeWidth={3}
             />
@@ -147,7 +147,7 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
               cx={scale(minuendo)}
               cy={yLine}
               r={12}
-              fill="white"
+              style={{ fill: 'var(--svg-surface)' }}
               stroke="#2563eb"
               strokeWidth={3}
             />
@@ -161,7 +161,7 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
         </g>
       </svg>
 
-      <div className="flex flex-wrap justify-between sm:justify-between gap-1 sm:gap-2 text-[10px] sm:text-[11px] text-slate-400 px-1 -mt-1">
+      <div className="flex flex-wrap justify-between sm:justify-between gap-1 sm:gap-2 text-[10px] sm:text-[11px] text-slate-500 px-1 -mt-1">
         <span className="hidden sm:inline">← menor</span>
         <span className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center flex-1 sm:flex-none">
           <span className="inline-flex items-center gap-1">

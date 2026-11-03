@@ -13,12 +13,12 @@ export default function MaterialDourado({ valor, label, destacado, cor }: Props)
 
   return (
     <div
-      className={`rounded-2xl border-2 p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3 transition-all ${
+      className={`rounded-2xl border p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3 transition-all ${
         destacado ? 'shadow-lg scale-[1.01] sm:scale-[1.02]' : 'shadow-sm'
       }`}
       style={{
         background: destacado ? `${cor}0f` : 'var(--surface-card)',
-        borderColor: destacado ? cor : '#e2e8f0',
+        borderColor: destacado ? cor : 'var(--svg-stroke)',
       }}
       aria-label={`${label}: ${valor} — ${dezenas} dezenas e ${unidades} unidades`}
     >
@@ -37,7 +37,7 @@ export default function MaterialDourado({ valor, label, destacado, cor }: Props)
           className="text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full text-white text-center leading-tight"
           style={{ background: cor }}
         >
-          ✨ DEZENA EXATA!
+          DEZENA EXATA
         </div>
       )}
 

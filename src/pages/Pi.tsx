@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { RotateCcw, SlidersHorizontal } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
+import SimulatorHeader from '../components/SimulatorHeader'
 import CircleVisualization from '../components/circulo/CircleVisualization'
 import { DEFAULT_RADIUS, MAX_RADIUS, MIN_RADIUS, RADIUS_STEP, formatNumber, getCircleState, type CircleMode } from '../logic/circulo'
 
@@ -68,25 +69,11 @@ export default function Pi() {
     setExperimentKey(value => value + 1)
   }
 
-  return <PresentationMode title="Círculo e π">
-    <div className="mx-auto max-w-6xl space-y-3.5 sm:space-y-4">
-      <section aria-labelledby="circle-intro-title" className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0b2851] via-[#164c91] to-[#2869c8] px-5 py-3 text-white shadow-[0_24px_60px_-35px_rgba(30,64,175,0.7)] sm:px-7 sm:py-4 md:px-9">
-        <div className="pointer-events-none absolute -right-10 -top-20 h-64 w-64 rounded-full border border-white/10" aria-hidden="true" />
-        <div className="pointer-events-none absolute -right-1 -top-10 h-48 w-48 rounded-full border border-white/10" aria-hidden="true" />
-        <div className="relative flex items-center justify-between gap-3 sm:gap-6">
-          <div className="max-w-3xl">
-            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-blue-100 sm:text-[10px]">Geometria para explorar</p>
-            <h1 id="circle-intro-title" className="mt-1 text-xl font-black leading-tight tracking-tight sm:text-2xl md:text-3xl">O círculo e o número π</h1>
-            <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-blue-50 sm:text-sm">
-              A volta de qualquer círculo mede cerca de <strong className="font-black text-white">3,14 diâmetros</strong>: essa razão é o π.
-            </p>
-          </div>
-          <div className="relative grid h-[58px] w-[58px] shrink-0 place-items-center rounded-full border border-white/40 bg-white/10 shadow-inner sm:h-20 sm:w-20" aria-label="Pi aproximadamente 3,14">
-            <span className="text-3xl font-black leading-none sm:text-4xl">π</span>
-            <span className="absolute -bottom-2 rounded-full border border-white/30 bg-[#123b76] px-2 py-0.5 text-[10px] font-black text-white sm:text-xs">≈ 3,14</span>
-          </div>
-        </div>
-      </section>
+  return <PresentationMode title="Explorador do Círculo">
+    <div className="space-y-3.5 sm:space-y-4">
+      <SimulatorHeader id="pi">
+        A volta de qualquer círculo mede cerca de <strong className="font-black text-slate-900">3,14 diâmetros</strong>: essa razão é o número π. Explore também raio, arcos, cordas e área do setor.
+      </SimulatorHeader>
 
       <section aria-labelledby="active-circle-topic" className="overflow-hidden rounded-[28px] border border-blue-100 bg-white p-3 shadow-[0_18px_55px_-35px_rgba(30,64,175,0.35)] sm:p-5 md:p-6">
         <div className="mb-3 border-b border-slate-100 pb-3">

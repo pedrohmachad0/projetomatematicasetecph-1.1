@@ -1,11 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Maximize2, Minimize2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, Maximize2, Minimize2 } from 'lucide-react'
 
 interface Props {
   children: ReactNode
   title: string
 }
 
+/**
+ * Moldura comum dos simuladores: barra com o link de volta ao catálogo e o
+ * botão que amplia o simulador para projetor/TV.
+ */
 export default function PresentationMode({ children, title }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -22,18 +27,28 @@ export default function PresentationMode({ children, title }: Props) {
     <div
       className={
         isOpen
-          ? 'fixed inset-0 z-50 min-h-screen overflow-y-auto bg-slate-50 p-3 sm:p-6 md:p-8 presentation-surface'
+          ? 'presentation-surface fixed inset-0 z-50 min-h-screen overflow-y-auto bg-slate-50 p-3 sm:p-6 md:p-8'
           : 'relative'
       }
     >
-      <div className={isOpen ? 'mx-auto max-w-7xl' : undefined}>
-        <div className="mb-2 flex justify-end sm:mb-3">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-3 flex min-h-[44px] items-center justify-between gap-3 sm:mb-4">
+          {isOpen ? (
+            <span className="truncate text-sm font-black text-slate-700">{title}</span>
+          ) : (
+            <Link
+              to="/"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg text-sm font-bold text-blue-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              <ArrowLeft size={16} className="shrink-0" /> Simuladores
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setIsOpen((current) => !current)}
             aria-pressed={isOpen}
             aria-label={isOpen ? `Sair do modo de apresentação: ${title}` : `Ampliar ${title} para apresentação`}
-            className="inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="inline-flex min-h-[40px] shrink-0 items-center gap-2 rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             {isOpen ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
             <span>{isOpen ? 'Sair da apresentação' : 'Modo apresentação'}</span>
