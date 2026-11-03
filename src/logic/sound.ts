@@ -1,4 +1,5 @@
 import { QUEST_SOUND_STORAGE } from '../data/quest'
+import { readSettings } from './settings'
 
 /** Efeitos sonoros curtos sintetizados com Web Audio, sem arquivos de áudio. */
 export type SoundEffect = 'correct' | 'wrong' | 'combo' | 'victory' | 'defeat' | 'coin' | 'item' | 'select'
@@ -19,11 +20,7 @@ const melodies: Record<SoundEffect, { wave: OscillatorType; notes: Note[] }> = {
 let context: AudioContext | null = null
 
 export function readSoundEnabled(): boolean {
-  try {
-    return localStorage.getItem(QUEST_SOUND_STORAGE) !== 'off'
-  } catch {
-    return true
-  }
+  return readSettings().sfx
 }
 
 export function writeSoundEnabled(enabled: boolean) {

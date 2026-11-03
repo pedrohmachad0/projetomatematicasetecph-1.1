@@ -25,7 +25,7 @@ Todos seguem a filosofia do §31.3 de `regrasdoprojeto.md`: interação, cálcul
 
 ## MathQuest (`/aprender`)
 
-Mini RPG para aprender Matemática por livros (capítulos) e fases, seguindo os simuladores:
+Mini RPG para aprender Matemática por livros (capítulos) e fases, seguindo os simuladores. Abre numa tela de título (Continuar, Novo jogo com nome do aventureiro, Como jogar, Configurações), tem menu de pausa (Esc/P), música própria em chiptune gerada no navegador (`src/data/music.ts`), caixas de diálogo com texto digitado, transições de tela e tela cheia.
 
 | Livro | Tema | Fases | Simuladores ligados |
 | --- | --- | --- | --- |

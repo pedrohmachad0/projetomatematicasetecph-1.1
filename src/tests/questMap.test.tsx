@@ -34,6 +34,15 @@ function walkTo(x: number, y: number) {
   for (let i = 0; i < 90; i++) act(() => vi.advanceTimersByTime(120))
 }
 
+/** Passa a conversa até o fim (o primeiro clique completa o texto, o segundo avança). */
+function finishTalk() {
+  for (let i = 0; i < 12 && document.querySelector('.dialogue-next'); i++) fireEvent.click(document.querySelector('.dialogue-next')!)
+}
+
+function openJournal() {
+  fireEvent.keyDown(window, { key: 'j' })
+}
+
 beforeEach(() => {
   localStorage.clear()
   vi.useFakeTimers()
@@ -46,7 +55,10 @@ afterEach(() => {
 describe('Mapa explorável', () => {
   it('começa com o guardião bloqueado e o herói no ponto de partida', () => {
     renderMap()
+    expect(screen.queryByRole('button', { name: /^Guardião$/ })).not.toBeInTheDocument()
+    openJournal()
     expect(screen.getByRole('button', { name: /Guardião bloqueado/ })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar o diário' }))
     expect(screen.getByRole('region', { name: /^Mapa\./ })).toHaveAccessibleName(`Mapa. Você está na coluna ${map.start.x + 1}, linha ${map.start.y + 1}.`)
   })
 
@@ -77,6 +89,7 @@ describe('Mapa explorável', () => {
     const order = [...map.entities.filter((e) => e.x < RIVER_X && e.type === 'monster'), map.entities.find((e) => e.type === 'villager')!]
     for (const entity of order) {
       walkTo(entity.x, entity.y)
+      finishTalk()
       expect(screen.getByRole('dialog')).toBeInTheDocument()
       answerEncounter()
       if (screen.queryByRole('dialog')) answerEncounter()
@@ -90,13 +103,22 @@ describe('Mapa explorável', () => {
       answerEncounter()
       if (screen.queryByRole('dialog')) answerEncounter()
     }
-    const enter = screen.getByRole('button', { name: /Enfrentar o guardião/ })
-    expect(enter).toBeEnabled()
+    const enter = screen.getByRole('button', { name: /^Guardião$/ })
     fireEvent.click(enter)
     expect(guardian).toHaveBeenCalled()
     expect(coins).toHaveBeenCalledWith(3)
     expect(coins).toHaveBeenCalledWith(5)
   }, 30_000)
+
+  it('o morador conversa antes de pedir ajuda', () => {
+    renderMap({ heroName: 'Ana' })
+    const villager = map.entities.find((e) => e.type === 'villager')!
+    walkTo(villager.x, villager.y)
+    expect(screen.getByRole('dialog', { name: /Conversa com/ })).toBeInTheDocument()
+    expect(document.querySelector('.dialogue-box p')!.textContent).toContain('Olá, Ana!')
+    finishTalk()
+    expect(screen.getByRole('heading', { name: book.villagers[villager.variant % book.villagers.length] })).toBeInTheDocument()
+  })
 
   it('a placa mostra a dica e o link do simulador; o progresso fica salvo', () => {
     renderMap()
@@ -107,6 +129,7 @@ describe('Mapa explorável', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Voltar ao mapa' }))
     cleanup()
     renderMap()
+    openJournal()
     expect(screen.getByText('Leia a placa do sábio (opcional)').closest('li')).toHaveClass('done')
   })
 })

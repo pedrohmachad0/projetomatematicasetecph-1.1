@@ -59,8 +59,10 @@ export default function ChapterBattle({
   onUsePowerUp,
   soundOn = false,
   config,
+  heroName = 'Você',
 }: {
   level: number
+  heroName?: string
   config?: BattleConfig
   onExit: () => void
   onFinish: (result: BattleResult) => void
@@ -150,8 +152,14 @@ export default function ChapterBattle({
     if (!pool.current || pool.current.length === 0) {
       pool.current = [...(pool.current === null && config ? config.questions : (config?.more?.() ?? (config ? config.questions : generateChapterQuestions(level))))]
     }
-    const matches = (q: ChapterQuestion) => (prefer === 'any' ? true : prefer === 'choice' ? Boolean(q.choices) : !q.choices)
-    const index = Math.max(0, pool.current.findIndex(matches))
+    const tests: Array<(q: ChapterQuestion) => boolean> =
+      prefer === 'choice' ? [(q) => (q.choices?.length ?? 0) >= 3, (q) => Boolean(q.choices)] : prefer === 'input' ? [(q) => !q.choices] : [() => true]
+    let index = -1
+    for (const test of tests) {
+      index = pool.current.findIndex(test)
+      if (index >= 0) break
+    }
+    index = Math.max(0, index)
     return pool.current.splice(index, 1)[0]
   }
 
@@ -438,7 +446,7 @@ export default function ChapterBattle({
         </div>
         <div className="status-card hero-card">
           <div className="status-name">
-            <strong>VOCÊ</strong>
+            <strong>{heroName.toUpperCase()}</strong>
             <span>
               {shield && <Shield size={13} aria-label="Escudo ativo" />}
               {combo >= 2 && <span className="combo-chip">COMBO x{combo}</span>}

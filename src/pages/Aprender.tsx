@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import {
   ArrowRight,
@@ -13,6 +13,9 @@ import {
   Heart,
   LockKeyhole,
   Map,
+  Maximize2,
+  Menu,
+  Minimize2,
   Moon,
   RotateCcw,
   Shield,
@@ -53,7 +56,10 @@ import {
   writeStats,
   type QuestStats,
 } from '../logic/quest'
-import { playSound, readSoundEnabled, writeSoundEnabled } from '../logic/sound'
+import { playSound } from '../logic/sound'
+import { music } from '../logic/music'
+import { readSettings, writeSettings, type GameSettings } from '../logic/settings'
+import { HowToPlay, PauseMenu, SettingsPanel, TitleScreen } from '../components/learn/GameMenus'
 import { ForestBackdrop, PixelChest, PixelFire, PixelOgre, PixelTree, PixelItem } from '../components/learn/PixelArt'
 import { type ThemeContext } from '../components/Layout'
 import SchoolCredit from '../components/SchoolCredit'
@@ -119,7 +125,10 @@ function readCurrentBook(): string {
 const bookDone = (book: QuestBook, progress: ChapterProgress) => progress.completed.includes(book.phases.length)
 const titleCase = (name: string) => `${name.charAt(0)}${name.slice(1).toLowerCase()}`
 
-type Screen = 'map' | 'explore' | 'battle' | 'result' | 'blitz' | 'blitz-result'
+type Screen = 'title' | 'map' | 'explore' | 'battle' | 'result' | 'blitz' | 'blitz-result'
+
+/** Chaves salvas pela aventura, apagadas ao começar um novo jogo. */
+const SAVE_KEYS = ['matematica-rpg-stats-v1', 'matematica-rpg-explore-v1', 'matematica-rpg-equipment-v1', BOOK_STORAGE]
 
 export default function Aprender() {
   const { isDark, toggleTheme } = useOutletContext<ThemeContext>()
@@ -131,7 +140,12 @@ export default function Aprender() {
   const progress = progresses[book.id] ?? emptyProgress()
   const total = book.phases.length
   const [selected, setSelected] = useState(() => Math.min(progress.completed.length + 1, total))
-  const [screen, setScreen] = useState<Screen>('map')
+  const [screen, setScreen] = useState<Screen>('title')
+  const [menu, setMenu] = useState<'pause' | 'settings' | 'howto' | null>(null)
+  const [settings, setSettings] = useState<GameSettings>(readSettings)
+  const [journalRequest, setJournalRequest] = useState(0)
+  const [fullscreen, setFullscreen] = useState(false)
+  const appRef = useRef<HTMLDivElement>(null)
   const [panel, setPanel] = useState<'books' | 'shop' | 'achievements' | null>(null)
   const booksDoneCount = questBooks.filter((item) => bookDone(item, progresses[item.id] ?? emptyProgress())).length
   // Conquistas de progresso antigo são reconhecidas em silêncio ao abrir a página.
@@ -139,7 +153,6 @@ export default function Aprender() {
     const all = readAllProgress()
     return unlockAchievements(all[questBooks[0].id], readStats(), questBooks.filter((item) => bookDone(item, all[item.id])).length).stats
   })
-  const [soundOn, setSoundOn] = useState(readSoundEnabled)
   const [toast, setToast] = useState<string[]>([])
   const [blitzResult, setBlitzResult] = useState<(BlitzResult & { coins: number; record: boolean }) | null>(null)
   const [inventoryOpen, setInventoryOpen] = useState(false)
@@ -178,11 +191,68 @@ export default function Aprender() {
     }
   }
 
+  const soundOn = settings.sfx
+  const heroName = settings.playerName || 'Aventureiro'
+  const hasSave = totalXp > 0 || stats.unlocked.length > 0 || questBooks.some((item) => (progresses[item.id]?.completed.length ?? 0) > 0)
+
+  function updateSettings(next: GameSettings) {
+    setSettings(next)
+    writeSettings(next)
+  }
+
   function toggleSound() {
-    setSoundOn((current) => {
-      writeSoundEnabled(!current)
-      return !current
-    })
+    updateSettings({ ...settings, sfx: !settings.sfx, music: !settings.sfx })
+  }
+
+  // Trilha sonora de cada tela.
+  useEffect(() => {
+    music.configure(settings.music, settings.volume)
+    const track = screen === 'title' ? 'title' : screen === 'battle' ? (selected === total ? 'boss' : 'battle') : screen === 'blitz' ? 'battle' : 'map'
+    music.play(track)
+  }, [screen, settings.music, settings.volume, selected, total])
+  useEffect(() => () => music.stop(), [])
+
+  // Esc ou P abre a pausa fora das batalhas.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.altKey || event.ctrlKey || event.metaKey) return
+      if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select')) return
+      const key = event.key.toLowerCase()
+      if ((key === 'escape' || key === 'p') && !menu && !panel && !inventoryOpen && (screen === 'map' || screen === 'explore' || screen === 'result' || screen === 'blitz-result')) {
+        if (document.querySelector('.rpg-modal-backdrop, .game-overlay, .dialogue-layer')) return
+        event.preventDefault()
+        setMenu('pause')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
+  useEffect(() => {
+    const onChange = () => setFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) void document.exitFullscreen?.()
+    else void appRef.current?.requestFullscreen?.().catch(() => setFullscreen(false))
+  }
+
+  function newGame(name: string) {
+    try {
+      for (const key of [...SAVE_KEYS, ...questBooks.map((item) => item.storage)]) localStorage.removeItem(key)
+    } catch {
+      setStorageError(true)
+    }
+    const fresh = readAllProgress()
+    setProgresses(fresh)
+    setStats(readStats())
+    setBookId(questBooks[0].id)
+    setSelected(1)
+    updateSettings({ ...settings, playerName: name })
+    setScreen('map')
+    music.resume()
   }
 
   function toggleTeacher() {
@@ -297,7 +367,8 @@ export default function Aprender() {
   const resultGuardianName = resultPhase ? (resultPhase.guardian ? titleCase(resultPhase.guardian.name) : 'Grum') : ''
 
   return (
-    <div className={`rpg-app tab-slide-in book-${book.theme}`}>
+    <div ref={appRef} className={`rpg-app tab-slide-in book-${book.theme} ${screen === 'title' ? 'on-title' : ''} ${fullscreen ? 'is-fullscreen' : ''}`}>
+      {(screen === 'map' || screen === 'result' || screen === 'blitz-result') && (
       <header className="rpg-header">
         <Link to="/aprender" className="rpg-brand" onClick={() => setScreen('map')}>
           <span className="brand-mark">
@@ -334,12 +405,34 @@ export default function Aprender() {
             <Star size={16} fill="currentColor" />
             {totalXp} XP
           </span>
-          <button type="button" className="player-avatar" aria-label="Abrir inventário" onClick={() => setInventoryOpen(true)}>
-            V<span>{xpLevel}</span>
+          <button type="button" className="rpg-icon-button" onClick={toggleFullscreen} aria-pressed={fullscreen} aria-label={fullscreen ? 'Sair da tela cheia' : 'Jogar em tela cheia'} title="Tela cheia">
+            {fullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
+          <button type="button" className="rpg-icon-button" onClick={() => setMenu('pause')} aria-label="Menu do jogo (Esc)" title="Menu (Esc)">
+            <Menu size={16} />
+          </button>
+          <button type="button" className="player-avatar" aria-label={`Abrir inventário de ${heroName}`} onClick={() => setInventoryOpen(true)}>
+            {heroName.charAt(0).toUpperCase()}
+            <span>{xpLevel}</span>
           </button>
         </div>
       </header>
-      {screen === 'explore' ? (
+      )}
+      <div key={screen} className={`screen-transition ${screen === 'battle' ? 'battle-enter' : ''}`}>
+      {screen === 'title' ? (
+        <TitleScreen
+          hasSave={hasSave}
+          playerName={settings.playerName}
+          summary={`${totalXp} XP · ${booksDoneCount} de ${questBooks.length} livros`}
+          onContinue={() => {
+            setScreen('map')
+            music.resume()
+          }}
+          onNewGame={newGame}
+          onSettings={() => setMenu('settings')}
+          onHowTo={() => setMenu('howto')}
+        />
+      ) : screen === 'explore' ? (
         <QuestMap
           key={`${book.id}-${selected}`}
           book={book}
@@ -351,9 +444,14 @@ export default function Aprender() {
           onExit={() => setScreen('map')}
           onGuardian={() => battle(selected)}
           onCoins={addCoins}
+          heroName={heroName}
+          textSpeed={settings.textSpeed}
+          onPause={() => setMenu('pause')}
+          journalRequest={journalRequest}
+          paused={menu !== null}
         />
       ) : screen === 'battle' ? (
-        <ChapterBattle key={attempt} level={selected} config={battleConfig} onExit={() => setScreen(complete ? 'map' : 'explore')} onFinish={finish} items={stats.items} onUsePowerUp={spendPowerUp} soundOn={soundOn} />
+        <ChapterBattle key={attempt} level={selected} config={battleConfig} heroName={heroName} onExit={() => setScreen(complete ? 'map' : 'explore')} onFinish={finish} items={stats.items} onUsePowerUp={spendPowerUp} soundOn={soundOn} />
       ) : screen === 'blitz' ? (
         <BlitzChallenge key={attempt} unlocked={Math.min(livro1.completed.length + 1, 10)} best={stats.blitzBest} soundOn={soundOn} onExit={() => setScreen('map')} onFinish={finishBlitz} />
       ) : screen === 'blitz-result' && blitzResult ? (
@@ -716,7 +814,27 @@ export default function Aprender() {
           </div>
         </main>
       )}
-      <SchoolCredit className="pb-6 pt-2" />
+      </div>
+      {screen !== 'title' && <SchoolCredit className="pb-6 pt-2" />}
+      {menu === 'pause' && (
+        <PauseMenu
+          canJournal={screen === 'explore'}
+          fullscreen={fullscreen}
+          onFullscreen={toggleFullscreen}
+          onResume={() => setMenu(null)}
+          onJournal={() => {
+            setMenu(null)
+            setJournalRequest((value) => value + 1)
+          }}
+          onSettings={() => setMenu('settings')}
+          onTrail={() => {
+            setMenu(null)
+            setScreen('map')
+          }}
+        />
+      )}
+      {menu === 'settings' && <SettingsPanel settings={settings} onChange={updateSettings} onClose={() => setMenu(screen === 'title' ? null : 'pause')} />}
+      {menu === 'howto' && <HowToPlay onClose={() => setMenu(null)} />}
       {inventoryOpen && <Inventory progress={livro1} coins={coins} onClose={() => setInventoryOpen(false)} />}
       {panel === 'shop' && <ShopPanel coins={coins} items={stats.items} onBuy={buy} onClose={() => setPanel(null)} />}
       {panel === 'achievements' && <AchievementsPanel unlocked={stats.unlocked} onClose={() => setPanel(null)} />}

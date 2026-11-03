@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Check, Circle, Coins, Hand, Map as MapIcon, MapPin, Swords } from 'lucide-react'
+import { BookOpen, Check, Circle, Coins, Hand, Map as MapIcon, MapPin, Menu, Swords } from 'lucide-react'
 import { getContent } from '../../data/mathContent'
 import type { QuestBook, QuestPhase } from '../../data/questBooks'
 import { terrainPalettes } from '../../data/terrainPalettes'
@@ -13,6 +13,8 @@ import MapTerrain from './MapTerrain'
 import PixelCreature from './PixelCreature'
 import { PixelOgre } from './PixelArt'
 import VirtualJoystick from './VirtualJoystick'
+import DialogueBox from './DialogueBox'
+import { textDelay, type TextSpeed } from '../../logic/settings'
 
 interface Props {
   book: QuestBook
@@ -25,19 +27,29 @@ interface Props {
   onExit: () => void
   onGuardian: () => void
   onCoins: (coins: number) => void
+  heroName?: string
+  textSpeed?: TextSpeed
+  /** Abre o menu de pausa do jogo. */
+  onPause?: () => void
+  /** Muda de valor para pedir que o diário seja aberto (vindo do menu de pausa). */
+  journalRequest?: number
+  /** Enquanto algo cobre o mapa (pausa), o herói não anda. */
+  paused?: boolean
 }
+
+type Talk = { speaker: string; portrait: 'villager' | 'guardian'; lines: string[]; then?: () => void }
 
 type Dialog = { kind: EncounterKind; entity: MapEntity | null } | { kind: 'sign'; entity: MapEntity }
 
 const STEP_MS = 150
 /** Casas visíveis na câmera: mais largo no computador, mais alto no celular em pé. */
-const viewTiles = (width: number) => (width > 0 && width < 600 ? { x: 9, y: 11 } : { x: 13, y: 9 })
+const viewTiles = (width: number, height: number) => (width > 0 && height > 0 && width / height < 0.95 ? { x: 9, y: 11 } : { x: 13, y: 9 })
 
 const sameCell = (a: Point, b: Point) => a.x === b.x && a.y === b.y
 const cellKey = ({ x, y }: Point) => `${x},${y}`
 const titleCase = (name: string) => `${name.charAt(0)}${name.slice(1).toLowerCase()}`
 
-export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn, replay, onExit, onGuardian, onCoins }: Props) {
+export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn, replay, onExit, onGuardian, onCoins, heroName = 'aventureiro', textSpeed = 'normal', onPause, journalRequest = 0, paused = false }: Props) {
   const boss = phaseNumber === book.phases.length
   const map = useMemo(() => generateQuestMap(mapSeed(bookIndex, phaseNumber), { monsters: boss ? 4 : 3, minionKinds: book.minions.length, villagers: 1 }), [bookIndex, phaseNumber, boss, book.minions.length])
   const saveId = `${book.id}-${phaseNumber}`
@@ -48,7 +60,11 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
   const [message, setMessage] = useState('Explore o mapa, cumpra as missões e encontre o guardião da fase.')
   const [walking, setWalking] = useState<Point[]>([])
   const [showMinimap, setShowMinimap] = useState(true)
-  const [viewportWidth, setViewportWidth] = useState(0)
+  const [journal, setJournal] = useState(false)
+  const [talk, setTalk] = useState<Talk | null>(null)
+  const [toastKey, setToastKey] = useState(0)
+  const [size, setSize] = useState({ width: 0, height: 0 })
+  const lastJournalRequest = useRef(journalRequest)
   const viewport = useRef<HTMLDivElement>(null)
   const pendingTarget = useRef<MapEntity | 'gate' | null>(null)
   const held = useRef<Direction[]>([])
@@ -61,10 +77,11 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
   const active = map.entities.filter((entity) => !(entity.type === 'monster' && done.includes(entity.id)))
   const blocked = new Set(active.map(cellKey))
   const simulator = phase.simulator ? getContent(phase.simulator) : null
-  const view = viewTiles(viewportWidth)
-  const tile = Math.max(30, Math.min(56, Math.floor((viewportWidth || 30 * view.x) / view.x)))
-  const viewWidth = viewportWidth || tile * view.x
-  const viewHeight = tile * view.y
+  const view = viewTiles(size.width, size.height)
+  const tile = size.width ? Math.max(30, Math.min(64, Math.floor(Math.min(size.width / view.x, (size.height || size.width) / view.y)))) : 30
+  const viewWidth = size.width || tile * view.x
+  const viewHeight = size.height || tile * view.y
+  const blockedInput = Boolean(dialog || talk || journal || paused)
   const camX = cameraOffset(position.x, tile, MAP_WIDTH, viewWidth)
   const camY = cameraOffset(position.y, tile, MAP_HEIGHT, viewHeight, tile * 1.1)
 
@@ -76,7 +93,7 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
   useEffect(() => {
     const element = viewport.current
     if (!element) return
-    const measure = () => setViewportWidth(element.clientWidth)
+    const measure = () => setSize({ width: element.clientWidth, height: element.clientHeight })
     measure()
     if (typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(measure)
@@ -85,6 +102,19 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
   }, [])
 
   useEffect(() => () => window.clearTimeout(idleTimer.current), [])
+
+  // O menu de pausa pode pedir o diário.
+  useEffect(() => {
+    if (journalRequest !== lastJournalRequest.current) {
+      lastJournalRequest.current = journalRequest
+      setJournal(true)
+    }
+  }, [journalRequest])
+
+  function say(text: string) {
+    setMessage(text)
+    setToastKey((value) => value + 1)
+  }
 
   function complete(id: string, coins: number) {
     setExplore((current) => (current.done.includes(id) ? current : { ...current, done: [...current.done, id] }))
@@ -105,19 +135,31 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
     }
     if (target.type === 'monster') setDialog({ kind: 'monster', entity: target })
     else if (target.type === 'villager') {
-      if (done.includes(target.id)) setMessage(`${villagerName}: “Obrigado pela ajuda, aventureiro!”`)
-      else setDialog({ kind: 'villager', entity: target })
+      if (done.includes(target.id)) setTalk({ speaker: villagerName, portrait: 'villager', lines: [`Obrigado pela ajuda, ${heroName}! Boa sorte com o guardião.`] })
+      else
+        setTalk({
+          speaker: villagerName,
+          portrait: 'villager',
+          lines: [`Olá, ${heroName}! Que bom que você passou por aqui.`, phase.description, 'Estou com um problema de Matemática. Você me ajuda?'],
+          then: () => setDialog({ kind: 'villager', entity: target }),
+        })
     } else if (target.type === 'chest') {
-      if (done.includes('bau')) setMessage('O baú já está vazio.')
+      if (done.includes('bau')) say('O baú já está vazio.')
       else setDialog({ kind: 'chest', entity: target })
     } else if (target.type === 'sign') {
       setDialog({ kind: 'sign', entity: target })
       complete('placa', 0)
     } else if (target.type === 'guardian') {
-      if (ready) onGuardian()
+      if (ready)
+        setTalk({
+          speaker: guardianName,
+          portrait: 'guardian',
+          lines: [`${phase.guardian ? phase.guardian.taunt : 'Ha! Ha! Ha!'} Então você chegou até aqui, ${heroName}?`, 'Para passar, vai ter que vencer a minha batalha de Matemática!'],
+          then: onGuardian,
+        })
       else {
-        const missing = [active.some((entity) => entity.type === 'monster') && 'derrote os monstros', !done.includes(villager.id) && 'ajude o morador', !gateOpen && `conserte: ${book.gate.name}`].filter(Boolean)
-        setMessage(`${phase.guardian ? phase.guardian.name : 'GRUM'}: “Ainda não! Antes, ${missing.join(', ')}.”`)
+        const missing = [active.some((entity) => entity.type === 'monster') && 'derrote os monstros da trilha', !done.includes(villager.id) && `ajude ${villagerName}`].filter(Boolean)
+        setTalk({ speaker: guardianName, portrait: 'guardian', lines: [`Ainda não, ${heroName}! Antes, ${missing.join(' e ')}.`] })
       }
     }
   }
@@ -146,13 +188,13 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
     const front = { x: position.x + dx, y: position.y + dy }
     const entity = entityAt(front)
     if (entity || map.tiles[front.y]?.[front.x] === 'gate') interact(entity ?? 'gate')
-    else setMessage('Não há ninguém na sua frente. Vire-se para um personagem e toque em Interagir.')
+    else say('Não há ninguém na sua frente. Vire-se para um personagem e toque em Interagir.')
   }
 
   // Movimento contínuo enquanto uma tecla ou o joystick estiverem pressionados.
-  const latest = useRef({ step, dialog, walking: walking.length })
+  const latest = useRef({ step, dialog: blockedInput, walking: walking.length })
   useEffect(() => {
-    latest.current = { step, dialog, walking: walking.length }
+    latest.current = { step, dialog: blockedInput, walking: walking.length }
   })
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -183,12 +225,12 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
   })
 
   function goTo(target: Point) {
-    if (dialog) return
+    if (blockedInput) return
     const entity = entityAt(target)
     const isGate = map.tiles[target.y]?.[target.x] === 'gate' && !gateOpen
     const path = findPath(map, position, target, blocked, gateOpen)
     if (!path) {
-      setMessage(gateOpen ? 'Não dá para chegar lá.' : `O caminho está bloqueado. Conserte: ${book.gate.name}.`)
+      say(gateOpen ? 'Não dá para chegar lá.' : `O caminho está bloqueado. Conserte: ${book.gate.name}.`)
       return
     }
     pendingTarget.current = entity ?? (isGate ? 'gate' : null)
@@ -205,7 +247,12 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (dialog || event.altKey || event.ctrlKey || event.metaKey) return
+      if (event.key.toLowerCase() === 'j' && !dialog && !talk && !paused) {
+        event.preventDefault()
+        setJournal((value) => !value)
+        return
+      }
+      if (blockedInput || event.altKey || event.ctrlKey || event.metaKey) return
       if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select')) return
       const direction = keyToDirection(event.key)
       if (direction) {
@@ -271,16 +318,16 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
     if (!success || !current) return
     if (current.kind === 'monster' && current.entity) {
       complete(current.entity.id, MISSION_COINS.monster)
-      setMessage(`Monstro derrotado! ${replay ? '' : `+${MISSION_COINS.monster} moedas.`}`)
+      say(`Monstro derrotado! ${replay ? '' : `+${MISSION_COINS.monster} moedas.`}`)
     } else if (current.kind === 'villager' && current.entity) {
       complete(current.entity.id, MISSION_COINS.villager)
-      setMessage(`${villagerName}: “Muito obrigado!” ${replay ? '' : `+${MISSION_COINS.villager} moedas.`}`)
+      say(`${villagerName}: “Muito obrigado!” ${replay ? '' : `+${MISSION_COINS.villager} moedas.`}`)
     } else if (current.kind === 'chest') {
       complete('bau', MISSION_COINS.chest)
-      setMessage(`Tesouro! ${replay ? 'O baú estava vazio desta vez.' : `+${MISSION_COINS.chest} moedas.`}`)
+      say(`Tesouro! ${replay ? 'O baú estava vazio desta vez.' : `+${MISSION_COINS.chest} moedas.`}`)
     } else if (current.kind === 'gate') {
       complete('portao', 0)
-      setMessage(`${book.gate.fixed}! O caminho até o guardião está livre.`)
+      say(`${book.gate.fixed}! O caminho até o guardião está livre.`)
     }
   }
 
@@ -288,24 +335,12 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
 
   return (
     <main className={`explore-page theme-${book.theme}`} id="conteudo">
-      <div className="battle-breadcrumb">
-        <button className="text-button" onClick={onExit}>
-          <ArrowLeft size={16} /> Voltar à trilha
-        </button>
-        <span>
-          LIVRO {book.roman} <span>/</span> FASE {String(phaseNumber).padStart(2, '0')}
-        </span>
-      </div>
-      <div className="explore-heading">
-        <h1>{phase.title}</h1>
-        <p>{phase.topic}</p>
-      </div>
       <div className="explore-columns">
         <section className="explore-board-wrap" aria-label="Mapa da fase">
           <div
             ref={viewport}
             className="map-viewport"
-            style={{ height: viewHeight, background: palette.grass[1] }}
+            style={{ background: palette.grass[1] }}
             role="region"
             aria-label={`Mapa. Você está na coluna ${position.x + 1}, linha ${position.y + 1}.`}
             onClick={clickGround}
@@ -341,7 +376,7 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
                 .map((entity) => {
                   const quest = (entity.type === 'villager' && !done.includes(entity.id)) || (entity.type === 'guardian' && ready)
                   return (
-                    <span key={`tag-${entity.id}`} className={`name-tag ${quest ? 'has-quest' : ''}`} style={{ left: entity.x * tile + tile / 2, top: entity.y * tile - 4 }} aria-hidden="true">
+                    <span key={`tag-${entity.id}`} className={`name-tag ${quest ? 'has-quest' : ''}`} style={{ left: Math.min(MAP_WIDTH * tile - 70, Math.max(70, entity.x * tile + tile / 2)), top: entity.y * tile - 4 }} aria-hidden="true">
                       {quest && <b>!</b>}
                       {entity.type === 'villager' ? villagerName : guardianName}
                     </span>
@@ -358,23 +393,64 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
                 <MapPin size={14} />
                 <div>
                   <small>
-                    MISSÕES {requiredDone}/{missions.length - 3}
+                    LIVRO {book.roman} · FASE {String(phaseNumber).padStart(2, '0')} · {phase.title.toUpperCase()}
                   </small>
                   <strong>{nextMission.text}</strong>
+                  <span className="hud-progress">
+                    Missões {requiredDone}/{missions.length - 3}
+                  </span>
                 </div>
               </div>
-              <button
-                type="button"
-                className="hud-button"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  setShowMinimap((value) => !value)
-                }}
-                aria-pressed={showMinimap}
-                aria-label={showMinimap ? 'Esconder minimapa' : 'Mostrar minimapa'}
-              >
-                <MapIcon size={16} />
-              </button>
+              <div className="hud-buttons">
+                {ready && (
+                  <button
+                    type="button"
+                    className="hud-button hud-guardian"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onGuardian()
+                    }}
+                  >
+                    <Swords size={16} /> <span>Guardião</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="hud-button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setJournal(true)
+                  }}
+                  aria-label="Abrir o diário de missões (J)"
+                  title="Diário de missões (J)"
+                >
+                  <BookOpen size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="hud-button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setShowMinimap((value) => !value)
+                  }}
+                  aria-pressed={showMinimap}
+                  aria-label={showMinimap ? 'Esconder minimapa' : 'Mostrar minimapa'}
+                >
+                  <MapIcon size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="hud-button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    ;(onPause ?? onExit)()
+                  }}
+                  aria-label={onPause ? 'Pausar o jogo (Esc)' : 'Voltar à trilha'}
+                  title={onPause ? 'Pausa (Esc)' : 'Voltar à trilha'}
+                >
+                  <Menu size={16} />
+                </button>
+              </div>
             </div>
             {showMinimap && (
               <svg className="minimap" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} shapeRendering="crispEdges" aria-hidden="true">
@@ -389,6 +465,9 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
                 <rect className="minimap-hero" x={position.x} y={position.y} width={1} height={1} fill="#1f2433" stroke="#fff" strokeWidth={0.3} />
               </svg>
             )}
+            <p key={toastKey} className={`map-toast ${toastKey ? 'is-visible' : ''}`} role="status" aria-live="polite">
+              {message}
+            </p>
             <VirtualJoystick
               onDirection={(direction) => {
                 stick.current = direction
@@ -410,13 +489,18 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
               <span>Interagir</span>
             </button>
           </div>
-          <p className="explore-message" role="status" aria-live="polite">
-            {message}
-          </p>
-          <p className="explore-help">Ande com as setas ou WASD (segure para continuar andando), toque no mapa ou use o joystick no celular. Encoste num personagem ou aperte E para interagir.</p>
+          <p className="explore-help">Setas/WASD (segure para andar) · toque no mapa ou joystick no celular · <kbd>E</kbd> interagir · <kbd>J</kbd> diário · <kbd>Esc</kbd> pausa</p>
         </section>
 
-        <aside className="explore-sidebar">
+      </div>
+
+      {journal && (
+        <div className="game-overlay" onClick={(event) => event.target === event.currentTarget && setJournal(false)}>
+          <section className="game-panel journal-panel" role="dialog" aria-modal="true" aria-labelledby="missions-title">
+            <button className="game-panel-close" aria-label="Fechar o diário" onClick={() => setJournal(false)}>
+              ×
+            </button>
+            <p className="game-kicker">DIÁRIO · LIVRO {book.roman} · FASE {String(phaseNumber).padStart(2, '0')}</p>
           <section className="mission-log" aria-labelledby="missions-title">
             <h2 id="missions-title">
               <MapPin size={17} /> Missões
@@ -429,7 +513,10 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
                 </li>
               ))}
             </ul>
-            <button className="rpg-button" disabled={!ready} onClick={onGuardian}>
+            <button className="rpg-button" disabled={!ready} onClick={() => {
+                setJournal(false)
+                onGuardian()
+              }}>
               <Swords size={17} /> {ready ? 'Enfrentar o guardião' : 'Guardião bloqueado'}
             </button>
             {!replay && (
@@ -450,9 +537,23 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
               </div>
             </section>
           )}
-        </aside>
-      </div>
-
+          </section>
+        </div>
+      )}
+      {talk && (
+        <DialogueBox
+          speaker={talk.speaker}
+          speed={textDelay[textSpeed]}
+          lines={talk.lines}
+          portrait={talk.portrait === 'villager' ? <VillagerSprite variant={villager.variant} /> : phase.guardian ? <PixelCreature kind={phase.guardian.kind} color={phase.guardian.color} name={phase.guardian.name} /> : <PixelOgre />}
+          doneLabel={talk.then ? (talk.portrait === 'guardian' ? 'Lutar!' : 'Ajudar') : 'Tchau!'}
+          onDone={() => {
+            const next = talk.then
+            setTalk(null)
+            next?.()
+          }}
+        />
+      )}
       {dialog && dialog.kind === 'sign' && (
         <div className="rpg-modal-backdrop" onClick={(event) => event.target === event.currentTarget && setDialog(null)}>
           <section className="rpg-modal encounter" role="dialog" aria-modal="true" aria-labelledby="sign-title">
