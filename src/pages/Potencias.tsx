@@ -29,7 +29,7 @@ function PowerMode() {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="text-center font-mono text-4xl font-black text-slate-900 sm:text-6xl" aria-live="polite">
             {base}
             <span className="text-blue-700">{sup(exp)}</span> = {br(value)}
@@ -93,7 +93,7 @@ function SquareMode() {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="text-center font-mono text-4xl font-black text-slate-900 sm:text-5xl" aria-live="polite">
             √{n} {info.exact ? <>= <span className="text-emerald-700">{info.root}</span></> : <>≈ <span className="text-blue-700">{br(info.root)}</span></>}
           </p>
@@ -182,7 +182,7 @@ function CubeMode() {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="text-center font-mono text-4xl font-black text-slate-900 sm:text-5xl" aria-live="polite">
             {a}³ = {a} × {a} × {a} = <span className="text-blue-700">{a ** 3}</span>
           </p>

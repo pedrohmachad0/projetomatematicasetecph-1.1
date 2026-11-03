@@ -54,7 +54,7 @@ function Workspace({ problem }: { problem: EquationProblem }) {
 
   return (
     <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
-      <Panel className="overflow-hidden">
+      <Panel stage className="overflow-hidden">
         <div className="mb-2 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Equação atual</p>
           <p className={`mt-1 font-mono text-3xl font-black sm:text-5xl ${balanced ? 'text-slate-900' : 'text-rose-700'}`} aria-live="polite">

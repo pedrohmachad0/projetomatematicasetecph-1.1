@@ -14,7 +14,7 @@ const COMPOUND = '#4d7c0f'
 
 export default function Juros() {
   const [capital, setCapital] = useState(1000)
-  const [rate, setRate] = useState(10)
+  const [rate, setRate] = useState(3)
   const [months, setMonths] = useState(12)
   const [month, setMonth] = useState(6)
   const compact = useCompact()
@@ -41,7 +41,7 @@ export default function Juros() {
         Nos juros simples, todo mês rende a mesma quantia, calculada sobre o valor inicial. Nos compostos, rende juros sobre juros: cada mês calcula a taxa sobre o valor acumulado.
       </SimulatorHeader>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <div className="mb-2 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm font-black">
             <span className="accent-text" style={{ ['--accent' as string]: SIMPLE }}>━ Juros simples (reta)</span>
             <span className="accent-text" style={{ ['--accent' as string]: COMPOUND }}>━ Juros compostos (curva)</span>

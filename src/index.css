@@ -292,3 +292,149 @@ input[type='checkbox'] {
   min-width: 20px;
   min-height: 20px;
 }
+
+/* ===== Identidade visual dos simuladores (cor de cada área em --accent) ===== */
+.sim-hero {
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, #ffffff 18%, transparent), transparent 55%),
+    linear-gradient(135deg, var(--accent, #1d4ed8) 0%, color-mix(in srgb, var(--accent, #1d4ed8) 68%, #0f172a) 100%);
+}
+.sim-hero-symbols {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sim-hero-symbols span {
+  position: absolute;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 900;
+  color: #ffffff;
+  opacity: 0.13;
+  animation: sim-float 9s ease-in-out infinite;
+}
+@keyframes sim-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(10deg);
+  }
+}
+
+.sim-stage {
+  position: relative;
+  background:
+    radial-gradient(110% 70% at 0% 0%, color-mix(in srgb, var(--accent, #1d4ed8) 11%, transparent), transparent 60%),
+    radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--accent, #1d4ed8) 7%, transparent), transparent 60%),
+    var(--surface-card);
+  border-color: color-mix(in srgb, var(--accent, #1d4ed8) 30%, #e2e8f0) !important;
+  box-shadow:
+    inset 0 4px 0 var(--accent, #1d4ed8),
+    0 10px 30px -18px color-mix(in srgb, var(--accent, #1d4ed8) 60%, transparent);
+}
+html[data-theme='dark'] .sim-stage {
+  border-color: color-mix(in srgb, var(--accent, #1d4ed8) 45%, #263449) !important;
+}
+
+.sim-title-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--accent, #2563eb);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent, #2563eb) 20%, transparent);
+}
+
+.sim-accent-bg {
+  background: var(--accent, #2563eb);
+}
+
+.sim-segment-pill {
+  background: linear-gradient(135deg, var(--accent, #2563eb), color-mix(in srgb, var(--accent, #2563eb) 75%, #000000));
+  box-shadow: 0 6px 16px -8px var(--accent, #2563eb);
+}
+
+.sim-fact-highlight {
+  border-color: color-mix(in srgb, var(--accent, #2563eb) 35%, #e2e8f0);
+  background: color-mix(in srgb, var(--accent, #2563eb) 9%, var(--surface-card));
+}
+html[data-theme='dark'] .sim-fact-highlight {
+  border-color: color-mix(in srgb, var(--accent, #2563eb) 50%, #263449);
+}
+
+.sim-value {
+  background: color-mix(in srgb, var(--accent, #2563eb) 13%, var(--surface-card));
+  color: color-mix(in srgb, var(--accent, #2563eb) 85%, #000000);
+}
+html[data-theme='dark'] .sim-value {
+  color: color-mix(in srgb, var(--accent, #2563eb) 40%, #ffffff);
+}
+
+/* Botões principais na cor do simulador, com brilho e "afundar" ao tocar. */
+.sim-root button.bg-blue-700:not(:disabled),
+.sim-root button.bg-blue-600 {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #1d4ed8) 88%, #ffffff), color-mix(in srgb, var(--accent, #1d4ed8) 78%, #000000));
+  border-color: transparent;
+  box-shadow: 0 8px 18px -10px var(--accent, #1d4ed8);
+}
+.sim-root button.bg-blue-700:disabled {
+  background: color-mix(in srgb, var(--accent, #1d4ed8) 55%, #94a3b8);
+}
+.sim-root button.bg-blue-700:not(:disabled):hover,
+.sim-root button.bg-blue-600:hover {
+  filter: brightness(1.08);
+}
+.sim-root button:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* Controle deslizante com trilho preenchido até o valor. */
+.sim-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.sim-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent, #2563eb) var(--fill, 50%), var(--svg-grid) var(--fill, 50%));
+}
+.sim-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  margin-top: -8px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 4px solid var(--accent, #2563eb);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+  transition: transform 0.15s;
+}
+.sim-range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.sim-range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--svg-grid);
+}
+.sim-range::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent, #2563eb);
+}
+.sim-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 4px solid var(--accent, #2563eb);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sim-hero-symbols span {
+    animation: none;
+  }
+}

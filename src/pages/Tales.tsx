@@ -59,7 +59,7 @@ export default function Tales() {
         Retas paralelas cortadas por duas transversais formam segmentos proporcionais. Arraste as paralelas (as bolinhas) e incline as transversais: a razão a/b continua igual a c/d.
       </SimulatorHeader>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full max-w-[520px] select-none" role="img" aria-label={`Três paralelas cortadas por duas transversais. a = ${br(a)}, b = ${br(b)}, c = ${br(c)}, d = ${br(d)}`} onPointerMove={move} onPointerUp={() => (dragging.current = null)} onPointerLeave={() => (dragging.current = null)}>
             <rect width={W} height={H} rx={12} style={{ fill: 'var(--svg-surface)' }} />
             {ys.map((y, i) => (

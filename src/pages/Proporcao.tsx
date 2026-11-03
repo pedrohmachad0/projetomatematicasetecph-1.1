@@ -50,15 +50,15 @@ function Jar({ juice, water, label }: { juice: number; water: number; label: str
 }
 
 function RatioMode() {
-  const [juice, setJuice] = useState(2)
-  const [water, setWater] = useState(4)
+  const [juice, setJuice] = useState(1)
+  const [water, setWater] = useState(3)
   const [times, setTimes] = useState(2)
   const [sj, sw] = simplifyRatio(juice, water)
   const share = juice / (juice + water)
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="text-center font-mono text-3xl font-black text-slate-900 sm:text-4xl" aria-live="polite">
             {juice} : {water} {sj !== juice && <span className="text-blue-700">= {sj} : {sw}</span>}
           </p>
@@ -167,7 +167,7 @@ function RuleMode({ kind }: { kind: 'direta' | 'inversa' }) {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="rounded-xl bg-slate-50 p-3 text-base font-bold text-slate-800 sm:text-lg">{s.story(a, b, c)}</p>
           <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto] items-center gap-x-2 gap-y-2 text-center font-mono text-2xl font-black sm:text-3xl">
             <span className="text-xs font-sans font-black uppercase tracking-wide text-slate-500">{s.a}</span>

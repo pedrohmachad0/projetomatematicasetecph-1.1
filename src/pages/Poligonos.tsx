@@ -44,7 +44,7 @@ function PolygonMode() {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="text-center text-2xl font-black text-slate-900 sm:text-3xl" aria-live="polite">
             {polygonName(n)} <span className="text-base font-bold text-slate-500">({n} lados)</span>
           </p>
@@ -169,7 +169,7 @@ function AngleMode() {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="text-center font-mono text-4xl font-black text-slate-900 sm:text-5xl" aria-live="polite">
             {deg}°
           </p>

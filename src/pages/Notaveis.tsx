@@ -107,7 +107,7 @@ export default function Notaveis() {
         <SegmentedControl label="Produto notável" options={kinds} value={kind} onChange={(k) => { setKind(k); setBuilt(false) }} />
       </div>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="text-center font-mono text-lg font-black text-slate-900 sm:text-3xl">{r.formula}</p>
           <svg viewBox={`0 0 ${SIZE + 2 * O + 40} ${SIZE + 2 * O + 30}`} className="mx-auto mt-2 block h-auto w-full max-w-[440px]" role="img" aria-label={`${r.formula} com a = ${a} e b = ${bb}`}>
             {built && outline && <rect x={O} y={O} width={outline.w} height={outline.h} fill="none" strokeWidth={3} style={{ stroke: 'var(--svg-ink)' }} />}

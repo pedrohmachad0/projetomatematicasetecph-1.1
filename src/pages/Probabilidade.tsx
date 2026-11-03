@@ -84,7 +84,7 @@ export default function Probabilidade() {
       </div>
 
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel title="Frequência observada × probabilidade teórica">
+        <Panel stage title="Frequência observada × probabilidade teórica">
           <FrequencyChart id={id} counts={counts} />
           <div className="mt-1 flex flex-wrap justify-center gap-4 text-xs font-semibold text-slate-600">
             <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm" style={{ background: OBSERVED }} /> frequência observada</span>

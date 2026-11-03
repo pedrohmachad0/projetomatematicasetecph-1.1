@@ -163,7 +163,7 @@ export default function Areas() {
         <SegmentedControl label="Figura" options={shapes} value={shape} onChange={changeShape} />
       </div>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full max-w-[640px] select-none" role="img" aria-label={`${shapes.find((x) => x.id === shape)!.label} com área ${br(m.area)} e perímetro ${br(m.perimeter)}`} onPointerMove={onMove} onPointerUp={() => (drag.current = null)} onPointerLeave={() => (drag.current = null)}>
             <rect x={M} y={M} width={cols * CELL} height={ROWS * CELL} rx={6} style={{ fill: 'var(--svg-surface)' }} />
             {Array.from({ length: cols + 1 }, (_, i) => (

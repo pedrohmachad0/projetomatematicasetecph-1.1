@@ -77,7 +77,7 @@ export const categoryColors: Record<string, string> = {
   Progressões: '#7c3aed',
   Trigonometria: '#b45309',
   'Análise Combinatória e Probabilidade': '#be123c',
-  'Matrizes e Sistemas': '#475569',
+  'Matrizes e Sistemas': '#a21caf',
   'Matemática Financeira': '#4d7c0f',
 }
 

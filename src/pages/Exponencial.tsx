@@ -32,7 +32,7 @@ export default function Exponencial() {
         Na exponencial f(x) = aˣ, cada passo em x multiplica o resultado pela base. O logaritmo faz a pergunta inversa: “a elevado a quanto dá esse número?”.
       </SimulatorHeader>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
-        <Panel>
+        <Panel stage>
           <div className="mb-2 flex flex-wrap justify-center gap-x-6 text-center font-mono text-xl font-black sm:text-2xl" aria-live="polite">
             <span className="accent-text" style={{ ['--accent' as string]: EXP }}>f(x) = {br(base, 1)}ˣ</span>
             {showLog && hasLog && <span className="accent-text" style={{ ['--accent' as string]: LOG }}>g(x) = log<sub>{br(base, 1)}</sub> x</span>}

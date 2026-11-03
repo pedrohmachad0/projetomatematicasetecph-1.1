@@ -22,7 +22,7 @@ export default function NumberControl({ label, value, min, max, step, onChange, 
         <label htmlFor={id} className="text-sm font-bold text-slate-700">
           {label}
         </label>
-        <span className="min-w-[3rem] rounded-lg bg-slate-100 px-2 py-0.5 text-center font-mono text-base font-black text-slate-900" aria-live="polite">
+        <span className="min-w-[3rem] sim-value rounded-lg px-2 py-0.5 text-center font-mono text-base font-black" aria-live="polite">
           {format(value)}
         </span>
       </div>
@@ -44,7 +44,8 @@ export default function NumberControl({ label, value, min, max, step, onChange, 
           step={step}
           value={value}
           onChange={(event) => onChange(clamp(Number(event.target.value)))}
-          className="h-2 w-full cursor-pointer accent-blue-600"
+          className="sim-range h-2 w-full cursor-pointer"
+          style={{ ['--fill' as string]: `${((value - min) / (max - min || 1)) * 100}%` }}
         />
         <button
           type="button"

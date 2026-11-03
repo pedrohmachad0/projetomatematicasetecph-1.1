@@ -96,7 +96,7 @@ function DeterminantMode() {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_340px]">
-        <Panel>
+        <Panel stage>
           <div className="mb-3">
             <SegmentedControl label="Tamanho" options={[{ id: '2', label: '2 × 2' }, { id: '3', label: '3 × 3' }]} value={String(n) as '2' | '3'} onChange={(v) => setN(v === '2' ? 2 : 3)} />
           </div>
@@ -207,7 +207,7 @@ function OperationsMode() {
       <div className="mb-4">
         <SegmentedControl label="Operação" options={ops} value={op} onChange={setOp} />
       </div>
-      <Panel>
+      <Panel stage>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <MatrixGrid m={A} name="A" onChange={(i, j, v) => setA(update(A, i, j, v))} highlight={highlightA} />
           {usesB && <MatrixGrid m={B} name="B" onChange={(i, j, v) => setB(update(B, i, j, v))} highlight={highlightB} />}

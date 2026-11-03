@@ -51,7 +51,7 @@ export default function Fracoes() {
         <SimulatorHeader id="fracoes">Entenda uma fração dividindo um inteiro em partes iguais e destacando somente as partes escolhidas.</SimulatorHeader>
 
         <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <section className="sim-stage rounded-3xl border border-slate-200 p-4 shadow-sm sm:p-6">
             <div className="mb-5 flex items-center justify-between gap-3"><div><h2 className="text-lg font-black text-slate-900 sm:text-xl">Monte sua fração</h2><p className="text-xs text-slate-500 sm:text-sm">O denominador divide o inteiro em partes iguais; o numerador indica quantas partes serão destacadas.</p></div><button type="button" onClick={reset} aria-label="Resetar fração" className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600 hover:bg-slate-50"><RotateCcw size={14} /> Resetar</button></div>
 
             <div className="mb-6 flex items-center justify-center text-5xl font-black text-slate-900 sm:text-7xl" aria-live="polite"><FractionDisplay numerator={numerator} denominator={denominator} /></div>

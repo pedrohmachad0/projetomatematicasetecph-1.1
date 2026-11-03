@@ -94,7 +94,7 @@ function Builder({ mode }: { mode: 'arranjo' | 'combinacao' | 'permutacao' }) {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_340px]">
-        <Panel>
+        <Panel stage>
           <p className="rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-800 sm:text-base">{story}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2" aria-label="Posições">
             {Array.from({ length: p }, (_, i) => (
@@ -200,7 +200,7 @@ function Outfit({ s, p, t }: { s: number; p: number; t: number }) {
 }
 
 function CountingMode() {
-  const [ns, setNs] = useState(3)
+  const [ns, setNs] = useState(2)
   const [np, setNp] = useState(2)
   const [nt, setNt] = useState(2)
   const [look, setLook] = useState({ s: 0, p: 0, t: 0 })
@@ -212,7 +212,7 @@ function CountingMode() {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_340px]">
-        <Panel>
+        <Panel stage>
           <p className="rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-800 sm:text-base">
             Você tem {ns} camisetas, {np} calças e {nt} pares de tênis. Quantos looks diferentes dá para montar?
           </p>

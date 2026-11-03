@@ -79,7 +79,7 @@ export default function Progressoes() {
 
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4 sm:space-y-5">
-          <Panel title="Termos da sequência">
+          <Panel stage title="Termos da sequência">
             <ol className="mb-4 flex flex-wrap items-center gap-1 font-mono" aria-label="Termos e a passagem de um para o outro">
               {values.map((value, i) => (
                 <li key={i} className="flex items-center gap-1">

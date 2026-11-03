@@ -101,7 +101,7 @@ export default function Estatistica() {
 
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4 sm:space-y-5">
-          <Panel title="Gráfico de pontos">
+          <Panel stage title="Gráfico de pontos">
             <DotPlot values={values} />
             <div className="mt-1 flex flex-wrap justify-center gap-3 text-xs font-semibold text-slate-600">
               <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-[#2563eb]" /> valor</span>

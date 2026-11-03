@@ -132,7 +132,7 @@ export default function Trigonometria() {
       </SimulatorHeader>
 
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
-        <Panel>
+        <Panel stage>
           <UnitCircle angle={angle} onAngle={setAngle} />
           <div className="mt-3 flex flex-wrap justify-center gap-1.5" role="group" aria-label="Ângulos notáveis">
             {NOTABLE_ANGLES.map((value) => (

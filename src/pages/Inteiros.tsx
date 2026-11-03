@@ -130,7 +130,7 @@ export default function Inteiros() {
       </SimulatorHeader>
 
       <div className="space-y-4 sm:space-y-6">
-        <Panel>
+        <Panel stage>
           <SegmentedControl label="O que fazer" options={modes} value={mode} onChange={setMode} />
           <p className="mt-4 text-center font-mono text-3xl font-black text-slate-900 sm:text-5xl" aria-live="polite">
             {mode === 'comparar' ? (

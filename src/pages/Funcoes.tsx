@@ -66,7 +66,7 @@ export default function Funcoes() {
       <SimulatorHeader id="funcoes" />
 
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
-        <Panel>
+        <Panel stage>
           <p className="mb-2 text-center font-mono text-2xl font-black sm:text-3xl" aria-live="polite">
             <span className="accent-text" style={{ ['--accent' as string]: CURVE }}>{formatLaw(kind, coefficients)}</span>
           </p>

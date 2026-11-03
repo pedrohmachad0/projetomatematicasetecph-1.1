@@ -57,7 +57,7 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
 
   return (
     <>
-      <div className="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 text-center shadow-sm sm:mb-6 sm:p-5">
+      <div className="sim-stage mb-4 overflow-hidden rounded-2xl border border-slate-200 p-3 text-center shadow-sm sm:mb-6 sm:p-5">
         <p className="mb-2 text-[11px] font-medium text-slate-500">Clique em um número para editá-lo.</p>
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-4">
           <motion.input initial={{ scale: 0.9 }} animate={{ scale: 1 }} type="number" min="0" max={MAX_VALUE} inputMode="numeric" value={a} onChange={(event) => updateValue(event.target.value, setA)} className={`${numberInputClass} ${isADezena ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-slate-200 bg-slate-50 text-slate-800'}`} aria-label="Parcela A" />

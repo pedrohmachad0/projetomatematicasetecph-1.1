@@ -69,7 +69,7 @@ export default function Analitica() {
         Arraste os pontos A e B no plano. A distância vem do Teorema de Pitágoras, o ponto médio é a média das coordenadas e a reta que passa pelos dois tem uma equação.
       </SimulatorHeader>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
-        <Panel>
+        <Panel stage>
           <div ref={wrap} onPointerDown={down} onPointerMove={move} onPointerUp={() => (dragging.current = null)} onPointerCancel={() => (dragging.current = null)} className="cursor-pointer select-none" style={{ touchAction: 'none' }}>
             <CartesianPlane scale={scale} label={`Pontos A(${A.x}, ${A.y}) e B(${B.x}, ${B.y}), distância ${br(d)}`}>
               {showLine && lineEnds && <line x1={scale.toX(lineEnds[0].x)} y1={scale.toY(lineEnds[0].y)} x2={scale.toX(lineEnds[1].x)} y2={scale.toY(lineEnds[1].y)} stroke={CM} strokeWidth={2.5} strokeDasharray="8 6" />}

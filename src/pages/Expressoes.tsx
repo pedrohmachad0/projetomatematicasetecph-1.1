@@ -80,7 +80,7 @@ function Workspace({ expression }: { expression: string }) {
   return (
     <>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <p className="mb-2 text-center text-xs font-bold uppercase tracking-widest text-slate-500">{done ? 'Resultado' : 'Expressão atual'}</p>
           <TokenRow tokens={tokens} focus={hint?.focus} onPick={done ? undefined : pick} wrong={wrong} />
           <div role="status" className={`mt-4 flex items-start gap-2 rounded-xl border p-3 text-sm font-semibold ${done ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : wrong !== null ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>

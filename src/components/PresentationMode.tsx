@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Maximize2, Minimize2 } from 'lucide-react'
+import { mathContents } from '../data/mathContent'
+import { getCategoryColor } from '../data/simulatorVisuals'
 
 interface Props {
   children: ReactNode
@@ -23,13 +25,18 @@ export default function PresentationMode({ children, title }: Props) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  // A cor da área do simulador colore botões, controles e o palco da página.
+  const content = mathContents.find((item) => item.title === title)
+  const accent = content ? getCategoryColor(content.category) : '#1d4ed8'
+
   return (
     <div
       className={
         isOpen
-          ? 'presentation-surface fixed inset-0 z-50 min-h-screen overflow-y-auto bg-slate-50 p-3 sm:p-6 md:p-8'
-          : 'relative'
+          ? 'sim-root presentation-surface fixed inset-0 z-50 min-h-screen overflow-y-auto bg-slate-50 p-3 sm:p-6 md:p-8'
+          : 'sim-root relative'
       }
+      style={{ ['--accent' as string]: accent }}
     >
       <div className="mx-auto max-w-6xl">
         <div className="mb-3 flex min-h-[44px] items-center justify-between gap-3 sm:mb-4">

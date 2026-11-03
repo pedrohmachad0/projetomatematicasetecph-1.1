@@ -53,7 +53,7 @@ export default function Espacial() {
         <SegmentedControl label="Sólido" options={solids} value={solid} onChange={(s) => { setSolid(s); setCompare(false) }} />
       </div>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-        <Panel>
+        <Panel stage>
           <Solid3D solid={solid} size={size} color={info.color} ghost={companion} spin={spin} label={`${info.label} com volume ${br(m.volume)}`} />
           <p className="text-center text-xs font-semibold text-slate-500">Arraste para girar o sólido.</p>
           <div className="mt-3 flex flex-wrap gap-2">

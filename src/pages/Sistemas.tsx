@@ -99,7 +99,7 @@ export default function Sistemas() {
         <p className="mt-2 text-sm font-semibold text-slate-700">{story}</p>
       </div>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
-        <Panel>
+        <Panel stage>
           <div className="mb-2 text-center font-mono text-lg font-black sm:text-2xl" aria-live="polite">
             <p className="accent-text" style={{ ['--accent' as string]: L1 }}>{formatEq(e1)}</p>
             <p className="accent-text" style={{ ['--accent' as string]: L2 }}>{formatEq(e2)}</p>

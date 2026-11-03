@@ -45,7 +45,7 @@ export default function Porcentagem() {
       <div className="mb-5 grid gap-2 sm:grid-cols-3">{modes.map((item) => <button key={item.id} type="button" onClick={() => setMode(item.id)} aria-pressed={mode === item.id} className={`rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${mode === item.id ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200' : 'border-slate-200 bg-white hover:border-blue-300'}`}><span className="block text-sm font-black text-slate-900">{item.label}</span><span className="mt-1 block text-xs text-slate-600">{item.description}</span></button>)}</div>
 
       <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="sim-stage rounded-3xl border border-slate-200 p-5 shadow-sm sm:p-6">
           <h2 className="text-lg font-black text-slate-900">Monte seu exemplo</h2>
           <label className="mt-5 block text-sm font-bold text-slate-700">Valor base<input type="number" min="0" value={value} onChange={(event) => setValue(Number(event.target.value))} className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-3 text-lg font-bold outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
           <p className="mt-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-bold text-blue-900">{formatNumber(normalizedValue)} ÷ 100 = <span className="text-blue-700">{formatNumber(valuePerPart)}</span> por parte</p>
