@@ -10,9 +10,9 @@
 /** Moedas por missão cumprida no mapa (só na primeira vez que a fase é vencida). */
 export const MISSION_COINS = { monster: 3, villager: 5, chest: 8 } as const
 
-export const MAP_WIDTH = 13
-export const MAP_HEIGHT = 9
-const RIVER_X = 8
+export const MAP_WIDTH = 24
+export const MAP_HEIGHT = 15
+export const RIVER_X = 16
 
 export type Tile = 'grass' | 'path' | 'obstacle' | 'decor' | 'water' | 'gate'
 export type EntityType = 'monster' | 'villager' | 'chest' | 'sign' | 'guardian'
@@ -126,13 +126,25 @@ function attempt(random: () => number, options: MapOptions): QuestMap | null {
   for (let y = 1; y < MAP_HEIGHT - 1; y++) tiles[y][RIVER_X] = 'water'
   tiles[gate.y][gate.x] = 'gate'
 
+  // Obstáculos em grupos (bosques, casas, rochedos): sementes que crescem para os vizinhos.
+  const protectedCell = (x: number, y: number) => x === RIVER_X || Math.abs(x - start.x) + Math.abs(y - start.y) <= 1 || (Math.abs(x - gate.x) <= 1 && y === gate.y)
+  const clusters = 9 + Math.floor(random() * 5)
+  for (let c = 0; c < clusters; c++) {
+    let x = 2 + Math.floor(random() * (MAP_WIDTH - 4))
+    let y = 2 + Math.floor(random() * (MAP_HEIGHT - 4))
+    const size = 2 + Math.floor(random() * 4)
+    for (let i = 0; i < size; i++) {
+      if (x > 0 && y > 0 && x < MAP_WIDTH - 1 && y < MAP_HEIGHT - 1 && !protectedCell(x, y)) tiles[y][x] = 'obstacle'
+      if (random() < 0.5) x += random() < 0.5 ? 1 : -1
+      else y += random() < 0.5 ? 1 : -1
+    }
+  }
   for (let y = 1; y < MAP_HEIGHT - 1; y++)
     for (let x = 1; x < MAP_WIDTH - 1; x++) {
-      if (x === RIVER_X || Math.abs(x - start.x) + Math.abs(y - start.y) <= 1) continue
-      if (Math.abs(x - gate.x) <= 1 && y === gate.y) continue
+      if (protectedCell(x, y) || tiles[y][x] !== 'grass') continue
       const roll = random()
-      if (roll < (x < RIVER_X ? 0.17 : 0.1)) tiles[y][x] = 'obstacle'
-      else if (roll < 0.27) tiles[y][x] = 'decor'
+      if (roll < 0.035) tiles[y][x] = 'obstacle'
+      else if (roll < 0.16) tiles[y][x] = 'decor'
     }
 
   const free = (region: 'left' | 'right') => {

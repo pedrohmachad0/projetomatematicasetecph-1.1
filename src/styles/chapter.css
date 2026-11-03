@@ -4289,3 +4289,341 @@ html[data-theme='dark'] .move-chama:not(:disabled) {
   top: 4%;
   width: clamp(130px, 24%, 210px);
 }
+
+/* ===== Mapa com câmera (v2) ===== */
+.map-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 4px solid #2c3a2e;
+  border-radius: 6px;
+  box-shadow:
+    0 6px 0 #1f2a21,
+    inset 0 0 0 2px #ffffff22;
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+}
+.map-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform 0.15s linear;
+  will-change: transform;
+}
+.map-terrain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.map-terrain .wave {
+  animation: wave-shimmer 2.4s steps(2) infinite;
+}
+.map-object {
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  display: block;
+}
+.map-object > svg {
+  position: absolute;
+  left: 2%;
+  bottom: 4%;
+  width: 96%;
+  height: auto;
+  overflow: visible;
+}
+.map-object.obstacle {
+  pointer-events: none;
+}
+.map-object.obstacle > svg {
+  left: -14%;
+  width: 128%;
+  bottom: 2%;
+  height: 140%;
+}
+.map-gate > svg {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.map-entity {
+  cursor: pointer;
+}
+.map-entity > svg {
+  filter: drop-shadow(0 2px 0 #0003);
+}
+.map-entity.entity-monster > svg {
+  animation: hero-bob 0.6s steps(2) infinite;
+}
+.map-entity.entity-guardian > svg {
+  left: -22%;
+  width: 144%;
+}
+.map-entity.entity-villager > svg,
+.map-entity.entity-sign > svg,
+.map-entity.entity-chest > svg {
+  left: 10%;
+  width: 80%;
+}
+.map-entity:focus-visible {
+  outline: 3px solid #ffe08a;
+  outline-offset: 2px;
+}
+.name-tag {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  translate: -50% 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  border-radius: 4px;
+  background: #1f2433e6;
+  color: #f6e7b4;
+  font: bold 10px Arial, sans-serif;
+  box-shadow: 0 2px 0 #0005;
+  pointer-events: none;
+}
+.name-tag b {
+  color: #ffcf4a;
+  animation: hero-bob 0.7s steps(2) infinite;
+}
+.map-hero {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform 0.15s linear;
+  pointer-events: none;
+}
+.map-hero .hero-sprite {
+  position: absolute;
+  left: 8%;
+  bottom: 6%;
+  width: 84%;
+  height: auto;
+  overflow: visible;
+}
+.map-hero .hero-sprite.facing-left {
+  transform: scaleX(-1);
+}
+.hero-shadow {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 3%;
+  height: 12%;
+  border-radius: 50%;
+  background: #0b141033;
+}
+.map-hero:not(.is-walking) .hero-sprite {
+  animation: hero-breathe 1.6s steps(2) infinite;
+}
+.map-hud {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 8px;
+  z-index: 900;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+.hud-quest {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: min(320px, 70%);
+  padding: 7px 10px;
+  border: 1px solid #c9a75a88;
+  border-radius: 6px;
+  background: #16201bdd;
+  color: #f1ead2;
+  box-shadow: 0 3px 0 #0006;
+}
+.hud-quest svg {
+  flex-shrink: 0;
+  color: #e2b04a;
+  margin-top: 2px;
+}
+.hud-quest small {
+  display: block;
+  font: bold 9px monospace;
+  letter-spacing: 1px;
+  color: #e2b04a;
+}
+.hud-quest strong {
+  font: bold 12px Arial, sans-serif;
+}
+.hud-button {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #c9a75a88;
+  border-radius: 6px;
+  background: #16201bdd;
+  color: #f1ead2;
+  cursor: pointer;
+}
+.minimap {
+  position: absolute;
+  right: 8px;
+  top: 52px;
+  z-index: 900;
+  width: min(150px, 30%);
+  height: auto;
+  border: 2px solid #16201b;
+  border-radius: 4px;
+  box-shadow: 0 3px 0 #0006;
+  opacity: 0.92;
+  pointer-events: none;
+}
+.minimap-hero {
+  animation: minimap-blink 0.8s steps(2) infinite;
+}
+.joystick-zone {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 50%;
+  height: 62%;
+  z-index: 950;
+  touch-action: none;
+}
+.joystick-hint {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #16201bb0;
+  color: #f1ead2;
+  font: bold 10px Arial, sans-serif;
+}
+.joystick-base {
+  position: absolute;
+  width: 104px;
+  height: 104px;
+  margin: -52px 0 0 -52px;
+  border-radius: 50%;
+  border: 3px solid #f1ead2aa;
+  background: radial-gradient(circle, #16201b55 0 55%, #16201b99 56%);
+  box-shadow: 0 0 0 2px #0004;
+}
+.joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6d8, #e2b04a 55%, #9b7426);
+  border: 2px solid #5a3d06;
+  box-shadow: 0 3px 0 #0006;
+}
+.map-action {
+  display: none;
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 950;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 3px solid #5a3d06;
+  background: radial-gradient(circle at 35% 30%, #ffe9a8, #e2b04a 60%, #a8761f);
+  color: #3a2604;
+  font: bold 11px Arial, sans-serif;
+  box-shadow: 0 4px 0 #0007;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.map-action:active {
+  transform: translateY(2px);
+}
+@media (pointer: coarse), (max-width: 760px) {
+  .joystick-zone {
+    display: block;
+  }
+  .map-action {
+    display: flex;
+  }
+  .minimap {
+    width: 96px;
+  }
+}
+@keyframes wave-shimmer {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes hero-breathe {
+  50% {
+    transform: translateY(-2%);
+  }
+}
+@keyframes minimap-blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-world,
+  .map-hero {
+    transition: none;
+  }
+  .map-terrain .wave,
+  .map-hero .hero-sprite,
+  .name-tag b,
+  .map-entity > svg {
+    animation: none !important;
+  }
+}
+/* Anula as regras do mapa antigo para os elementos do mapa com câmera. */
+.map-viewport .map-hero,
+.map-viewport .map-entity {
+  inset: auto;
+  animation: none;
+}
+.map-viewport .map-entity {
+  pointer-events: auto;
+}
+.map-viewport .map-entity::before {
+  content: none;
+}
+@media (max-width: 600px) {
+  .hud-quest {
+    max-width: 64%;
+    padding: 5px 8px;
+  }
+  .hud-quest strong {
+    font-size: 11px;
+  }
+  .minimap {
+    width: 84px;
+    top: 48px;
+  }
+  .name-tag {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+}
+.map-world > .name-tag {
+  bottom: auto;
+  translate: -50% -100%;
+  z-index: 800;
+}

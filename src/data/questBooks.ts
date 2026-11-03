@@ -54,7 +54,7 @@ const livro1: QuestBook = {
   storage: CHAPTER_STORAGE,
   gate: { name: 'ponte', article: 'a', broken: 'Ponte quebrada', fixed: 'Ponte consertada' },
   minions: [
-    { name: 'GOSMINHA', title: 'GELEIA DA TRILHA', kind: 'slime', color: '#8fbf6a', taunt: 'Blub!' },
+    { name: 'BOLHA', title: 'GELEIA DA TRILHA', kind: 'slime', color: '#8fbf6a', taunt: 'Blub!' },
     { name: 'MORCEGUINHO', title: 'MORCEGO DO MATO', kind: 'bat', color: '#8a7aa8', taunt: 'Chiii!' },
     { name: 'FUNGUINHO', title: 'COGUMELO SALTITANTE', kind: 'mushroom', color: '#c8703f', taunt: 'Pof!' },
   ],

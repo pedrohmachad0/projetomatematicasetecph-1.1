@@ -3,10 +3,10 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import QuestMap from '../components/learn/QuestMap'
 import { questBooks } from '../data/questBooks'
-import { generateQuestMap, mapSeed } from '../logic/questMap'
+import { generateQuestMap, mapSeed, RIVER_X } from '../logic/questMap'
 
 const book = questBooks[0]
-const map = generateQuestMap(mapSeed(0, 1), { monsters: 2, minionKinds: book.minions.length, villagers: 1 })
+const map = generateQuestMap(mapSeed(0, 1), { monsters: 3, minionKinds: book.minions.length, villagers: 1 })
 
 function renderMap(props: Partial<Parameters<typeof QuestMap>[0]> = {}) {
   return render(
@@ -27,9 +27,11 @@ function answerEncounter() {
   fireEvent.click(screen.getByRole('button', { name: /Próximo golpe|Voltar ao mapa/ }))
 }
 
+/** Clica no personagem (ou na ponte) e espera o herói chegar até ele. */
 function walkTo(x: number, y: number) {
-  fireEvent.click(document.querySelectorAll<HTMLButtonElement>('.explore-board .tile')[y * 13 + x])
-  for (let i = 0; i < 40; i++) act(() => vi.advanceTimersByTime(120))
+  const target = document.querySelector<HTMLButtonElement>(`.map-object[style*="left: ${x * 30}px"][style*="top: ${y * 30}px"]`)!
+  fireEvent.click(target)
+  for (let i = 0; i < 90; i++) act(() => vi.advanceTimersByTime(120))
 }
 
 beforeEach(() => {
@@ -45,21 +47,34 @@ describe('Mapa explorável', () => {
   it('começa com o guardião bloqueado e o herói no ponto de partida', () => {
     renderMap()
     expect(screen.getByRole('button', { name: /Guardião bloqueado/ })).toBeDisabled()
-    expect(screen.getByRole('grid')).toHaveAccessibleName(`Mapa. Você está na coluna ${map.start.x + 1}, linha ${map.start.y + 1}.`)
+    expect(screen.getByRole('region', { name: /^Mapa\./ })).toHaveAccessibleName(`Mapa. Você está na coluna ${map.start.x + 1}, linha ${map.start.y + 1}.`)
+  })
+
+  it('segurar a seta continua andando; soltar para', () => {
+    renderMap()
+    const label = () => screen.getByRole('region', { name: /^Mapa\./ }).getAttribute('aria-label')
+    fireEvent.keyDown(window, { key: 'ArrowRight' })
+    const first = label()
+    act(() => vi.advanceTimersByTime(160))
+    fireEvent.keyUp(window, { key: 'ArrowRight' })
+    const afterHold = label()
+    act(() => vi.advanceTimersByTime(600))
+    expect(label()).toBe(afterHold)
+    expect(first).not.toBe(`Mapa. Você está na coluna ${map.start.x + 1}, linha ${map.start.y + 1}.`)
   })
 
   it('anda pelas setas e não atravessa obstáculos', () => {
     renderMap()
-    const before = screen.getByRole('grid').getAttribute('aria-label')
+    const before = screen.getByRole('region', { name: /^Mapa\./ }).getAttribute('aria-label')
     for (let i = 0; i < 20; i++) fireEvent.keyDown(window, { key: 'ArrowLeft' })
-    expect(screen.getByRole('grid').getAttribute('aria-label')).toBe(before)
+    expect(screen.getByRole('region', { name: /^Mapa\./ }).getAttribute('aria-label')).toBe(before)
   })
 
   it('cumpre as missões, abre o caminho e libera o guardião', () => {
     const coins = vi.fn()
     const guardian = vi.fn()
     renderMap({ onCoins: coins, onGuardian: guardian })
-    const order = [...map.entities.filter((e) => e.x < 8 && e.type === 'monster'), map.entities.find((e) => e.type === 'villager')!]
+    const order = [...map.entities.filter((e) => e.x < RIVER_X && e.type === 'monster'), map.entities.find((e) => e.type === 'villager')!]
     for (const entity of order) {
       walkTo(entity.x, entity.y)
       expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -70,7 +85,7 @@ describe('Mapa explorável', () => {
     walkTo(map.gate.x, map.gate.y)
     expect(screen.getByRole('heading', { name: book.gate.broken })).toBeInTheDocument()
     answerEncounter()
-    for (const entity of map.entities.filter((e) => e.x > 8 && e.type === 'monster')) {
+    for (const entity of map.entities.filter((e) => e.x > RIVER_X && e.type === 'monster')) {
       walkTo(entity.x, entity.y)
       answerEncounter()
       if (screen.queryByRole('dialog')) answerEncounter()
@@ -81,7 +96,7 @@ describe('Mapa explorável', () => {
     expect(guardian).toHaveBeenCalled()
     expect(coins).toHaveBeenCalledWith(3)
     expect(coins).toHaveBeenCalledWith(5)
-  })
+  }, 30_000)
 
   it('a placa mostra a dica e o link do simulador; o progresso fica salvo', () => {
     renderMap()

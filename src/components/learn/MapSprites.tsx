@@ -1,31 +1,26 @@
 import type { BookTheme } from '../../data/questBooks'
-import { heroBackSprite, heroPalette, heroSprite, villagerSprite } from '../../data/sprites'
+import { heroDownFrames, heroPalette, heroSideFrames, heroUpFrames, villagerSprite } from '../../data/sprites'
 import PixelSprite from './PixelSprite'
 
 /** Sprites pequenos do mapa de exploração, em pixel art (16 × 16). */
 
-/** Herói do mapa: de frente, de lado (espelhado) ou de costas, conforme a direção. */
-export function HeroSprite({ facing }: { facing: 'left' | 'right' | 'up' | 'down' }) {
-  if (facing === 'up')
-    return (
-      <svg viewBox="0 0 20 21" shapeRendering="crispEdges" className="hero-sprite facing-up" aria-hidden="true">
-        <PixelSprite rows={heroBackSprite} palette={heroPalette} />
-      </svg>
-    )
+/** Herói do mapa: de frente, de costas ou de perfil (espelhado para a esquerda), com passos. */
+export function HeroSprite({ facing, frame = 0 }: { facing: 'left' | 'right' | 'up' | 'down'; frame?: number }) {
+  const frames = facing === 'up' ? heroUpFrames : facing === 'down' ? heroDownFrames : heroSideFrames
   return (
-    <svg viewBox="0 0 16 16" shapeRendering="crispEdges" className={`hero-sprite facing-${facing}`} aria-hidden="true">
-      <PixelSprite rows={heroSprite} palette={heroPalette} />
+    <svg viewBox="0 0 18 23" shapeRendering="crispEdges" className={`hero-sprite facing-${facing}`} aria-hidden="true">
+      <PixelSprite rows={frames[frame % frames.length]} palette={heroPalette} />
     </svg>
   )
 }
 
-/** Herói visto de costas, usado na batalha. */
+/** Herói visto de costas, usado na batalha, com a espada de calibração. */
 export function HeroBattleSprite({ state }: { state: 'idle' | 'attack' | 'hurt' | 'dodge' }) {
   return (
-    <svg viewBox="-1 -1 22 24" shapeRendering="crispEdges" className={`hero-battle hero-${state}`} role="img" aria-label="Seu aventureiro">
-      <ellipse cx="10" cy="21.5" rx="8" ry="1.3" fill="#182d2455" />
-      <PixelSprite rows={heroBackSprite} palette={heroPalette} />
-      <PixelSprite rows={['oo', 'ww', 'ww', 'ww', 'ww', 'ww', 'yy', 'dd']} palette={{ o: '#22302a', w: '#d9e2d2', y: '#e2b04a', d: '#6b4626' }} x={18} y={5} />
+    <svg viewBox="-1 -2 22 27" shapeRendering="crispEdges" className={`hero-battle hero-${state}`} role="img" aria-label="Seu aventureiro">
+      <ellipse cx="9" cy="23" rx="7" ry="1.2" fill="#182d2455" />
+      <PixelSprite rows={heroUpFrames[0]} palette={heroPalette} />
+      <PixelSprite rows={['.o.', 'oxo', 'oxo', 'omo', 'omo', 'omo', 'oyo', 'oLo', '.o.']} palette={heroPalette} x={16} y={6} />
     </svg>
   )
 }
