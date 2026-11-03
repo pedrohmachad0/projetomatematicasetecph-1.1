@@ -10,18 +10,33 @@ Plataforma web educacional com um catálogo de simuladores de Matemática para o
 | --- | --- | --- | --- |
 | `/soma` | Cálculo Mental: Soma (material dourado, compensação) | 6º ano | Aritmética |
 | `/subtracao` | Cálculo Mental: Subtração (reta numérica, deslocamento) | 6º ano | Aritmética |
+| `/expressoes` | Expressões Numéricas (ordem das operações, toque na operação certa) | 6º ano | Aritmética |
 | `/fracoes` | Explorador de Frações | 6º ano | Frações |
+| `/areas` | Perímetro e Área (malha, arrastar vértices, recortar e mover) | 6º ano | Geometria |
+| `/inteiros` | Reta dos Inteiros (soma, subtração e comparação com negativos) | 7º ano | Aritmética |
 | `/porcentagem` | Explorador de Porcentagem | 7º ano | Porcentagem |
+| `/proporcao` | Razão e Regra de Três (jarras, regra de três direta e inversa) | 7º ano | Razão e proporção |
 | `/equacoes` | Balança de Equações (1º grau) | 7º ano | Álgebra |
+| `/potencias` | Potências e Raízes (escada de potências, quadrados e cubos) | 8º ano | Aritmética |
+| `/sistemas` | Sistemas de Equações (duas retas, testar pontos, método da adição) | 8º ano | Álgebra |
+| `/notaveis` | Produtos Notáveis (peças de área que se encaixam) | 8º ano | Álgebra |
+| `/poligonos` | Ângulos e Polígonos (triangulação, ângulos externos, transferidor) | 8º ano | Geometria |
 | `/estatistica` | Média, Mediana e Moda | 8º ano | Estatística |
 | `/pitagoras` | Explorador de Pitágoras | 9º ano | Geometria |
-| `/pi` | Explorador do Círculo (π, raio, arcos, setor) | 9º ano | Geometria |
+| `/pi` | Explorador do Círculo (π, dobrar o diâmetro, raio, arcos, setor) | 9º ano | Geometria |
+| `/tales` | Teorema de Tales (paralelas arrastáveis) | 9º ano | Geometria |
 | `/funcoes` | Explorador de Funções (afim e quadrática) | 1º ano EM | Funções |
+| `/exponencial` | Exponencial e Logaritmo (inversas, espelho em y = x) | 1º ano EM | Funções |
 | `/progressoes` | Progressões: PA e PG | 1º ano EM | Progressões |
+| `/juros` | Juros Simples e Compostos (gráfico e tabela mês a mês) | 1º ano EM | Matemática Financeira |
 | `/trigonometria` | Círculo Trigonométrico | 2º ano EM | Trigonometria |
 | `/probabilidade` | Laboratório de Probabilidade | 2º ano EM | Probabilidade |
+| `/matrizes` | Matrizes e Determinantes (operações, Sarrus passo a passo) | 2º ano EM | Matrizes |
+| `/espacial` | Geometria Espacial (sólidos 3D que giram, volume e área) | 2º ano EM | Geometria |
+| `/combinatoria` | Análise Combinatória (contagem, permutação, arranjo, combinação) | 2º ano EM | Combinatória |
+| `/analitica` | Geometria Analítica (distância, ponto médio, reta) | 3º ano EM | Geometria |
 
-Todos seguem a filosofia do §31.3 de `regrasdoprojeto.md`: interação, cálculo em tempo real, representação visual em SVG, feedback textual e modo apresentação para projetor/TV, com tema claro e escuro.
+Todos seguem a filosofia do §31.3 de `regrasdoprojeto.md`: interação, cálculo em tempo real, representação visual em SVG, feedback textual, desafios que se completam sozinhos e modo apresentação para projetor/TV, com tema claro e escuro. Todos funcionam no celular: controles grandes, arrastar por toque e desenhos que se adaptam a telas estreitas.
 
 ## MathQuest (`/aprender`)
 

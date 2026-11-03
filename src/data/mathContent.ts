@@ -28,6 +28,21 @@ export type SimulatorId =
   | 'progressoes'
   | 'trigonometria'
   | 'probabilidade'
+  | 'inteiros'
+  | 'proporcao'
+  | 'potencias'
+  | 'expressoes'
+  | 'poligonos'
+  | 'areas'
+  | 'tales'
+  | 'sistemas'
+  | 'notaveis'
+  | 'exponencial'
+  | 'espacial'
+  | 'analitica'
+  | 'matrizes'
+  | 'combinatoria'
+  | 'juros'
 
 export interface MathContent {
   id: SimulatorId
@@ -73,6 +88,42 @@ export const mathContents: MathContent[] = [
     available: true,
   },
   {
+    id: 'expressoes',
+    title: 'Expressões Numéricas',
+    description: 'Resolva expressões passo a passo e veja por que a ordem das operações muda o resultado.',
+    educationLevel: 'fundamental-2',
+    grade: '6º ano',
+    category: 'Aritmética e Números',
+    subject: 'Ordem das operações',
+    interaction: 'sequência',
+    simulator: 'expressoes',
+    available: true,
+  },
+  {
+    id: 'inteiros',
+    title: 'Reta dos Inteiros',
+    description: 'Ande pela reta com números negativos e positivos e descubra as regras de sinais da soma e da subtração.',
+    educationLevel: 'fundamental-2',
+    grade: '7º ano',
+    category: 'Aritmética e Números',
+    subject: 'Números inteiros',
+    interaction: 'reta numérica',
+    simulator: 'inteiros',
+    available: true,
+  },
+  {
+    id: 'potencias',
+    title: 'Potências e Raízes',
+    description: 'Monte quadrados e cubos com blocos e veja a potência e a raiz como operações inversas.',
+    educationLevel: 'fundamental-2',
+    grade: '8º ano',
+    category: 'Aritmética e Números',
+    subject: 'Potenciação e radiciação',
+    interaction: 'geométrica',
+    simulator: 'potencias',
+    available: true,
+  },
+  {
     id: 'fracoes',
     title: 'Explorador de Frações',
     description: 'Divida um inteiro em partes iguais e relacione fração, decimal, porcentagem e simplificação.',
@@ -97,6 +148,18 @@ export const mathContents: MathContent[] = [
     available: true,
   },
   {
+    id: 'proporcao',
+    title: 'Razão e Regra de Três',
+    description: 'Monte receitas e misturas proporcionais e resolva regras de três diretas e inversas.',
+    educationLevel: 'fundamental-2',
+    grade: '7º ano',
+    category: 'Razão, Proporção e Porcentagem',
+    subject: 'Razão, proporção e regra de três',
+    interaction: 'manipulação',
+    simulator: 'proporcao',
+    available: true,
+  },
+  {
     id: 'equacoes',
     title: 'Balança de Equações',
     description: 'Resolva equações do 1º grau mantendo a balança equilibrada: o que se faz de um lado, faz-se do outro.',
@@ -109,6 +172,30 @@ export const mathContents: MathContent[] = [
     available: true,
   },
   {
+    id: 'sistemas',
+    title: 'Sistemas de Equações',
+    description: 'Ajuste duas retas no plano e encontre o ponto em que as duas equações são verdadeiras.',
+    educationLevel: 'fundamental-2',
+    grade: '8º ano',
+    category: 'Álgebra',
+    subject: 'Sistemas do 1º grau',
+    interaction: 'gráfico',
+    simulator: 'sistemas',
+    available: true,
+  },
+  {
+    id: 'notaveis',
+    title: 'Produtos Notáveis',
+    description: 'Monte (a + b)² com quadrados e retângulos e veja de onde vem cada termo da fórmula.',
+    educationLevel: 'fundamental-2',
+    grade: '8º ano',
+    category: 'Álgebra',
+    subject: 'Produtos notáveis e fatoração',
+    interaction: 'geométrica',
+    simulator: 'notaveis',
+    available: true,
+  },
+  {
     id: 'estatistica',
     title: 'Média, Mediana e Moda',
     description: 'Altere os valores de um conjunto de dados e veja o gráfico e as medidas mudarem juntos.',
@@ -118,6 +205,30 @@ export const mathContents: MathContent[] = [
     subject: 'Medidas de tendência central',
     interaction: 'gráfico',
     simulator: 'estatistica',
+    available: true,
+  },
+  {
+    id: 'areas',
+    title: 'Perímetro e Área',
+    description: 'Estique figuras na malha quadriculada e conte os quadradinhos para entender as fórmulas de área.',
+    educationLevel: 'fundamental-2',
+    grade: '6º ano',
+    category: 'Geometria',
+    subject: 'Perímetro e área',
+    interaction: 'geométrica',
+    simulator: 'areas',
+    available: true,
+  },
+  {
+    id: 'poligonos',
+    title: 'Ângulos e Polígonos',
+    description: 'Mude o número de lados de um polígono regular e descubra a soma dos ângulos internos.',
+    educationLevel: 'fundamental-2',
+    grade: '8º ano',
+    category: 'Geometria',
+    subject: 'Ângulos e polígonos',
+    interaction: 'geométrica',
+    simulator: 'poligonos',
     available: true,
   },
   {
@@ -145,6 +256,18 @@ export const mathContents: MathContent[] = [
     available: true,
   },
   {
+    id: 'tales',
+    title: 'Teorema de Tales',
+    description: 'Arraste as retas paralelas e confira que os segmentos nas transversais continuam proporcionais.',
+    educationLevel: 'fundamental-2',
+    grade: '9º ano',
+    category: 'Geometria',
+    subject: 'Teorema de Tales',
+    interaction: 'geométrica',
+    simulator: 'tales',
+    available: true,
+  },
+  {
     id: 'funcoes',
     title: 'Explorador de Funções',
     description: 'Ajuste os coeficientes de funções afim e quadrática e veja o gráfico, as raízes e o vértice em tempo real.',
@@ -154,6 +277,18 @@ export const mathContents: MathContent[] = [
     subject: 'Função afim e quadrática',
     interaction: 'gráfico',
     simulator: 'funcoes',
+    available: true,
+  },
+  {
+    id: 'exponencial',
+    title: 'Exponencial e Logaritmo',
+    description: 'Compare o gráfico de aˣ com o de logₐ x e veja como uma função desfaz a outra.',
+    educationLevel: 'medio',
+    grade: '1º ano',
+    category: 'Funções',
+    subject: 'Função exponencial e logarítmica',
+    interaction: 'gráfico',
+    simulator: 'exponencial',
     available: true,
   },
   {
@@ -169,6 +304,18 @@ export const mathContents: MathContent[] = [
     available: true,
   },
   {
+    id: 'juros',
+    title: 'Juros Simples e Compostos',
+    description: 'Simule uma aplicação mês a mês e compare o crescimento em linha reta com o crescimento em curva.',
+    educationLevel: 'medio',
+    grade: '1º ano',
+    category: 'Matemática Financeira',
+    subject: 'Juros simples e compostos',
+    interaction: 'gráfico',
+    simulator: 'juros',
+    available: true,
+  },
+  {
     id: 'trigonometria',
     title: 'Círculo Trigonométrico',
     description: 'Gire um ponto no círculo de raio 1 e veja seno, cosseno e tangente como medidas reais.',
@@ -181,6 +328,42 @@ export const mathContents: MathContent[] = [
     available: true,
   },
   {
+    id: 'matrizes',
+    title: 'Matrizes e Determinantes',
+    description: 'Edite matrizes, some, multiplique e calcule o determinante com as diagonais destacadas.',
+    educationLevel: 'medio',
+    grade: '2º ano',
+    category: 'Matrizes e Sistemas',
+    subject: 'Matrizes e determinantes',
+    interaction: 'manipulação',
+    simulator: 'matrizes',
+    available: true,
+  },
+  {
+    id: 'espacial',
+    title: 'Geometria Espacial',
+    description: 'Gire sólidos em 3D, mude as medidas e acompanhe volume e área da superfície.',
+    educationLevel: 'medio',
+    grade: '2º ano',
+    category: 'Geometria',
+    subject: 'Volume e área de sólidos',
+    interaction: 'geométrica',
+    simulator: 'espacial',
+    available: true,
+  },
+  {
+    id: 'combinatoria',
+    title: 'Análise Combinatória',
+    description: 'Forme filas e grupos com personagens e descubra quando a ordem importa: arranjo ou combinação.',
+    educationLevel: 'medio',
+    grade: '2º ano',
+    category: 'Análise Combinatória e Probabilidade',
+    subject: 'Contagem, arranjo e combinação',
+    interaction: 'experimento',
+    simulator: 'combinatoria',
+    available: true,
+  },
+  {
     id: 'probabilidade',
     title: 'Laboratório de Probabilidade',
     description: 'Lance moedas e dados virtuais e compare a frequência observada com a probabilidade teórica.',
@@ -190,6 +373,18 @@ export const mathContents: MathContent[] = [
     subject: 'Probabilidade',
     interaction: 'experimento',
     simulator: 'probabilidade',
+    available: true,
+  },
+  {
+    id: 'analitica',
+    title: 'Geometria Analítica',
+    description: 'Arraste dois pontos no plano e veja a distância, o ponto médio e a equação da reta.',
+    educationLevel: 'medio',
+    grade: '3º ano',
+    category: 'Geometria',
+    subject: 'Distância, ponto médio e reta',
+    interaction: 'gráfico',
+    simulator: 'analitica',
     available: true,
   },
 ]

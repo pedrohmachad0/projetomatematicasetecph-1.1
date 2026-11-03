@@ -13,6 +13,9 @@ const gradesByLevel: Record<EducationLevel, Grade[]> = {
   medio: ['1º ano', '2º ano', '3º ano'],
 }
 
+const stageOrder = (Object.keys(gradesByLevel) as EducationLevel[]).flatMap((level) => gradesByLevel[level].map((grade) => `${level}:${grade}`))
+const stageIndex = (level: EducationLevel, grade: Grade) => stageOrder.indexOf(`${level}:${grade}`)
+
 const selectClass =
   'mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
 
@@ -21,7 +24,7 @@ export default function Hub() {
   const [gradeFilter, setGradeFilter] = useState<GradeFilter>('todos')
   const [categoryFilter, setCategoryFilter] = useState('todas')
 
-  const available = useMemo(() => mathContents.filter((content) => content.available && content.simulator), [])
+  const available = useMemo(() => mathContents.filter((content) => content.available && content.simulator).sort((a, b) => stageIndex(a.educationLevel, a.grade) - stageIndex(b.educationLevel, b.grade)), [])
   const categories = useMemo(() => [...new Set(available.map((content) => content.category))], [available])
   const visibleContents = available.filter(
     (content) =>
