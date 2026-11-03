@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { RotateCcw } from 'lucide-react'
+import { Hammer, RotateCcw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
@@ -8,6 +8,7 @@ import NumberControl from '../components/ui/NumberControl'
 import SegmentedControl from '../components/ui/SegmentedControl'
 import TipBox from '../components/ui/TipBox'
 import ChallengeCard from '../components/ui/ChallengeCard'
+import { useStepper } from '../components/ui/useStepper'
 import { classify, formatTerm as fmt, sum, terms, type ProgressionKind } from '../logic/progressoes'
 
 const COLOR = '#7c3aed'
@@ -16,39 +17,81 @@ const defaults: Record<ProgressionKind, { a1: number; step: number }> = {
   pg: { a1: 1, step: 2 },
 }
 
-function TermsChart({ values }: { values: number[] }) {
+function shadeBlock(light: boolean) {
+  return light ? '#c4b5fd' : COLOR
+}
+
+/** Torres de blocos: a parte clara de cada torre é o que foi acrescentado desde o termo anterior. */
+function TermsChart({ values, shown, stepText }: { values: number[]; shown: number; stepText: string }) {
   const width = 640
-  const height = 280
-  const top = 24
-  const bottom = 36
-  const maxValue = Math.max(0, ...values)
+  const height = 300
+  const top = 36
+  const bottom = 34
+  const blocksOk = values.every((v) => v >= 0 && Number.isInteger(v))
+  const maxValue = Math.max(1, ...values)
   const minValue = Math.min(0, ...values)
   const span = maxValue - minValue || 1
   const toY = (value: number) => top + ((maxValue - value) / span) * (height - top - bottom)
   const slot = (width - 20) / values.length
-  const barWidth = Math.min(44, slot * 0.7)
+  const barWidth = Math.min(46, slot * 0.68)
+  const unit = 1
+  const useBlocks = blocksOk && maxValue <= 30
+  const blockH = (toY(0) - toY(unit))
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="block h-auto w-full" role="img" aria-label={`Gráfico de barras dos termos: ${values.map(fmt).join(', ')}`}>
+    <svg viewBox={`0 0 ${width} ${height}`} className="block h-auto w-full" role="img" aria-label={`Termos: ${values.map(fmt).join(', ')}`}>
       <line x1={10} x2={width - 10} y1={toY(0)} y2={toY(0)} strokeWidth={2} style={{ stroke: 'var(--svg-axis)' }} />
       {values.map((value, i) => {
+        if (i >= shown) return null
         const x = 10 + slot * i + (slot - barWidth) / 2
+        const prev = i > 0 ? values[i - 1] : 0
         const y = Math.min(toY(value), toY(0))
         const barHeight = Math.max(2, Math.abs(toY(value) - toY(0)))
+        const blocks = Math.round(value / unit)
+        const oldBlocks = i > 0 ? Math.min(blocks, Math.round(prev / unit)) : 0
         return (
-          <g key={i}>
-            <motion.rect initial={false} animate={{ y, height: barHeight }} transition={{ type: 'spring', stiffness: 160, damping: 20 }} x={x} width={barWidth} rx={5} fill={COLOR} opacity={0.85} />
+          <motion.g key={i} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 200, damping: 18 }}>
+            {useBlocks ? (
+              Array.from({ length: blocks }, (_, k) => (
+                <rect key={k} x={x} y={toY(0) - (k + 1) * blockH + 1} width={barWidth} height={Math.max(1, blockH - 2)} rx={Math.min(4, blockH / 3)} fill={shadeBlock(k >= oldBlocks && i > 0)} stroke="#ffffff" strokeOpacity={0.6} strokeWidth={blockH > 6 ? 1 : 0} />
+              ))
+            ) : blocksOk ? (
+              <g>
+                <rect x={x} y={y} width={barWidth} height={barHeight} rx={5} fill={shadeBlock(i > 0)} />
+                {i > 0 && <rect x={x} y={toY(prev)} width={barWidth} height={Math.max(0, toY(0) - toY(prev))} rx={5} fill={COLOR} />}
+              </g>
+            ) : (
+              <motion.rect initial={false} animate={{ y, height: barHeight }} transition={{ type: 'spring', stiffness: 160, damping: 20 }} x={x} width={barWidth} rx={5} fill={COLOR} opacity={0.85} />
+            )}
             {values.length <= 12 && (
-              <text x={x + barWidth / 2} y={value >= 0 ? y - 6 : y + barHeight + 14} textAnchor="middle" fontSize={11} fontWeight={800} style={{ fill: 'var(--svg-text)' }}>
+              <text x={x + barWidth / 2} y={value >= 0 ? y - 6 : y + barHeight + 14} textAnchor="middle" fontSize={12} fontWeight={900} style={{ fill: 'var(--svg-text)' }}>
                 {fmt(value)}
               </text>
+            )}
+            {i > 0 && values.length <= 10 && (
+              <g>
+                <path d={`M ${x - slot + barWidth * 0.8} ${Math.min(toY(prev), toY(0)) - 20} Q ${x - slot / 2 + barWidth / 2} ${Math.min(toY(prev), toY(value)) - 44} ${x + barWidth * 0.2} ${y - 22}`} fill="none" stroke="#a78bfa" strokeWidth={2} strokeDasharray="4 4" markerEnd="url(#arrow-pg)" />
+                <text x={x - slot / 2 + barWidth / 2} y={Math.min(toY(prev), toY(value)) - 40} textAnchor="middle" fontSize={11} fontWeight={900} fill={COLOR}>
+                  {stepText}
+                </text>
+              </g>
             )}
             <text x={x + barWidth / 2} y={height - 12} textAnchor="middle" fontSize={11} fontWeight={700} style={{ fill: 'var(--svg-muted)' }}>
               a{i + 1}
             </text>
-          </g>
+          </motion.g>
         )
       })}
+      <defs>
+        <marker id="arrow-pg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa" />
+        </marker>
+      </defs>
+      {useBlocks && (
+        <text x={14} y={16} fontSize={11} fontWeight={800} style={{ fill: 'var(--svg-muted)' }}>
+          cada bloco = 1
+        </text>
+      )}
     </svg>
   )
 }
@@ -64,6 +107,9 @@ export default function Progressoes() {
   const isPa = kind === 'pa'
   const stepName = isPa ? 'razão r' : 'razão q'
   const stepText = isPa ? `${step >= 0 ? '+' : '−'}${fmt(Math.abs(step))}` : `×${fmt(step)}`
+  const build = useStepper(`${kind}:${a1}:${step}:${n}`, n, 450)
+  // Fora da construção (ou quando os valores mudam), todos os termos aparecem.
+  const shown = build.running || build.shown > 0 ? build.shown : n
 
   function changeKind(next: ProgressionKind) {
     setKind(next)
@@ -88,7 +134,13 @@ export default function Progressoes() {
                 </li>
               ))}
             </ol>
-            <TermsChart values={values} />
+            <TermsChart values={values} shown={shown} stepText={stepText} />
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => build.play()} disabled={build.running} className="inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white shadow">
+                <Hammer size={16} /> {build.running ? 'Construindo…' : 'Construir termo a termo'}
+              </button>
+              <p className="flex-1 text-xs font-semibold text-slate-600">{isPa ? `A parte clara de cada torre são os ${fmt(Math.abs(step))} que entram a cada passo: na PA o acréscimo é sempre igual.` : `A parte clara é o que cresceu: na PG o acréscimo aumenta, porque cada torre é ${fmt(step)} vezes a anterior.`}</p>
+            </div>
           </Panel>
         </div>
 

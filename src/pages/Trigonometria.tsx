@@ -1,4 +1,5 @@
-import { useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { Pause, Play } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
@@ -103,6 +104,52 @@ function UnitCircle({ angle, onAngle }: { angle: number; onAngle: (angle: number
   )
 }
 
+/** Onda do seno e do cosseno de 0° a 360°, com o ponto do ângulo atual. */
+function Wave({ angle, trail }: { angle: number; trail: number | null }) {
+  const W = 640
+  const H = 200
+  const L = 34
+  const X = (deg: number) => L + (deg / 360) * (W - L - 12)
+  const Y = (v: number) => H / 2 - v * 70
+  const path = (fn: (rad: number) => number, upTo = 360) =>
+    Array.from({ length: Math.floor(upTo / 3) + 1 }, (_, i) => Math.min(upTo, i * 3))
+      .map((deg, i) => `${i ? 'L' : 'M'} ${X(deg).toFixed(1)} ${Y(fn(toRadians(deg))).toFixed(1)}`)
+      .join(' ')
+  const a = normalizeAngle(angle)
+  const upTo = trail ?? 360
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" role="img" aria-label={`Gráfico do seno e do cosseno de 0 a 360 graus; ângulo atual ${a} graus`}>
+      {[90, 180, 270, 360].map((deg) => (
+        <g key={deg}>
+          <line x1={X(deg)} x2={X(deg)} y1={20} y2={H - 20} strokeWidth={1} style={{ stroke: 'var(--svg-grid)' }} />
+          <text x={X(deg)} y={H - 4} textAnchor="middle" fontSize={11} fontWeight={800} style={{ fill: 'var(--svg-muted)' }}>
+            {deg}°
+          </text>
+        </g>
+      ))}
+      <line x1={L} x2={W - 8} y1={Y(0)} y2={Y(0)} strokeWidth={2} style={{ stroke: 'var(--svg-axis)' }} />
+      {[1, -1].map((v) => (
+        <text key={v} x={L - 8} y={Y(v) + 4} textAnchor="end" fontSize={11} fontWeight={800} style={{ fill: 'var(--svg-muted)' }}>
+          {v}
+        </text>
+      ))}
+      <path d={path(Math.cos)} fill="none" stroke={COS_COLOR} strokeWidth={2} strokeOpacity={0.25} />
+      <path d={path(Math.sin)} fill="none" stroke={SIN_COLOR} strokeWidth={2} strokeOpacity={0.25} />
+      <path d={path(Math.cos, upTo)} fill="none" stroke={COS_COLOR} strokeWidth={3.5} />
+      <path d={path(Math.sin, upTo)} fill="none" stroke={SIN_COLOR} strokeWidth={3.5} />
+      <line x1={X(a)} x2={X(a)} y1={18} y2={H - 18} stroke="#7c3aed" strokeWidth={2} strokeDasharray="5 4" />
+      <circle cx={X(a)} cy={Y(cosine(a))} r={7} fill={COS_COLOR} stroke="#ffffff" strokeWidth={2} />
+      <circle cx={X(a)} cy={Y(sine(a))} r={7} fill={SIN_COLOR} stroke="#ffffff" strokeWidth={2} />
+      <text x={W - 12} y={16} textAnchor="end" fontSize={12} fontWeight={900} fill={SIN_COLOR}>
+        seno
+      </text>
+      <text x={W - 60} y={16} textAnchor="end" fontSize={12} fontWeight={900} fill={COS_COLOR}>
+        cosseno
+      </text>
+    </svg>
+  )
+}
+
 function Value({ label, color, value, exact, note }: { label: string; color: string; value: string; exact: string | null; note: string }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -118,7 +165,33 @@ function Value({ label, color, value, exact, note }: { label: string; color: str
 }
 
 export default function Trigonometria() {
-  const [angle, setAngle] = useState(30)
+  const [angle, setAngleRaw] = useState(30)
+  const [playing, setPlaying] = useState(false)
+  const [trail, setTrail] = useState<number | null>(null)
+  const frame = useRef(0)
+  const setAngle = (value: number) => {
+    setPlaying(false)
+    setTrail(null)
+    setAngleRaw(value)
+  }
+
+  // "Girar": o ponto dá uma volta inteira e a onda vai sendo desenhada junto.
+  useEffect(() => {
+    if (!playing) return
+    let last = performance.now()
+    let deg = 0
+    const tick = (now: number) => {
+      deg = Math.min(360, deg + (now - last) * 0.06)
+      last = now
+      const shown = Math.round(deg)
+      setAngleRaw(shown % 360)
+      setTrail(shown)
+      if (deg < 360) frame.current = requestAnimationFrame(tick)
+      else setPlaying(false)
+    }
+    frame.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame.current)
+  }, [playing])
   const sin = sine(angle)
   const cos = cosine(angle)
   const tan = tangent(angle)
@@ -134,6 +207,13 @@ export default function Trigonometria() {
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
         <Panel stage>
           <UnitCircle angle={angle} onAngle={setAngle} />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => (playing ? setPlaying(false) : (setTrail(0), setPlaying(true)))} className="inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white shadow">
+              {playing ? <Pause size={16} /> : <Play size={16} />} {playing ? 'Pausar' : 'Girar e desenhar a onda'}
+            </button>
+            <p className="flex-1 text-xs font-semibold text-slate-600">A altura do ponto (seno) e a posição dele no eixo x (cosseno) viram as ondas abaixo.</p>
+          </div>
+          <Wave angle={angle} trail={trail} />
           <div className="mt-3 flex flex-wrap justify-center gap-1.5" role="group" aria-label="Ângulos notáveis">
             {NOTABLE_ANGLES.map((value) => (
               <button
@@ -180,10 +260,10 @@ export default function Trigonometria() {
       <ChallengeCard
         simulator="trigonometria"
         goals={[
-          { id: 'seno-meio', text: 'Ache o ângulo do 2º quadrante com seno igual a 1/2.', met: angle === 150 },
-          { id: 'cos-menos-um', text: 'Ache o ângulo com cosseno igual a −1.', met: cos === -1 },
-          { id: 'tg-um', text: 'Ache o ângulo do 3º quadrante com tangente igual a 1.', met: q === 3 && tan === 1 },
-          { id: 'tg-nao-existe', text: 'Ache um ângulo em que a tangente não existe.', met: tan === null },
+          { id: 'onda', text: 'Gire o ponto uma volta inteira e desenhe a onda do seno.', met: trail === 360 },
+          { id: 'seno-meio', text: 'Ache o ângulo do 2º quadrante com seno igual a 1/2.', met: !playing && angle === 150 },
+          { id: 'cos-menos-um', text: 'Ache o ângulo com cosseno igual a −1.', met: !playing && cos === -1 },
+          { id: 'tg-nao-existe', text: 'Ache um ângulo em que a tangente não existe.', met: !playing && tan === null },
         ]}
       />
       <TipBox>
