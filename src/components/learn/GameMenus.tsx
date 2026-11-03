@@ -85,7 +85,7 @@ export function HowToPlay({ onClose }: { onClose: () => void }) {
           <strong>Escolha uma fase na trilha.</strong> Cada livro é um capítulo da Matemática, do 6º ano ao Ensino Médio.
         </li>
         <li>
-          <strong>Explore o mapa.</strong> Ande com setas/WASD (segure para continuar), toque no mapa ou use o joystick no celular. Encoste nos personagens ou aperte <kbd>E</kbd>.
+          <strong>Explore o mapa.</strong> No celular, toque onde quer ir: o herói anda até lá. Toque num personagem para falar ou lutar. No computador, use setas/WASD (segure para continuar) ou clique, e <kbd>E</kbd> para interagir.
         </li>
         <li>
           <strong>Cumpra as missões:</strong> derrote monstros, ajude os moradores com problemas, conserte a passagem e encontre o guardião.

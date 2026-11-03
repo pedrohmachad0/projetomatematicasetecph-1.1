@@ -12,7 +12,6 @@ import { ChestSprite, GateSprite, HeroSprite, ObstacleSprite, SignSprite, Villag
 import MapTerrain from './MapTerrain'
 import PixelCreature from './PixelCreature'
 import { PixelOgre } from './PixelArt'
-import VirtualJoystick from './VirtualJoystick'
 import DialogueBox from './DialogueBox'
 import { textDelay, type TextSpeed } from '../../logic/settings'
 
@@ -59,6 +58,7 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const [message, setMessage] = useState('Explore o mapa, cumpra as missões e encontre o guardião da fase.')
   const [walking, setWalking] = useState<Point[]>([])
+  const [target, setTarget] = useState<Point | null>(null)
   const [showMinimap, setShowMinimap] = useState(true)
   const [journal, setJournal] = useState(false)
   const [talk, setTalk] = useState<Talk | null>(null)
@@ -68,7 +68,6 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
   const viewport = useRef<HTMLDivElement>(null)
   const pendingTarget = useRef<MapEntity | 'gate' | null>(null)
   const held = useRef<Direction[]>([])
-  const stick = useRef<Direction | null>(null)
   const idleTimer = useRef<number | undefined>(undefined)
   const { done, position } = explore
   const gateOpen = done.includes('portao')
@@ -191,7 +190,7 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
     else say('Não há ninguém na sua frente. Vire-se para um personagem e toque em Interagir.')
   }
 
-  // Movimento contínuo enquanto uma tecla ou o joystick estiverem pressionados.
+  // Movimento contínuo enquanto uma tecla de direção estiver pressionada.
   const latest = useRef({ step, dialog: blockedInput, walking: walking.length })
   useEffect(() => {
     latest.current = { step, dialog: blockedInput, walking: walking.length }
@@ -199,7 +198,7 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
   useEffect(() => {
     const timer = window.setInterval(() => {
       const { step: move, dialog: open, walking: busy } = latest.current
-      const direction = stick.current ?? held.current[held.current.length - 1]
+      const direction = held.current[held.current.length - 1]
       if (direction && !open && !busy) move(direction)
     }, STEP_MS)
     return () => window.clearInterval(timer)
@@ -234,6 +233,7 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
       return
     }
     pendingTarget.current = entity ?? (isGate ? 'gate' : null)
+    setTarget(target)
     setWalking(path)
   }
 
@@ -275,7 +275,6 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
     }
     const release = () => {
       held.current = []
-      stick.current = null
     }
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
@@ -468,15 +467,9 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
             <p key={toastKey} className={`map-toast ${toastKey ? 'is-visible' : ''}`} role="status" aria-live="polite">
               {message}
             </p>
-            <VirtualJoystick
-              onDirection={(direction) => {
-                stick.current = direction
-                if (direction) {
-                  setWalking([])
-                  step(direction)
-                }
-              }}
-            />
+            {walking.length > 0 && target && (
+              <span className="tap-marker" style={{ left: target.x * tile - camX, top: target.y * tile - camY, width: tile, height: tile }} aria-hidden="true" />
+            )}
             <button
               type="button"
               className="map-action"
