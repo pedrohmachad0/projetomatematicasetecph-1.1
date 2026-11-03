@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Target } from 'lucide-react'
 import { educationLevelLabels, getContent, type SimulatorId } from '../data/mathContent'
 import { getCategoryColor, simulatorIcons } from '../data/simulatorVisuals'
+import TeacherGuidePanel from './TeacherGuidePanel'
 
 interface Props {
   id: SimulatorId
@@ -22,6 +23,7 @@ export default function SimulatorHeader({ id, children }: Props) {
   const color = getCategoryColor(content.category)
 
   return (
+    <>
     <motion.header
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -45,7 +47,7 @@ export default function SimulatorHeader({ id, children }: Props) {
             {educationLevelLabels[content.educationLevel]} · {content.grade} · {content.category}
           </p>
           <h1 className="mt-1 text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">{content.title}</h1>
-          <p className="mt-1.5 line-clamp-3 max-w-3xl text-sm leading-relaxed text-white/90 sm:mt-2 sm:line-clamp-none sm:text-base md:text-lg">{children ?? content.description}</p>
+          <p className="sim-hero-desc mt-1.5 line-clamp-3 max-w-3xl text-sm leading-relaxed text-white/90 sm:mt-2 sm:line-clamp-none sm:text-base md:text-lg">{children ?? content.description}</p>
         </div>
       </div>
 
@@ -57,7 +59,7 @@ export default function SimulatorHeader({ id, children }: Props) {
             {content.goal}
           </span>
         </p>
-        <ol className="-mx-1 mt-2.5 flex snap-x gap-2 overflow-x-auto px-1 pb-0.5 sm:mx-0 sm:mt-3 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0" aria-label="Como usar">
+        <ol className="sim-hero-steps -mx-1 mt-2.5 flex snap-x gap-2 overflow-x-auto px-1 pb-0.5 sm:mx-0 sm:mt-3 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0" aria-label="Como usar">
           {content.steps.map((step, i) => (
             <li key={step} className="flex shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-xl bg-white/15 px-2.5 py-2 text-xs font-bold text-white sm:shrink sm:whitespace-normal sm:text-sm">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black" style={{ color, background: '#ffffff' }}>
@@ -69,5 +71,7 @@ export default function SimulatorHeader({ id, children }: Props) {
         </ol>
       </div>
     </motion.header>
+    <TeacherGuidePanel id={id} />
+    </>
   )
 }

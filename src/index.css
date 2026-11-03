@@ -438,3 +438,17 @@ html[data-theme='dark'] .sim-value {
     animation: none;
   }
 }
+
+/* Modo apresentação: o guia do professor fica fora da projeção e os desafios podem ser escondidos. */
+.presentation-surface .teacher-guide,
+.hide-challenges [data-challenges] {
+  display: none;
+}
+/* Na projeção, a faixa do topo fica compacta para sobrar espaço para o simulador. */
+.presentation-surface .sim-hero-desc,
+.presentation-surface .sim-hero-steps {
+  display: none;
+}
+html[data-theme='dark'] .presentation-surface .sticky.bg-slate-50\/95 {
+  background: rgba(15, 23, 42, 0.95);
+}

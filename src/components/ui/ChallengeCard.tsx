@@ -78,7 +78,7 @@ export default function ChallengeCard({ simulator, goals }: Props) {
   }, [pending, simulator, newText, all])
 
   return (
-    <section aria-labelledby={`${simulator}-challenges`} className={`mt-5 rounded-2xl border p-4 shadow-sm sm:p-5 ${all ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+    <section data-challenges aria-labelledby={`${simulator}-challenges`} className={`mt-5 rounded-2xl border p-4 shadow-sm sm:p-5 ${all ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-sm ${all ? 'bg-emerald-600' : 'sim-accent-bg'}`} aria-hidden="true">
           {all ? <Trophy size={19} /> : <Target size={19} />}
