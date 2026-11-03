@@ -1,4 +1,5 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { Bird, Flag } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
@@ -22,12 +23,32 @@ export default function Analitica() {
   const [showTriangle, setShowTriangle] = useState(true)
   const [showLine, setShowLine] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)
+  const [race, setRace] = useState<number | null>(null)
+  const [racing, setRacing] = useState(false)
+  const raceFrame = useRef(0)
   const dragging = useRef<'A' | 'B' | null>(null)
   const d = distance(A, B)
   const M = midpoint(A, B)
   const m = slope(A, B)
   const dx = B.x - A.x
   const dy = B.y - A.y
+
+  const walkLength = Math.abs(B.x - A.x) + Math.abs(B.y - A.y)
+
+  // Corrida: os dois andam com a mesma velocidade; o pássaro voa reto.
+  useEffect(() => {
+    if (!racing) return
+    const start = performance.now()
+    const total = Math.max(1, walkLength)
+    const tick = (now: number) => {
+      const traveled = Math.min(total, ((now - start) / 2600) * total)
+      setRace(traveled)
+      if (traveled < total) raceFrame.current = requestAnimationFrame(tick)
+      else setRacing(false)
+    }
+    raceFrame.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raceFrame.current)
+  }, [racing, walkLength])
 
   function toPlane(event: ReactPointerEvent) {
     const svg = wrap.current?.querySelector('svg')
@@ -55,9 +76,20 @@ export default function Analitica() {
     if (!dragging.current) return
     const p = toPlane(event)
     if (!p) return
+    setRace(null)
     if (dragging.current === 'A') setA(p)
     else setB(p)
   }
+
+  const birdAt = race === null ? null : (() => {
+    const k = d === 0 ? 1 : Math.min(1, race / d)
+    return { x: A.x + (B.x - A.x) * k, y: A.y + (B.y - A.y) * k }
+  })()
+  const walkerAt = race === null ? null : (() => {
+    const legX = Math.abs(B.x - A.x)
+    if (race <= legX) return { x: A.x + Math.sign(B.x - A.x) * race, y: A.y }
+    return { x: B.x, y: A.y + Math.sign(B.y - A.y) * Math.min(Math.abs(B.y - A.y), race - legX) }
+  })()
 
   // Reta inteira passando por A e B, prolongada até as bordas.
   const far = 30
@@ -99,9 +131,36 @@ export default function Analitica() {
                   </text>
                 </g>
               ))}
+              {walkerAt && (
+                <g transform={`translate(${scale.toX(walkerAt.x)} ${scale.toY(walkerAt.y)}) scale(1.4)`}>
+                  <circle cy={-22} r={6} fill="#f2c9a0" stroke="#7c2d12" strokeWidth={1.5} />
+                  <rect x={-5} y={-16} width={10} height={13} rx={3} fill="#b45309" />
+                  <line x1={-3} x2={-5} y1={-3} y2={6} stroke="#1e293b" strokeWidth={3} strokeLinecap="round" />
+                  <line x1={3} x2={5} y1={-3} y2={6} stroke="#1e293b" strokeWidth={3} strokeLinecap="round" />
+                </g>
+              )}
+              {birdAt && (
+                <g transform={`translate(${scale.toX(birdAt.x)} ${scale.toY(birdAt.y) - 14}) scale(1.5)`}>
+                  <path d="M -12 -4 Q -6 -12 0 -3 Q 6 -12 12 -4 Q 6 -6 0 2 Q -6 -6 -12 -4 Z" fill="#7c3aed" stroke="#4c1d95" strokeWidth={1.5} />
+                </g>
+              )}
             </CartesianPlane>
           </div>
           <p className="text-center text-xs font-semibold text-slate-500">Toque perto de um ponto e arraste. Os pontos ficam sempre em coordenadas inteiras.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => { setRace(0); setRacing(true) }} disabled={racing || d === 0} className="inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white shadow disabled:opacity-50">
+              <Bird size={17} /> Corrida: pássaro × pedestre
+            </button>
+            {race !== null && (
+              <p role="status" className="flex-1 text-sm font-semibold text-slate-700">
+                {race >= walkLength
+                  ? dx === 0 || dy === 0
+                    ? 'Empate! Na mesma linha ou coluna, o caminho pelas ruas já é reto.'
+                    : `O pássaro chegou antes: voou ${br(d)}, enquanto o pedestre andou ${br(Math.abs(dx))} + ${br(Math.abs(dy))} = ${br(walkLength)} pelos catetos.`
+                  : <span className="inline-flex items-center gap-1"><Flag size={14} /> Correndo… o pássaro voa reto, o pedestre segue pelas ruas.</span>}
+              </p>
+            )}
+          </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <label className="flex min-h-[44px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-700">
               <input type="checkbox" checked={showTriangle} onChange={(event) => setShowTriangle(event.target.checked)} /> Triângulo de Pitágoras
@@ -135,7 +194,7 @@ export default function Analitica() {
         goals={[
           { id: 'cinco', text: 'Coloque os pontos a distância 5 sem estarem na mesma linha ou coluna.', met: d === 5 && dx !== 0 && dy !== 0 },
           { id: 'origem', text: 'Faça o ponto médio cair na origem (0, 0).', met: M.x === 0 && M.y === 0 && d > 0 },
-          { id: 'vertical', text: 'Monte uma reta vertical (sem coeficiente angular).', met: m === null && d > 0 },
+          { id: 'corrida', text: 'Faça a corrida com os pontos em diagonal e veja o pássaro vencer.', met: race !== null && race >= walkLength && dx !== 0 && dy !== 0 },
           { id: 'descendo', text: 'Monte uma reta que desce, com m = −1.', met: m === -1 },
         ]}
       />

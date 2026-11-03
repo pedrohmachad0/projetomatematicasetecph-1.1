@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Eye, RotateCcw, Undo2 } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
@@ -37,11 +38,82 @@ function Avatar({ id, size = 'md' }: { id: string; size?: 'sm' | 'md' }) {
   )
 }
 
+function Seat({ id }: { id?: string }) {
+  return (
+    <AnimatePresence mode="popLayout">
+      {id ? (
+        <motion.div key={id} initial={{ y: -50, opacity: 0, scale: 0.6 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} transition={{ type: 'spring', stiffness: 380, damping: 18 }}>
+          <Avatar id={id} />
+        </motion.div>
+      ) : (
+        <motion.span key="empty" className="block h-11 w-11 rounded-full border-2 border-dashed border-slate-300 bg-white/60" />
+      )}
+    </AnimatePresence>
+  )
+}
+
+/** Cenário de cada contagem: pódio (arranjo), fila (permutação) ou mesa redonda (combinação). */
+function Scene({ mode, p, picked }: { mode: 'arranjo' | 'combinacao' | 'permutacao'; p: number; picked: string[] }) {
+  if (mode === 'arranjo') {
+    const order = [1, 0, 2, 3].filter((i) => i < p)
+    const heights = [96, 70, 52, 38]
+    const colors = ['#f59e0b', '#94a3b8', '#b45309', '#64748b']
+    return (
+      <div className="mt-4 flex items-end justify-center gap-1.5" aria-label="Pódio">
+        {order.map((i) => (
+          <div key={i} className="flex w-[74px] flex-col items-center gap-1">
+            <Seat id={picked[i]} />
+            <div className="flex w-full items-start justify-center rounded-t-xl pt-1.5 font-black text-white shadow-inner" style={{ height: heights[i], background: `linear-gradient(${colors[i]}, color-mix(in srgb, ${colors[i]} 70%, #000))` }}>
+              <span className="text-2xl">{i + 1}º</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  if (mode === 'permutacao') {
+    return (
+      <div className="mt-4 overflow-x-auto pb-1" aria-label="Fila">
+        <div className="mx-auto flex w-max items-end gap-1.5">
+          <span className="mb-3 mr-1 text-[10px] font-black uppercase text-slate-500">frente →</span>
+          {Array.from({ length: p }, (_, i) => (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <Seat id={picked[i]} />
+              <span className="flex h-7 w-12 items-center justify-center rounded-md bg-slate-200 font-mono text-xs font-black text-slate-600" style={{ transform: 'perspective(80px) rotateX(35deg)' }}>
+                {i + 1}º
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+  const R = 64
+  return (
+    <div className="relative mx-auto mt-4 h-[190px] w-[190px]" aria-label="Mesa redonda da comissão">
+      <div className="absolute left-1/2 top-1/2 flex h-[92px] w-[92px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-amber-800/60 text-center text-[10px] font-black uppercase leading-tight text-amber-900" style={{ background: 'radial-gradient(#fcd34d, #d97706)' }}>
+        comissão
+        <br />
+        sem cargos
+      </div>
+      {Array.from({ length: p }, (_, i) => {
+        const a = -Math.PI / 2 + (i * 2 * Math.PI) / p
+        return (
+          <div key={i} className="absolute" style={{ left: 95 + R * Math.cos(a) - 22, top: 95 + R * Math.sin(a) - 22 }}>
+            <Seat id={picked[i]} />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function Builder({ mode }: { mode: 'arranjo' | 'combinacao' | 'permutacao' }) {
   const [n, setN] = useState(4)
   const [pRaw, setP] = useState(2)
   const p = mode === 'permutacao' ? n : Math.min(pRaw, n)
   const [picked, setPicked] = useState<string[]>([])
+  const [last, setLast] = useState<string[]>([])
   const [found, setFound] = useState<string[]>([])
   const [message, setMessage] = useState('')
   const [showAll, setShowAll] = useState(false)
@@ -53,6 +125,7 @@ function Builder({ mode }: { mode: 'arranjo' | 'combinacao' | 'permutacao' }) {
 
   function resetAll(nextN = n, nextP = p) {
     setPicked([])
+    setLast([])
     setFound([])
     setMessage('')
     setShowAll(false)
@@ -68,6 +141,7 @@ function Builder({ mode }: { mode: 'arranjo' | 'combinacao' | 'permutacao' }) {
       return
     }
     const key = keyOf(next)
+    setLast(next)
     if (found.includes(key)) {
       setMessage(ordered ? 'Essa você já tinha encontrado.' : `Esse grupo você já tinha! ${next.join(', ')} é o mesmo grupo que ${key.split('').join(', ')}: na combinação a ordem não importa.`)
     } else {
@@ -77,7 +151,6 @@ function Builder({ mode }: { mode: 'arranjo' | 'combinacao' | 'permutacao' }) {
     setPicked([])
   }
 
-  const slotNames = mode === 'arranjo' ? ['1º lugar', '2º lugar', '3º lugar', '4º lugar'] : mode === 'permutacao' ? Array.from({ length: 6 }, (_, i) => `${i + 1}º da fila`) : Array.from({ length: 6 }, () => 'membro')
   const formula =
     mode === 'combinacao'
       ? `C(${n}, ${p}) = ${n}! ÷ (${p}! · ${n - p}!) = ${total}`
@@ -96,14 +169,7 @@ function Builder({ mode }: { mode: 'arranjo' | 'combinacao' | 'permutacao' }) {
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_340px]">
         <Panel stage>
           <p className="rounded-xl bg-slate-50 p-3 text-sm font-bold text-slate-800 sm:text-base">{story}</p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2" aria-label="Posições">
-            {Array.from({ length: p }, (_, i) => (
-              <div key={i} className={`flex min-w-[72px] flex-col items-center gap-1 rounded-2xl border-2 border-dashed p-2 ${picked[i] ? 'border-blue-200 bg-blue-50' : 'border-slate-300 bg-white'}`}>
-                {picked[i] ? <Avatar id={picked[i]} /> : <span className="h-11 w-11 rounded-full bg-slate-100" />}
-                <span className="text-[10px] font-black uppercase text-slate-500">{slotNames[i]}</span>
-              </div>
-            ))}
-          </div>
+          <Scene mode={mode} p={p} picked={picked.length ? picked : last} />
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {people.slice(0, n).map((person) => (
               <button key={person.id} type="button" onClick={() => pick(person.id)} disabled={picked.includes(person.id)} className="flex min-h-[56px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:opacity-30">

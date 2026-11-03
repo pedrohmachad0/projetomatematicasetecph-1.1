@@ -23,10 +23,11 @@ const CUT = '#dc2626'
 const SIZE = 300
 const spring = { type: 'spring' as const, stiffness: 120, damping: 18 }
 
-function Piece({ x, y, w, h, color, label, opacity = 0.85 }: { x: number; y: number; w: number; h: number; color: string; label: string; opacity?: number }) {
+function Piece({ x, y, w, h, color, label, opacity = 0.85, grid = false }: { x: number; y: number; w: number; h: number; color: string; label: string; opacity?: number; grid?: boolean }) {
   return (
     <motion.g initial={false} animate={{ x, y }} transition={spring}>
       <motion.rect initial={false} animate={{ width: w, height: h }} transition={spring} rx={4} fill={color} fillOpacity={opacity} stroke="#ffffff" strokeWidth={2} />
+      {grid && <motion.rect initial={false} animate={{ width: w, height: h }} transition={spring} fill="url(#unit-grid)" pointerEvents="none" />}
       {w > 26 && h > 18 && (
         <motion.text initial={false} animate={{ x: w / 2, y: h / 2 + 6 }} transition={spring} textAnchor="middle" fontSize={Math.min(20, w / 3, h / 1.5)} fontWeight={900} fill="#ffffff">
           {label}
@@ -41,21 +42,23 @@ export default function Notaveis() {
   const [a, setA] = useState(5)
   const [b, setB] = useState(2)
   const [built, setBuilt] = useState(false)
+  const [grid, setGrid] = useState(false)
   const bb = kind === 'soma' ? b : Math.min(b, a - 1)
   const r = notable(kind, a, bb)
   const gap = built ? 0 : 18
   const O = 30
 
+  const unitSize = kind === 'diferenca' ? SIZE / a : SIZE / (a + bb)
   let pieces = null
   let outline = null
   if (kind === 'soma') {
     const u = SIZE / (a + bb)
     pieces = (
       <>
-        <Piece x={O} y={O} w={a * u} h={a * u} color={CA} label="a²" />
-        <Piece x={O + a * u + gap} y={O} w={bb * u} h={a * u} color={CAB} label="ab" />
-        <Piece x={O} y={O + a * u + gap} w={a * u} h={bb * u} color={CAB} label="ab" />
-        <Piece x={O + a * u + gap} y={O + a * u + gap} w={bb * u} h={bb * u} color={CB} label="b²" />
+        <Piece grid={grid} x={O} y={O} w={a * u} h={a * u} color={CA} label="a²" />
+        <Piece grid={grid} x={O + a * u + gap} y={O} w={bb * u} h={a * u} color={CAB} label="ab" />
+        <Piece grid={grid} x={O} y={O + a * u + gap} w={a * u} h={bb * u} color={CAB} label="ab" />
+        <Piece grid={grid} x={O + a * u + gap} y={O + a * u + gap} w={bb * u} h={bb * u} color={CB} label="b²" />
       </>
     )
     outline = { w: (a + bb) * u, h: (a + bb) * u, top: `a + b = ${a + bb}`, side: `a + b = ${a + bb}` }
@@ -64,10 +67,10 @@ export default function Notaveis() {
     const c = a - bb
     pieces = (
       <>
-        <Piece x={O} y={O} w={c * u} h={c * u} color={CA} label="(a−b)²" />
-        <Piece x={O + c * u + gap} y={O} w={bb * u} h={c * u} color={CUT} label="" opacity={built ? 0.25 : 0.7} />
-        <Piece x={O} y={O + c * u + gap} w={c * u} h={bb * u} color={CUT} label="" opacity={built ? 0.25 : 0.7} />
-        <Piece x={O + c * u + gap} y={O + c * u + gap} w={bb * u} h={bb * u} color={CB} label="b²" />
+        <Piece grid={grid} x={O} y={O} w={c * u} h={c * u} color={CA} label="(a−b)²" />
+        <Piece grid={grid} x={O + c * u + gap} y={O} w={bb * u} h={c * u} color={CUT} label="" opacity={built ? 0.25 : 0.7} />
+        <Piece grid={grid} x={O} y={O + c * u + gap} w={c * u} h={bb * u} color={CUT} label="" opacity={built ? 0.25 : 0.7} />
+        <Piece grid={grid} x={O + c * u + gap} y={O + c * u + gap} w={bb * u} h={bb * u} color={CB} label="b²" />
       </>
     )
     outline = { w: a * u, h: a * u, top: `a = ${a}`, side: `a = ${a}` }
@@ -76,8 +79,8 @@ export default function Notaveis() {
     const c = a - bb
     pieces = (
       <>
-        <Piece x={O} y={O} w={a * u} h={c * u} color={CA} label="a(a−b)" />
-        <Piece x={built ? O + a * u : O} y={built ? O : O + c * u + 14} w={built ? bb * u : c * u} h={built ? c * u : bb * u} color={CAB} label="b(a−b)" />
+        <Piece grid={grid} x={O} y={O} w={a * u} h={c * u} color={CA} label="a(a−b)" />
+        <Piece grid={grid} x={built ? O + a * u : O} y={built ? O : O + c * u + 14} w={built ? bb * u : c * u} h={built ? c * u : bb * u} color={CAB} label="b(a−b)" />
         {!built && <rect x={O + c * u} y={O + c * u + 14} width={bb * u} height={bb * u} fill="none" stroke={CUT} strokeWidth={2.5} strokeDasharray="6 5" />}
       </>
     )
@@ -110,6 +113,11 @@ export default function Notaveis() {
         <Panel stage>
           <p className="text-center font-mono text-lg font-black text-slate-900 sm:text-3xl">{r.formula}</p>
           <svg viewBox={`0 0 ${SIZE + 2 * O + 40} ${SIZE + 2 * O + 30}`} className="mx-auto mt-2 block h-auto w-full max-w-[440px]" role="img" aria-label={`${r.formula} com a = ${a} e b = ${bb}`}>
+            <defs>
+              <pattern id="unit-grid" width={unitSize} height={unitSize} patternUnits="userSpaceOnUse">
+                <path d={`M ${unitSize} 0 L 0 0 0 ${unitSize}`} fill="none" stroke="#ffffff" strokeOpacity={0.7} strokeWidth={1.5} />
+              </pattern>
+            </defs>
             {built && outline && <rect x={O} y={O} width={outline.w} height={outline.h} fill="none" strokeWidth={3} style={{ stroke: 'var(--svg-ink)' }} />}
             {pieces}
             {outline && (
@@ -126,6 +134,14 @@ export default function Notaveis() {
           <button type="button" aria-pressed={built} onClick={() => setBuilt((v) => !v)} className={`mt-2 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-4 text-base font-black shadow transition active:scale-95 ${built ? 'bg-amber-400 text-slate-900' : 'bg-blue-700 text-white hover:bg-blue-800'}`}>
             <Puzzle size={18} /> {built ? 'Separar as peças' : kind === 'produto' ? 'Mover a peça verde' : 'Encaixar as peças'}
           </button>
+          <button type="button" aria-pressed={grid} onClick={() => setGrid((v) => !v)} className={`mt-2 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border-2 text-sm font-black ${grid ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-700'}`}>
+            {grid ? 'Esconder os quadradinhos' : 'Contar os quadradinhos de cada peça'}
+          </button>
+          {grid && (
+            <p className="mt-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center font-mono text-sm font-bold text-emerald-800">
+              {kind === 'produto' ? `a(a − b) = ${a * (a - bb)} e b(a − b) = ${bb * (a - bb)} quadradinhos: juntos, ${a * a - bb * bb} = ${a}² − ${bb}²` : `a² = ${a * a} · ab = ${a * bb} (cada) · b² = ${bb * bb} quadradinhos`}
+            </p>
+          )}
           <p className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">{explain}</p>
         </Panel>
         <div className="space-y-4">

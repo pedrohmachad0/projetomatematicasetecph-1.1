@@ -9,6 +9,7 @@ import TipBox from '../components/ui/TipBox'
 import ChallengeCard from '../components/ui/ChallengeCard'
 import Fact from '../components/ui/Fact'
 import Solid3D from '../components/espacial/Solid3D'
+import SolidNet from '../components/espacial/SolidNet'
 import { solidMeasures, type Solid, type SolidSize } from '../logic/espacial'
 import { companionMesh } from '../logic/mesh3d'
 
@@ -34,6 +35,7 @@ export default function Espacial() {
   const [size, setSize] = useState<SolidSize>({ a: 3, b: 2, h: 4, r: 2 })
   const [spin, setSpin] = useState(true)
   const [compare, setCompare] = useState(false)
+  const [view, setView] = useState<'3d' | 'net'>('3d')
   const info = solids.find((s) => s.id === solid)!
   const m = solidMeasures(solid, size)
   const canCompare = solid in compareText
@@ -54,8 +56,28 @@ export default function Espacial() {
       </div>
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
         <Panel stage>
-          <Solid3D solid={solid} size={size} color={info.color} ghost={companion} spin={spin} label={`${info.label} com volume ${br(m.volume)}`} />
-          <p className="text-center text-xs font-semibold text-slate-500">Arraste para girar o sólido.</p>
+          <div className="mb-2">
+            <SegmentedControl
+              label="Como ver"
+              options={[
+                { id: '3d', label: 'Sólido em 3D' },
+                { id: 'net', label: 'Planificação' },
+              ]}
+              value={view}
+              onChange={setView}
+            />
+          </div>
+          {view === '3d' ? (
+            <>
+              <Solid3D solid={solid} size={size} color={info.color} ghost={companion} spin={spin} label={`${info.label} com volume ${br(m.volume)}`} />
+              <p className="text-center text-xs font-semibold text-slate-500">Arraste para girar o sólido.</p>
+            </>
+          ) : (
+            <>
+              <SolidNet solid={solid} size={size} color={info.color} />
+              {solid !== 'esfera' && <p className="text-center text-xs font-semibold text-slate-500">Somando a área de todas as faces, chega-se à área total: {br(m.area)} u².</p>}
+            </>
+          )}
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={() => setSpin((v) => !v)} className="inline-flex min-h-[48px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 hover:bg-slate-50">
               {spin ? <Pause size={16} /> : <Play size={16} />} {spin ? 'Parar de girar' : 'Girar sozinho'}
@@ -96,8 +118,8 @@ export default function Espacial() {
         goals={[
           { id: 'cubo', text: 'Monte um cubo com volume 64.', met: solid === 'cubo' && m.volume === 64 },
           { id: 'cone', text: 'Compare o cone com o cilindro e descubra a fração.', met: solid === 'cone' && compare },
-          { id: 'caixa', text: 'Monte uma caixa (paralelepípedo) com volume 24 que não seja um cubo.', met: solid === 'paralelepipedo' && m.volume === 24 },
           { id: 'esfera', text: 'Veja a esfera dentro do cilindro de Arquimedes.', met: solid === 'esfera' && compare },
+          { id: 'planificar', text: 'Abra a planificação do cilindro e veja o retângulo da lateral.', met: solid === 'cilindro' && view === 'net' },
         ]}
       />
       <TipBox>

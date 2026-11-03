@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useCompact } from '../ui/useCompact'
 
 interface Props {
   a: number
@@ -12,9 +13,7 @@ interface Props {
 
 const CX = 320
 const CY = 120
-const HALF = 205
 const PAN_DROP = 78
-const PAN_WIDTH = 200
 const spring = { type: 'spring' as const, stiffness: 110, damping: 14 }
 const pop = { type: 'spring' as const, stiffness: 420, damping: 22 }
 
@@ -46,9 +45,8 @@ function Weight({ x, y, size }: { x: number; y: number; size: number }) {
   )
 }
 
-function PanContents({ boxes, units, revealX }: { boxes: number; units: number; revealX: number | null }) {
+function PanContents({ boxes, units, revealX, perRow }: { boxes: number; units: number; revealX: number | null; perRow: number }) {
   const unitSize = 15
-  const perRow = 11
   const boxSize = 34
   const boxesPerRow = 5
   const boxRows = Math.ceil(boxes / boxesPerRow)
@@ -91,8 +89,8 @@ function PanContents({ boxes, units, revealX }: { boxes: number; units: number; 
   )
 }
 
-function Pan({ end, children, label }: { end: { x: number; y: number }; children: ReactNode; label: string }) {
-  const w = PAN_WIDTH / 2
+function Pan({ end, children, label, width }: { end: { x: number; y: number }; children: ReactNode; label: string; width: number }) {
+  const w = width / 2
   return (
     <motion.g initial={false} animate={{ x: end.x, y: end.y }} transition={spring}>
       <circle r={6} fill="#a16207" />
@@ -109,6 +107,11 @@ function Pan({ end, children, label }: { end: { x: number; y: number }; children
 }
 
 export default function BalanceSVG({ a, b, c, tilt, revealX }: Props) {
+  // No celular a balança fica mais estreita, para os pesos aparecerem maiores.
+  const compact = useCompact()
+  const HALF = compact ? 152 : 205
+  const PAN_WIDTH = compact ? 168 : 200
+  const perRow = compact ? 9 : 11
   const degrees = -Math.max(-10, Math.min(10, tilt * 2.5))
   const radians = (degrees * Math.PI) / 180
   const left = { x: CX - HALF * Math.cos(radians), y: CY - HALF * Math.sin(radians) }
@@ -117,7 +120,7 @@ export default function BalanceSVG({ a, b, c, tilt, revealX }: Props) {
   const needle = balanced ? '#059669' : '#dc2626'
 
   return (
-    <svg viewBox="0 0 640 340" className="block h-auto w-full" role="img" aria-label={`Balança: esquerda com ${a} caixas x e ${b} unidades, direita com ${c} unidades. ${balanced ? 'Equilibrada.' : tilt > 0 ? 'Lado esquerdo mais pesado.' : 'Lado direito mais pesado.'}`}>
+    <svg viewBox={compact ? '64 0 512 340' : '0 0 640 340'} className="block h-auto w-full" role="img" aria-label={`Balança: esquerda com ${a} caixas x e ${b} unidades, direita com ${c} unidades. ${balanced ? 'Equilibrada.' : tilt > 0 ? 'Lado esquerdo mais pesado.' : 'Lado direito mais pesado.'}`}>
       <defs>
         <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fde68a" />
@@ -167,11 +170,11 @@ export default function BalanceSVG({ a, b, c, tilt, revealX }: Props) {
         </text>
       </motion.g>
 
-      <Pan end={left} label="lado esquerdo">
-        <PanContents boxes={a} units={b} revealX={revealX} />
+      <Pan end={left} label="lado esquerdo" width={PAN_WIDTH}>
+        <PanContents boxes={a} units={b} revealX={revealX} perRow={perRow} />
       </Pan>
-      <Pan end={right} label="lado direito">
-        <PanContents boxes={0} units={c} revealX={null} />
+      <Pan end={right} label="lado direito" width={PAN_WIDTH}>
+        <PanContents boxes={0} units={c} revealX={null} perRow={perRow} />
       </Pan>
     </svg>
   )

@@ -8,6 +8,7 @@ import SegmentedControl from '../components/ui/SegmentedControl'
 import TipBox from '../components/ui/TipBox'
 import ChallengeCard from '../components/ui/ChallengeCard'
 import { useStepper } from '../components/ui/useStepper'
+import DetArea from '../components/matrizes/DetArea'
 import { add, determinant, determinantTerms, multiply, scale, transpose, type Matrix } from '../logic/matrizes'
 
 type Mode = 'determinante' | 'operacoes'
@@ -157,6 +158,11 @@ function DeterminantMode() {
           <p className="mt-3 text-sm leading-relaxed text-slate-700">Se uma linha for múltipla de outra, ou tiver só zeros, o determinante dá zero. Experimente!</p>
         </Panel>
       </div>
+      {n === 2 && (
+        <Panel className="mt-4 sm:mt-6" title="O que o determinante mede">
+          <DetArea m={m2} />
+        </Panel>
+      )}
       <ChallengeCard
         simulator="matrizes-det"
         goals={[

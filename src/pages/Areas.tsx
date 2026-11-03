@@ -1,6 +1,6 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { motion } from 'framer-motion'
-import { Scissors, Square } from 'lucide-react'
+import { Footprints, Scissors, Square } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
@@ -37,6 +37,8 @@ export default function Areas() {
   const [shape, setShape] = useState<Shape>('retangulo')
   const [size, setSize] = useState<ShapeSize>({ base: 6, height: 4, top: 3, offset: 2 })
   const [showTrick, setShowTrick] = useState(false)
+  const [touched, setTouched] = useState(false)
+  const [trace, setTrace] = useState(0)
   const svgRef = useRef<SVGSVGElement>(null)
   const drag = useRef<((u: number, v: number) => void) | null>(null)
   const s = shape === 'quadrado' ? { ...size, height: size.base } : size
@@ -187,6 +189,13 @@ export default function Areas() {
                 {br(Math.round(l.len * 100) / 100)}
               </text>
             ))}
+            {trace > 0 && (
+              <motion.polygon key={trace} points={poly(pts)} fill="none" stroke="#f97316" strokeWidth={7} strokeLinejoin="round" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2.2, ease: 'linear' }} />
+            )}
+            {!touched &&
+              handles.map((h) => (
+                <motion.circle key={`pulse-${h.label}`} cx={X(h.u)} cy={Y(h.v)} r={13} fill="none" stroke="#1d4ed8" strokeWidth={3} initial={{ scale: 1, opacity: 0.6 }} animate={{ scale: [1, 2], opacity: [0.6, 0] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ pointerEvents: 'none', transformBox: 'fill-box', originX: '50%', originY: '50%' }} />
+              ))}
             {handles.map((h) => (
               <circle
                 key={h.label}
@@ -201,6 +210,7 @@ export default function Areas() {
                 onPointerDown={(event) => {
                   ;(event.target as Element).setPointerCapture?.(event.pointerId)
                   drag.current = h.onDrag
+                  setTouched(true)
                 }}
               />
             ))}
@@ -209,7 +219,11 @@ export default function Areas() {
             <button type="button" aria-pressed={showTrick} onClick={() => setShowTrick((v) => !v)} className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-black shadow transition active:scale-95 ${showTrick ? 'bg-amber-400 text-slate-900' : 'bg-blue-700 text-white hover:bg-blue-800'}`}>
               {shape === 'paralelogramo' ? <Scissors size={16} /> : <Square size={16} />} {showTrick ? 'Voltar à figura' : trick[shape]!.label}
             </button>
+            <button type="button" onClick={() => setTrace((v) => v + 1)} className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border-2 border-orange-300 bg-orange-50 px-4 text-sm font-black text-orange-800 transition active:scale-95">
+              <Footprints size={16} /> Andar pelo contorno
+            </button>
           </div>
+          {trace > 0 && <p className="mt-2 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm font-semibold text-orange-800">O caminho laranja é o perímetro: {br(m.perimeter)} u, a soma de todos os lados. A área (o que fica dentro) é outra medida: {br(m.area)} u².</p>}
           {showTrick && <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">{trick[shape]!.text}</p>}
         </Panel>
         <div className="space-y-4">

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
@@ -21,6 +22,56 @@ const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹'
 const sup = (n: number) => String(n).split('').map((d) => SUP[Number(d)]).join('')
 const br = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 3 })
 
+type Layout = { w: number; h: number; pts: Array<[number, number]> }
+
+/** Arruma baseᵉ pontinhos em grupos: cada expoente repete o grupo anterior "base" vezes. */
+function layoutPower(base: number, e: number): Layout {
+  if (e === 0) return { w: 1, h: 1, pts: [[0, 0]] }
+  const child = layoutPower(base, e - 1)
+  const gap = e === 1 ? 0.35 : e * 0.6
+  const horizontal = e % 2 === 1
+  const pts: Array<[number, number]> = []
+  for (let k = 0; k < base; k++) {
+    const dx = horizontal ? k * (child.w + gap) : 0
+    const dy = horizontal ? 0 : k * (child.h + gap)
+    child.pts.forEach(([x, y]) => pts.push([x + dx, y + dy]))
+  }
+  return { w: horizontal ? base * child.w + (base - 1) * gap : child.w, h: horizontal ? child.h : base * child.h + (base - 1) * gap, pts }
+}
+
+const LEVEL_COLORS = ['#1d4ed8', '#7c3aed', '#db2777', '#ea580c', '#059669', '#0891b2', '#ca8a04']
+
+function PowerDots({ base, exp }: { base: number; exp: number }) {
+  const total = base ** exp
+  if (total > 400) return <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-center text-sm font-semibold text-amber-900">São {total.toLocaleString('pt-BR')} pontinhos: grande demais para desenhar! Diminua a base ou o expoente.</p>
+  const L = layoutPower(base, exp)
+  const W = 420
+  const H = 220
+  const u = Math.min((W - 20) / L.w, (H - 20) / L.h, 34)
+  const ox = (W - L.w * u) / 2
+  const oy = (H - L.h * u) / 2
+  const previous = exp > 0 ? base ** (exp - 1) : 1
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full max-w-[520px]" role="img" aria-label={`${total} pontinhos organizados em grupos`}>
+      {L.pts.map(([x, y], i) => {
+        const group = Math.floor(i / previous)
+        return (
+          <motion.circle
+            key={`${base}-${exp}-${i}`}
+            cx={ox + (x + 0.5) * u}
+            cy={oy + (y + 0.5) * u}
+            r={Math.max(1.5, u * 0.36)}
+            fill={exp === 0 ? '#f59e0b' : LEVEL_COLORS[group % LEVEL_COLORS.length]}
+            initial={{ scale: i >= previous ? 0 : 1, opacity: i >= previous ? 0 : 1 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 18, delay: i >= previous ? Math.min(0.6, (i - previous) * 0.004 + group * 0.06) : 0 }}
+          />
+        )
+      })}
+    </svg>
+  )
+}
+
 function PowerMode() {
   const [base, setBase] = useState(2)
   const [exp, setExp] = useState(3)
@@ -42,6 +93,12 @@ function PowerMode() {
               </span>
             ))}
             {exp === 0 && <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 font-mono text-xl font-black text-slate-900">1</span>}
+          </div>
+          <div className="mt-3 rounded-2xl border border-slate-200 bg-white/80 p-2">
+            <PowerDots base={base} exp={exp} />
+            <p className="text-center text-xs font-semibold text-slate-500">
+              {exp === 0 ? 'Um único pontinho: a⁰ = 1.' : `Cada cor é uma cópia do grupo anterior: ${base} grupo${base === 1 ? '' : 's'} de ${br(base ** (exp - 1))} = ${br(base ** exp)}.`}
+            </p>
           </div>
           <p className="mt-2 text-center text-sm font-semibold text-slate-600">
             A <strong>base</strong> {base} é o fator que se repete; o <strong>expoente</strong> {exp} diz quantas vezes ele aparece.

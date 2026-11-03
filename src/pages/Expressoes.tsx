@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { CheckCircle2, Hand, Lightbulb, RotateCcw, SkipForward } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
@@ -12,7 +13,7 @@ const presets = ['2 + 3 × 4', '(2 + 3) × 4', '20 − 12 ÷ 4 × 2', '10 − 4 
 const show = (t: Token) => (typeof t === 'number' ? t.toLocaleString('pt-BR', { maximumFractionDigits: 3 }) : t)
 const isOp = (t: Token) => t === '+' || t === '−' || t === '×' || t === '÷'
 
-function TokenRow({ tokens, focus, onPick, wrong, size = 'lg' }: { tokens: Token[]; focus?: [number, number]; onPick?: (i: number) => void; wrong?: number | null; size?: 'lg' | 'sm' }) {
+function TokenRow({ tokens, focus, onPick, wrong, size = 'lg', fresh, version = 0 }: { tokens: Token[]; focus?: [number, number]; onPick?: (i: number) => void; wrong?: number | null; size?: 'lg' | 'sm'; fresh?: number; version?: number }) {
   return (
     <div className={`flex flex-wrap items-center justify-center gap-1 font-mono font-black ${size === 'lg' ? 'text-2xl sm:text-4xl' : 'text-sm sm:text-base'}`}>
       {tokens.map((t, i) => {
@@ -20,6 +21,13 @@ function TokenRow({ tokens, focus, onPick, wrong, size = 'lg' }: { tokens: Token
         const clickable = onPick && (isOp(t) || t === '(' || t === ')')
         const base = size === 'lg' ? 'min-h-[48px] min-w-[36px] rounded-xl px-2 sm:min-h-[60px] sm:min-w-[44px]' : 'rounded-md px-1'
         const tone = wrong === i ? 'bg-rose-50 text-rose-700 ring-2 ring-rose-200' : inFocus ? 'bg-amber-200 text-slate-900' : typeof t === 'number' ? 'text-slate-900' : 'text-blue-700'
+        if (i === fresh && !clickable) {
+          return (
+            <motion.span key={`${version}-${i}`} initial={{ scale: 1.8, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 320, damping: 14 }} className={`${base} inline-flex items-center justify-center bg-emerald-100 text-emerald-800 ring-2 ring-emerald-300`}>
+              {show(t)}
+            </motion.span>
+          )
+        }
         return clickable ? (
           <button key={i} type="button" onClick={() => onPick(i)} aria-label={`Resolver a operação ${t === '(' || t === ')' ? 'dos parênteses' : String(t)} na posição ${i + 1}`} className={`${base} ${tone} border border-blue-200 bg-blue-50 transition hover:bg-blue-100 active:scale-95`}>
             {show(t)}
@@ -45,6 +53,8 @@ function Workspace({ expression }: { expression: string }) {
   const step = nextStep(tokens)
   const done = step === null
   const naive = leftToRight(start)
+  // Em que degrau da ordem está o próximo passo: 0 parênteses, 1 × ÷, 2 + −.
+  const stepLevel = !step ? 3 : step.rule.includes('parênteses') ? 0 : (['×', '÷'] as Token[]).includes(step.tokens[step.focus[0] + 1]) ? 1 : 2
   const result = tokens[0] as number
 
   function apply(s: Step) {
@@ -82,7 +92,26 @@ function Workspace({ expression }: { expression: string }) {
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
         <Panel stage>
           <p className="mb-2 text-center text-xs font-bold uppercase tracking-widest text-slate-500">{done ? 'Resultado' : 'Expressão atual'}</p>
-          <TokenRow tokens={tokens} focus={hint?.focus} onPick={done ? undefined : pick} wrong={wrong} />
+          <TokenRow tokens={tokens} focus={hint?.focus} onPick={done ? undefined : pick} wrong={wrong} fresh={history.length ? history[history.length - 1].focus[0] : undefined} version={history.length} />
+          <ol className="mt-4 grid grid-cols-3 gap-1.5 text-center" aria-label="Ordem das operações">
+            {[
+              { label: '( )', text: 'parênteses' },
+              { label: '× ÷', text: 'vezes e dividir' },
+              { label: '+ −', text: 'mais e menos' },
+            ].map((level, i) => {
+              const active = !done && stepLevel === i
+              const passed = done || stepLevel > i
+              return (
+                <li key={level.label} className={`relative rounded-xl border-2 px-1 py-1.5 transition ${active ? 'border-amber-400 bg-amber-50 shadow' : passed ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                  {active && <motion.span layoutId="expr-level" className="absolute -top-2 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-amber-400" aria-hidden="true" />}
+                  <span className={`block font-mono text-lg font-black ${active ? 'text-amber-900' : passed ? 'text-emerald-700' : 'text-slate-500'}`}>{level.label}</span>
+                  <span className="block text-[10px] font-bold uppercase text-slate-500">
+                    {i + 1}º · {level.text}
+                  </span>
+                </li>
+              )
+            })}
+          </ol>
           <div role="status" className={`mt-4 flex items-start gap-2 rounded-xl border p-3 text-sm font-semibold ${done ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : wrong !== null ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
             {done ? <CheckCircle2 size={18} className="mt-0.5 shrink-0" /> : <Hand size={18} className="mt-0.5 shrink-0" />}
             <span>{done ? `Pronto! ${expression} = ${show(result)}. ${mistakes === 0 ? 'Você acertou a ordem de primeira!' : `Foram ${mistakes} tentativa${mistakes === 1 ? '' : 's'} fora de ordem.`}` : message}</span>

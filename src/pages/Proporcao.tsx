@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowUp, ListChecks } from 'lucide-react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { ArrowDown, ArrowUp, CalendarDays, Croissant, HardHat, ListChecks, type LucideIcon } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
@@ -138,11 +138,30 @@ const scenarios: Record<'direta' | 'inversa', { a: string; b: string; unitA: str
   },
 }
 
+/** Uma linha da cena: os ícones da grandeza A e o valor da grandeza B. */
+function SceneRow({ icon: Icon, count, value, unit, color, hidden }: { icon: LucideIcon; count: number; value: string; unit: 'preco' | 'dias'; color: string; hidden: boolean }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 p-2">
+      <div className="flex flex-1 flex-wrap gap-1">
+        {Array.from({ length: count }, (_, i) => (
+          <motion.span key={i} initial={{ scale: 0, y: -10 }} animate={{ scale: 1, y: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 18, delay: i * 0.03 }} className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: `color-mix(in srgb, ${color} 16%, transparent)`, color }}>
+            <Icon size={20} />
+          </motion.span>
+        ))}
+      </div>
+      <motion.div key={hidden ? 'h' : value} initial={{ rotate: -8, scale: 0.8 }} animate={{ rotate: 0, scale: 1 }} className="flex min-w-[92px] items-center justify-center gap-1 rounded-xl px-2 py-2 font-mono text-base font-black text-white shadow" style={{ background: hidden ? '#94a3b8' : color }}>
+        {unit === 'dias' && <CalendarDays size={16} />}
+        {hidden ? '?' : unit === 'preco' ? `R$ ${value}` : `${value} dias`}
+      </motion.div>
+    </div>
+  )
+}
+
 function RuleMode({ kind }: { kind: 'direta' | 'inversa' }) {
   const reduceMotion = useReducedMotion() ?? false
   const [a, setA] = useState(kind === 'direta' ? 3 : 4)
   const [b, setB] = useState(kind === 'direta' ? 6 : 6)
-  const [c, setC] = useState(kind === 'direta' ? 7 : 8)
+  const [c, setC] = useState(kind === 'direta' ? 7 : 6)
   const s = scenarios[kind]
   const x = kind === 'direta' ? directRule(a, b, c) : inverseRule(a, b, c)
   const steps = useStepper(`${kind}:${a}:${b}:${c}`, 3, 900)
@@ -182,6 +201,10 @@ function RuleMode({ kind }: { kind: 'direta' | 'inversa' }) {
             <span className={`rounded-xl border-2 py-2 ${steps.done ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-dashed border-blue-200 bg-blue-50 text-blue-700'}`}>{steps.done ? num(x) : 'x'}</span>
           </div>
 
+          <div className="mt-4 space-y-2" aria-hidden="true">
+            <SceneRow icon={kind === 'direta' ? Croissant : HardHat} count={Math.min(a, 12)} value={num(b)} unit={kind === 'direta' ? 'preco' : 'dias'} color="#0e7490" hidden={false} />
+            <SceneRow icon={kind === 'direta' ? Croissant : HardHat} count={Math.min(c, 12)} value={num(x)} unit={kind === 'direta' ? 'preco' : 'dias'} color="#7c3aed" hidden={!steps.done} />
+          </div>
           {kind === 'inversa' && (
             <div className="mt-4 flex flex-wrap items-end justify-center gap-6" aria-hidden="true">
               {[

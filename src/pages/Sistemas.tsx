@@ -1,5 +1,6 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { CheckCircle2, XCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Bike, Car, CheckCircle2, CupSoda, Sandwich, XCircle, type LucideIcon } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
@@ -21,6 +22,49 @@ const presets: Array<{ id: string; label: string; story: string; e1: LinearEq; e
   { id: 'lanche', label: 'Lanche', story: '2 sucos e 1 pastel custam R$ 8; 1 suco e 3 pastéis custam R$ 9.', e1: { a: 2, b: 1, c: 8 }, e2: { a: 1, b: 3, c: 9 } },
   { id: 'paralelas', label: 'Sem solução', story: 'Duas retas paralelas nunca se encontram.', e1: { a: 1, b: 1, c: 2 }, e2: { a: 1, b: 1, c: 6 } },
 ]
+
+const scenes: Record<string, { x: { icon: LucideIcon; name: string }; y: { icon: LucideIcon; name: string }; check: (x: number, y: number) => string }> = {
+  carros: { x: { icon: Car, name: 'carros' }, y: { icon: Bike, name: 'motos' }, check: (x, y) => `${x} + ${y} = ${x + y} veículos · ${x} × 4 + ${y} × 2 = ${4 * x + 2 * y} rodas` },
+  lanche: { x: { icon: CupSoda, name: 'suco (R$)' }, y: { icon: Sandwich, name: 'pastel (R$)' }, check: (x, y) => `2 sucos + 1 pastel = ${2 * x + y} reais · 1 suco + 3 pastéis = ${x + 3 * y} reais` },
+}
+
+/** Mostra a solução do sistema dentro da história: os carros e motos, ou os preços do lanche. */
+function StoryScene({ id, x, y }: { id: string; x: number; y: number }) {
+  const scene = scenes[id]
+  if (!scene || !Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x > 12 || y > 12) return null
+  const groups = [
+    { ...scene.x, n: x, color: '#1d4ed8', label: 'x' },
+    { ...scene.y, n: y, color: '#c2410c', label: 'y' },
+  ]
+  return (
+    <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
+      <p className="mb-2 text-xs font-black uppercase tracking-wide text-emerald-800">Conferindo na história</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {groups.map((g) => (
+          <div key={g.label} className="rounded-xl bg-white p-2">
+            <p className="mb-1 text-sm font-black" style={{ color: g.color }}>
+              {g.label} = {g.n} {id === 'carros' ? g.name : ''}
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {id === 'carros' ? (
+                Array.from({ length: g.n }, (_, i) => (
+                  <motion.span key={i} initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.06 }} style={{ color: g.color }}>
+                    <g.icon size={26} />
+                  </motion.span>
+                ))
+              ) : (
+                <span className="inline-flex items-center gap-1 font-mono text-lg font-black" style={{ color: g.color }}>
+                  <g.icon size={24} /> {g.name.replace('(R$)', '')} = R$ {g.n}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 font-mono text-xs font-bold text-emerald-800">{scene.check(x, y)} ✓</p>
+    </div>
+  )
+}
 
 function EquationEditor({ title, color, eq, onChange }: { title: string; color: string; eq: LinearEq; onChange: (eq: LinearEq) => void }) {
   return (
@@ -48,6 +92,7 @@ export default function Sistemas() {
   const [e1, setE1] = useState<LinearEq>(presets[0].e1)
   const [e2, setE2] = useState<LinearEq>(presets[0].e2)
   const [story, setStory] = useState(presets[0].story)
+  const [presetId, setPresetId] = useState<string | null>(presets[0].id)
   const [probe, setProbe] = useState<{ x: number; y: number } | null>(null)
   const [found, setFound] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)
@@ -59,6 +104,7 @@ export default function Sistemas() {
     setE1(p.e1)
     setE2(p.e2)
     setStory(p.story)
+    setPresetId(p.id)
     setProbe(null)
   }
 
@@ -132,13 +178,14 @@ export default function Sistemas() {
               ))}
             </div>
           )}
+          {presetId && sol.kind === 'unica' && <StoryScene id={presetId} x={sol.x!} y={sol.y!} />}
           <p role="status" className={`mt-2 rounded-xl border p-3 text-sm font-semibold ${sol.kind === 'unica' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
             {verdict}
           </p>
         </Panel>
         <div className="space-y-4">
-          <EquationEditor title="1ª" color={L1} eq={e1} onChange={(eq) => { setE1(eq); setStory('') }} />
-          <EquationEditor title="2ª" color={L2} eq={e2} onChange={(eq) => { setE2(eq); setStory('') }} />
+          <EquationEditor title="1ª" color={L1} eq={e1} onChange={(eq) => { setE1(eq); setStory(''); setPresetId(null) }} />
+          <EquationEditor title="2ª" color={L2} eq={e2} onChange={(eq) => { setE2(eq); setStory(''); setPresetId(null) }} />
         </div>
       </div>
       {sol.kind === 'unica' && (
