@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { RotateCcw, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react'
 import { additionProblems, type AdditionProblem } from '../data/additionProblems'
 import { transferir, isDezenaExata, podeTransferir } from '../logic/adicao'
-import MaterialDourado from '../components/soma/MaterialDourado'
+import MaterialDourado, { UnitCube } from '../components/soma/MaterialDourado'
 import PresentationMode from '../components/PresentationMode'
 import ChallengeCard from '../components/ui/ChallengeCard'
 import SimulatorHeader from '../components/SimulatorHeader'
@@ -24,6 +24,7 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
   const [a, setA] = useState(problema.a)
   const [b, setB] = useState(problema.b)
   const [animDelta, setAnimDelta] = useState<number | null>(null)
+  const [flight, setFlight] = useState(0)
 
   const soma = a + b
   const somaOriginal = problema.a + problema.b
@@ -41,6 +42,7 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
     if (!podeTransferir(a, b, delta)) return
     const { novoA, novoB } = transferir(a, b, delta)
     setAnimDelta(delta)
+    setFlight((v) => v + 1)
     setA(novoA)
     setB(novoB)
     window.setTimeout(() => setAnimDelta(null), 800)
@@ -102,7 +104,23 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
         </div>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-[1fr_auto_1fr]">
+      <div className="relative grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-[1fr_auto_1fr]">
+        <AnimatePresence>
+          {animDelta !== null && (
+            <motion.div
+              key={flight}
+              className="pointer-events-none absolute top-[45%] z-10 hidden lg:flex"
+              initial={{ left: animDelta > 0 ? '18%' : '78%', y: 0, opacity: 0, scale: 0.6 }}
+              animate={{ left: animDelta > 0 ? '78%' : '18%', y: [0, -70, 0], opacity: [0, 1, 1, 0], scale: 1.2 }}
+              transition={{ duration: 0.75, ease: 'easeInOut' }}
+              aria-hidden="true"
+            >
+              {Array.from({ length: Math.min(5, Math.abs(animDelta)) }, (_, i) => (
+                <UnitCube key={i} cor={animDelta > 0 ? '#2563eb' : '#7c3aed'} size={24} />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
         <MaterialDourado valor={a} label="PARCELA A" destacado={isADezena} cor="#2563eb" />
         <div className="order-first grid grid-cols-2 gap-2 py-1 sm:gap-3 lg:order-none lg:grid-cols-1 lg:py-2">
           <button type="button" aria-label="Transferir 1 unidade de B para A" onClick={() => doTransfer(-1)} disabled={!podeTransferir(a, b, -1)} className="inline-flex min-h-[48px] items-center justify-center gap-1 rounded-xl bg-blue-600 px-3 py-3 text-sm font-bold text-white shadow transition hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"><ChevronLeft size={16} /> 1 para A</button>

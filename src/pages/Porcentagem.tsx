@@ -1,65 +1,199 @@
 import { useMemo, useState } from 'react'
-import { Lightbulb, Minus, Plus, RotateCcw } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ArrowDown, ArrowUp, Tag } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
+import Panel from '../components/ui/Panel'
+import NumberControl from '../components/ui/NumberControl'
+import SegmentedControl from '../components/ui/SegmentedControl'
+import TipBox from '../components/ui/TipBox'
 import ChallengeCard from '../components/ui/ChallengeCard'
 import { calculateDiscount, calculateIncrease, calculatePercentage, formatPercentage } from '../logic/percentage'
 
 type Mode = 'percentage' | 'discount' | 'increase'
 
-const modes: Array<{ id: Mode; label: string; description: string }> = [
-  { id: 'percentage', label: 'Parte de um valor', description: 'Descubra quanto representa uma porcentagem.' },
-  { id: 'discount', label: 'Desconto', description: 'Veja o valor retirado e o preço final.' },
-  { id: 'increase', label: 'Acréscimo', description: 'Veja o aumento e o novo valor.' },
+const modes: Array<{ id: Mode; label: string }> = [
+  { id: 'percentage', label: 'Parte de um valor' },
+  { id: 'discount', label: 'Desconto' },
+  { id: 'increase', label: 'Acréscimo' },
 ]
 
-function formatNumber(value: number) {
-  return value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+const PART = '#0e7490'
+const OFF = '#dc2626'
+const EXTRA = '#16a34a'
+const br = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+const money = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+const shortcuts: Record<number, string> = { 10: '÷ 10', 20: '÷ 5', 25: '÷ 4', 50: '÷ 2', 75: '÷ 4 × 3', 100: 'o valor todo' }
+
+function PriceTag({ mode, base, total, percentage }: { mode: Mode; base: number; total: number; percentage: number }) {
+  return (
+    <div className="relative mx-auto w-full max-w-[300px]">
+      <svg viewBox="0 0 300 150" className="block h-auto w-full drop-shadow-md" aria-hidden="true">
+        <path d="M 40 10 L 285 10 Q 292 10 292 17 L 292 133 Q 292 140 285 140 L 40 140 L 8 75 Z" fill="#fef3c7" stroke="#d97706" strokeWidth={3} />
+        <circle cx={38} cy={75} r={8} fill="#ffffff" stroke="#d97706" strokeWidth={3} />
+        <path d="M 30 75 Q 10 40 -4 30" fill="none" stroke="#a16207" strokeWidth={2} />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pl-10 text-center">
+        {mode === 'percentage' ? (
+          <>
+            <p className="text-[11px] font-black uppercase tracking-widest text-amber-800">{formatPercentage(percentage)} de</p>
+            <p className="font-mono text-2xl font-black text-amber-950">{br(base)}</p>
+          </>
+        ) : (
+          <>
+            <p className="font-mono text-base font-bold text-amber-800 line-through decoration-2" style={{ textDecorationColor: mode === 'discount' ? OFF : undefined, textDecorationLine: mode === 'discount' ? 'line-through' : 'none' }}>
+              {money(base)}
+            </p>
+            <motion.p key={total} initial={{ scale: 1.25 }} animate={{ scale: 1 }} className="font-mono text-2xl font-black" style={{ color: mode === 'discount' ? OFF : EXTRA }}>
+              {money(total)}
+            </motion.p>
+          </>
+        )}
+      </div>
+      {mode !== 'percentage' && percentage > 0 && (
+        <motion.span key={`${mode}${percentage}`} initial={{ rotate: -30, scale: 0 }} animate={{ rotate: -12, scale: 1 }} className="absolute -right-2 -top-3 flex h-16 w-16 flex-col items-center justify-center rounded-full text-white shadow-lg ring-4 ring-white" style={{ background: mode === 'discount' ? OFF : EXTRA }}>
+          {mode === 'discount' ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+          <span className="text-sm font-black leading-none">{mode === 'discount' ? '−' : '+'}{percentage}%</span>
+        </motion.span>
+      )}
+    </div>
+  )
+}
+
+function Grid({ mode, percentage }: { mode: Mode; percentage: number }) {
+  const filled = Math.round(Math.min(Math.max(percentage, 0), 100))
+  const cells = mode === 'increase' ? 100 + filled : 100
+  return (
+    <div className="mx-auto grid max-w-[440px] grid-cols-10 gap-1 sm:gap-1.5" role="img" aria-label={mode === 'increase' ? `100 quadradinhos mais ${filled} de acréscimo` : `${filled} de 100 quadradinhos destacados`}>
+      {Array.from({ length: cells }, (_, i) => {
+        const extra = i >= 100
+        // Desconto: os primeiros quadradinhos são riscados e o resto é o que se paga.
+        // Acréscimo: os 100 ficam inteiros e os extras aparecem em verde.
+        const removed = mode === 'discount' && i < filled
+        const on = extra || mode !== 'percentage' || i < filled
+        const color = extra ? EXTRA : removed ? OFF : PART
+        return (
+          <motion.div
+            key={i}
+            initial={false}
+            animate={{ scale: on ? 1 : 0.86 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 22, delay: on ? (extra ? i - 100 : i) * 0.004 : 0 }}
+            className={`relative aspect-square rounded-[4px] ${on ? '' : 'bg-slate-100'}`}
+            style={on ? { background: color, opacity: mode === 'discount' && !removed ? 0.75 : 1, boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.18)' } : undefined}
+          >
+            {removed && <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white/90">×</span>}
+          </motion.div>
+        )
+      })}
+    </div>
+  )
+}
+
+function DoubleLine({ base, percentage, mode }: { base: number; percentage: number; mode: Mode }) {
+  const W = 560
+  const X = (p: number) => 30 + (p / 100) * (W - 60)
+  const color = mode === 'discount' ? OFF : PART
+  return (
+    <svg viewBox={`0 0 ${W} 96`} className="block h-auto w-full" role="img" aria-label={`${percentage}% corresponde a ${br(calculatePercentage(base, percentage))}`}>
+      <line x1={X(0)} x2={X(100)} y1={30} y2={30} strokeWidth={6} strokeLinecap="round" style={{ stroke: 'var(--svg-grid)' }} />
+      <motion.line initial={false} animate={{ x2: X(percentage) }} x1={X(0)} y1={30} y2={30} stroke={color} strokeWidth={6} strokeLinecap="round" />
+      {[0, 25, 50, 75, 100].map((p) => (
+        <g key={p}>
+          <line x1={X(p)} x2={X(p)} y1={22} y2={38} strokeWidth={2} style={{ stroke: 'var(--svg-axis)' }} />
+          <text x={X(p)} y={14} textAnchor="middle" fontSize={13} fontWeight={800} style={{ fill: 'var(--svg-muted)' }}>
+            {p}%
+          </text>
+          <text x={X(p)} y={58} textAnchor="middle" fontSize={13} fontWeight={800} style={{ fill: 'var(--svg-muted)' }}>
+            {br((base * p) / 100)}
+          </text>
+        </g>
+      ))}
+      <motion.g initial={false} animate={{ x: X(percentage) }}>
+        <circle cx={0} cy={30} r={9} fill="#ffffff" stroke={color} strokeWidth={4} />
+        <rect x={-46} y={66} width={92} height={26} rx={13} fill={color} />
+        <text x={0} y={84} textAnchor="middle" fontSize={14} fontWeight={900} fill="#ffffff">
+          {br(calculatePercentage(base, percentage))}
+        </text>
+      </motion.g>
+    </svg>
+  )
 }
 
 export default function Porcentagem() {
   const [mode, setMode] = useState<Mode>('percentage')
   const [value, setValue] = useState(200)
-  const [percentage, setPercentage] = useState(25)
+  const [percentage, setPercentage] = useState(20)
 
   const result = useMemo(() => {
     if (mode === 'discount') return calculateDiscount(value, percentage)
     if (mode === 'increase') return calculateIncrease(value, percentage)
     return { base: value, percentage, amount: calculatePercentage(value, percentage), total: value }
   }, [mode, value, percentage])
+  const perPart = value / 100
 
-  const reset = () => {
-    setMode('percentage')
-    setValue(200)
-    setPercentage(25)
-  }
-
-  const normalizedValue = Number.isFinite(value) ? value : 0
-  const valuePerPart = normalizedValue / 100
-  const filledBlocks = Math.round(Math.min(Math.max(percentage, 0), 100))
+  const sentence =
+    mode === 'percentage'
+      ? `${formatPercentage(percentage)} quer dizer ${percentage} partes de cada 100. Dividindo ${br(value)} em 100 partes, cada uma vale ${br(perPart)}. Então ${percentage} partes valem ${percentage} × ${br(perPart)} = ${br(result.amount)}.`
+      : mode === 'discount'
+        ? `O desconto risca ${percentage} dos 100 quadradinhos: ${percentage} × ${br(perPart)} = ${br(result.amount)} a menos. Sobram ${100 - percentage} partes, ou seja, ${br(result.total)}.`
+        : `O acréscimo cola mais ${percentage} quadradinhos em cima dos 100: ${percentage} × ${br(perPart)} = ${br(result.amount)} a mais. Agora são ${100 + percentage} partes: ${br(result.total)}.`
 
   return (
     <PresentationMode title="Explorador de Porcentagem">
-      <SimulatorHeader id="porcentagem">Entenda porcentagens usando valores, uma grade de 100 partes, descontos e acréscimos em tempo real.</SimulatorHeader>
+      <SimulatorHeader id="porcentagem">Porcentagem é uma forma de dividir em 100 partes iguais. Escolha o valor e a porcentagem e veja a grade, a etiqueta de preço e a reta dupla mudarem juntas.</SimulatorHeader>
 
-      <div className="mb-5 grid gap-2 sm:grid-cols-3">{modes.map((item) => <button key={item.id} type="button" onClick={() => setMode(item.id)} aria-pressed={mode === item.id} className={`rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${mode === item.id ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200' : 'border-slate-200 bg-white hover:border-blue-300'}`}><span className="block text-sm font-black text-slate-900">{item.label}</span><span className="mt-1 block text-xs text-slate-600">{item.description}</span></button>)}</div>
+      <div className="mb-4 sm:mb-6">
+        <SegmentedControl label="O que calcular" options={modes} value={mode} onChange={setMode} />
+      </div>
 
-      <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="sim-stage rounded-3xl border border-slate-200 p-5 shadow-sm sm:p-6">
-          <h2 className="text-lg font-black text-slate-900">Monte seu exemplo</h2>
-          <label className="mt-5 block text-sm font-bold text-slate-700">Valor base<input type="number" min="0" value={value} onChange={(event) => setValue(Number(event.target.value))} className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-3 text-lg font-bold outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
-          <p className="mt-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-bold text-blue-900">{formatNumber(normalizedValue)} ÷ 100 = <span className="text-blue-700">{formatNumber(valuePerPart)}</span> por parte</p>
-          <label className="mt-5 block text-sm font-bold text-slate-700">Porcentagem: <span className="text-blue-700">{formatPercentage(percentage)}</span><input type="range" min="0" max="100" step="1" value={percentage} onChange={(event) => setPercentage(Number(event.target.value))} className="mt-3 w-full accent-blue-600" /><input type="number" min="0" max="100" value={percentage} onChange={(event) => setPercentage(Math.min(100, Math.max(0, Number(event.target.value))))} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 font-bold outline-none focus:border-blue-500" /></label>
-          <button type="button" onClick={reset} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800"><RotateCcw size={15} /> Restaurar exemplo</button>
+      <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <Panel stage>
+          <div className="grid items-center gap-4 sm:grid-cols-[1fr_auto]">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">{mode === 'increase' ? `100 + ${percentage} partes` : '100 partes'}</p>
+              <p className="text-sm font-semibold text-slate-600">
+                Cada quadradinho vale <strong className="text-slate-900">{br(perPart)}</strong>
+              </p>
+            </div>
+            <p className="font-mono text-3xl font-black sm:text-4xl" style={{ color: mode === 'discount' ? OFF : mode === 'increase' ? EXTRA : PART }} aria-live="polite">
+              {mode === 'percentage' ? br(result.amount) : br(result.total)}
+            </p>
+          </div>
+          <div className="mt-3">
+            <Grid mode={mode} percentage={percentage} />
+          </div>
+          <div className="mt-4">
+            <DoubleLine base={value} percentage={percentage} mode={mode} />
+          </div>
+          <p role="status" className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold leading-relaxed text-slate-700">
+            {sentence}
+          </p>
+        </Panel>
+
+        <div className="space-y-4">
+          <Panel title={mode === 'percentage' ? 'O valor' : 'A etiqueta'}>
+            <PriceTag mode={mode} base={value} total={mode === 'percentage' ? result.amount : result.total} percentage={percentage} />
+            {mode !== 'percentage' && (
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-sm font-bold text-slate-600">
+                <Tag size={15} /> {mode === 'discount' ? 'Você economiza' : 'Aumento de'} <span style={{ color: mode === 'discount' ? OFF : EXTRA }}>{money(result.amount)}</span>
+              </p>
+            )}
+          </Panel>
+          <Panel title="Controles">
+            <div className="space-y-4">
+              <NumberControl label={mode === 'percentage' ? 'Valor' : 'Preço'} value={value} min={0} max={2000} step={10} onChange={setValue} format={br} />
+              <NumberControl label="Porcentagem" value={percentage} min={0} max={100} step={1} onChange={setPercentage} format={(v) => `${v}%`} />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {[10, 20, 25, 50, 75, 100].map((p) => (
+                <button key={p} type="button" aria-pressed={percentage === p} onClick={() => setPercentage(p)} className={`min-h-[40px] rounded-lg border px-2.5 text-left font-mono text-xs font-black ${percentage === p ? 'border-cyan-200 bg-cyan-50 text-cyan-800' : 'border-slate-200 bg-white text-slate-700'}`}>
+                  {p}% <span className="block font-sans text-[10px] font-bold text-slate-500">{shortcuts[p]}</span>
+                </button>
+              ))}
+            </div>
+          </Panel>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <h2 className="text-lg font-black text-slate-900">Visualização de 100 partes</h2>
-          <p className="mt-2 text-sm font-semibold text-slate-600">Cada quadradinho representa <strong className="text-blue-700">{formatNumber(valuePerPart)}</strong> ({formatNumber(normalizedValue)} ÷ 100).</p>
-          <div className="mt-4 grid grid-cols-10 gap-1.5">{Array.from({ length: 100 }, (_, index) => <div key={index} className={`flex aspect-square items-center justify-center rounded-sm px-0.5 text-[7px] font-black leading-none sm:text-[9px] ${index < filledBlocks ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`} aria-label={`Parte ${index + 1}: ${formatNumber(valuePerPart)}`} aria-hidden="true">{formatNumber(valuePerPart)}</div>)}</div>
-          <div className="mt-5 rounded-2xl bg-slate-50 p-4"><p className="text-sm font-semibold text-slate-600">{formatPercentage(percentage)} de {formatNumber(normalizedValue)}</p><p className="mt-1 text-3xl font-black text-blue-700">{formatNumber(result.amount)}</p>{mode !== 'percentage' && <p className="mt-2 text-sm text-slate-600">{mode === 'discount' ? 'Valor final após desconto:' : 'Novo valor após acréscimo:'} <strong className="text-slate-900">{formatNumber(result.total)}</strong></p>}</div>
-          {mode === 'percentage' ? <p className="mt-4 text-sm text-slate-600">A porcentagem indica quantas partes de cada 100 estão sendo consideradas.</p> : <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600">{mode === 'discount' ? <Minus size={16} /> : <Plus size={16} />} O cálculo mostra o impacto percentual sobre o valor base.</p>}
-        </div>
-      </section>
+      </div>
       <ChallengeCard
         simulator="porcentagem"
         goals={[
@@ -69,7 +203,9 @@ export default function Porcentagem() {
           { id: 'metade', text: 'Mostre 50% de um valor maior que 1.000.', met: mode === 'percentage' && value > 1000 && percentage === 50 },
         ]}
       />
-      <div className="mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900"><Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={20} /><p><strong>Dica:</strong> 25% é a mesma coisa que dividir por 4, e 50% é a metade. Experimente mudar os valores e observe a grade.</p></div>
+      <TipBox>
+        <strong>Atalhos de cabeça:</strong> 10% é dividir por 10, 25% é dividir por 4 e 50% é a metade. Para 30%, faça 10% e multiplique por 3. Um desconto de 20% deixa você pagando 80% do preço.
+      </TipBox>
     </PresentationMode>
   )
 }

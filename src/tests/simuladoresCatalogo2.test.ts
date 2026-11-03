@@ -205,3 +205,17 @@ describe('expressões: validação e pegadinha', () => {
     expect(leftToRight(tk('(2 + 3) × 4'))).toBeNull()
   })
 })
+
+describe('probabilidade: lançamentos detalhados', () => {
+  it('guarda as faces e os últimos resultados', async () => {
+    const { rollOnce, runRolls } = await import('../logic/probabilidade')
+    const seq = [0.99, 0.0]
+    let i = 0
+    const rnd = () => seq[i++ % seq.length]
+    expect(rollOnce('dois-dados', rnd)).toEqual({ index: 5, faces: [6, 1] })
+    expect(rollOnce('moeda', () => 0.7)).toEqual({ index: 1, faces: [1] })
+    const r = runRolls('dado', 50, [0, 0, 0, 0, 0, 0], 12)
+    expect(r.counts.reduce((a, b) => a + b)).toBe(50)
+    expect(r.last).toHaveLength(12)
+  })
+})
