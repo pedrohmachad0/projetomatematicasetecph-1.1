@@ -1,12 +1,13 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import {
   ArrowRight,
   BookOpen,
   Check,
+  Coins,
+  Flame,
   ChevronRight,
   Clock3,
-  Flame,
   Heart,
   LockKeyhole,
   Map,
@@ -17,12 +18,33 @@ import {
   Star,
   Sun,
   Swords,
+  Trophy,
+  Volume2,
+  VolumeX,
   X,
+  Zap,
 } from 'lucide-react'
 import { CHAPTER_STORAGE, chapterLevels } from '../data/chapter'
 import { formatTime, readChapterProgress, recordVictory } from '../logic/chapter'
 import ChapterBattle, { type BattleResult } from '../components/learn/ChapterBattle'
-import Inventory, { coinsForLevel } from '../components/learn/Inventory'
+import Inventory, { chapterCoins, coinsForLevel } from '../components/learn/Inventory'
+import BlitzChallenge, { type BlitzResult } from '../components/learn/BlitzChallenge'
+import { AchievementToast, AchievementsPanel, ShopPanel } from '../components/learn/QuestPanels'
+import { enemies, type PowerUpId } from '../data/quest'
+import {
+  applyBattleStats,
+  applyBlitzStats,
+  availableCoins,
+  buyPowerUp,
+  consumePowerUp,
+  readStats,
+  starsFor,
+  totalStars,
+  unlockAchievements,
+  writeStats,
+  type QuestStats,
+} from '../logic/quest'
+import { playSound, readSoundEnabled, writeSoundEnabled } from '../logic/sound'
 import {
   ForestBackdrop,
   PixelChest,
@@ -53,10 +75,15 @@ export default function Aprender() {
   const { isDark, toggleTheme } = useOutletContext<ThemeContext>()
   const [progress, setProgress] = useState(readChapterProgress)
   const [selected, setSelected] = useState(Math.min(progress.completed.length + 1, 10))
-  const [screen, setScreen] = useState<'map' | 'battle' | 'result'>('map')
-  const [panel, setPanel] = useState<'books' | null>(null)
+  const [screen, setScreen] = useState<'map' | 'battle' | 'result' | 'blitz' | 'blitz-result'>('map')
+  const [panel, setPanel] = useState<'books' | 'shop' | 'achievements' | null>(null)
+  // Conquistas de progresso antigo são reconhecidas em silêncio ao abrir a página.
+  const [stats, setStats] = useState<QuestStats>(() => unlockAchievements(readChapterProgress(), readStats()).stats)
+  const [soundOn, setSoundOn] = useState(readSoundEnabled)
+  const [toast, setToast] = useState<string[]>([])
+  const [blitzResult, setBlitzResult] = useState<(BlitzResult & { coins: number; record: boolean }) | null>(null)
   const [inventoryOpen, setInventoryOpen] = useState(false)
-  const [result, setResult] = useState<(BattleResult & { earned: number }) | null>(null)
+  const [result, setResult] = useState<(BattleResult & { earned: number; bonus: number }) | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [storageError, setStorageError] = useState(false)
   const missionCard = useRef<HTMLElement>(null)
@@ -67,6 +94,54 @@ export default function Aprender() {
   const boss = selected === 10
   const finishedChapter = progress.completed.length === 10
   const xpLevel = Math.floor(progress.xp / 300) + 1
+  const coins = availableCoins(chapterCoins(progress), stats)
+  const stars = totalStars(progress)
+  const clearToast = useCallback(() => setToast([]), [])
+
+  function saveStats(next: QuestStats, nextProgress = progress) {
+    const { stats: withAchievements, fresh } = unlockAchievements(nextProgress, next)
+    setStats(withAchievements)
+    if (!writeStats(withAchievements)) setStorageError(true)
+    if (fresh.length) {
+      setToast(fresh)
+      playSound('coin', soundOn)
+    }
+  }
+
+  function toggleSound() {
+    setSoundOn((current) => {
+      writeSoundEnabled(!current)
+      return !current
+    })
+  }
+
+  function spendPowerUp(id: PowerUpId) {
+    const next = consumePowerUp(stats, id)
+    if (!next) return false
+    saveStats(next)
+    return true
+  }
+
+  function buy(id: PowerUpId) {
+    const next = buyPowerUp(stats, id, chapterCoins(progress))
+    if (!next) return
+    playSound('coin', soundOn)
+    saveStats(next)
+  }
+
+  function startBlitz() {
+    setScreen('blitz')
+    setAttempt((a) => a + 1)
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+
+  function finishBlitz(blitz: BlitzResult) {
+    const update = applyBlitzStats(stats, blitz.score)
+    saveStats(update.stats)
+    setBlitzResult({ ...blitz, coins: update.coins, record: update.record })
+    setScreen('blitz-result')
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
 
   function start(n = selected) {
     if (n > unlocked) return
@@ -77,9 +152,11 @@ export default function Aprender() {
   }
   function finish(battle: BattleResult) {
     let earned = 0
+    let nextProgress = progress
     if (battle.won) {
       const update = recordVictory(progress, battle.level, battle.correct, battle.seconds)
       earned = update.earned
+      nextProgress = update.progress
       setProgress(update.progress)
       try {
         localStorage.setItem(CHAPTER_STORAGE, JSON.stringify(update.progress))
@@ -88,7 +165,9 @@ export default function Aprender() {
         setStorageError(true)
       }
     }
-    setResult({ ...battle, earned })
+    const battleStats = applyBattleStats(stats, battle)
+    saveStats(battleStats.stats, nextProgress)
+    setResult({ ...battle, earned, bonus: battleStats.bonus })
     setScreen('result')
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
@@ -122,6 +201,17 @@ export default function Aprender() {
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
             <span>{isDark ? 'Tema claro' : 'Tema escuro'}</span>
           </button>
+          <button type="button" className="rpg-icon-button" onClick={toggleSound} aria-pressed={soundOn} aria-label={soundOn ? 'Desligar sons' : 'Ligar sons'} title={soundOn ? 'Desligar sons' : 'Ligar sons'}>
+            {soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
+          <button type="button" className="rpg-icon-button" onClick={() => setPanel('achievements')} aria-label={`Conquistas: ${stats.unlocked.length} desbloqueadas`} title="Conquistas">
+            <Trophy size={16} />
+            <span>{stats.unlocked.length}</span>
+          </button>
+          <button type="button" className="coin-counter" onClick={() => setPanel('shop')} aria-label={`${coins} moedas. Abrir loja`} title="Loja">
+            <Coins size={16} />
+            {coins}
+          </button>
           <span className="xp-counter">
             <Star size={16} fill="currentColor" />
             {progress.xp} XP
@@ -142,7 +232,49 @@ export default function Aprender() {
           level={selected}
           onExit={() => setScreen('map')}
           onFinish={finish}
+          items={stats.items}
+          onUsePowerUp={spendPowerUp}
+          soundOn={soundOn}
         />
+      ) : screen === 'blitz' ? (
+        <BlitzChallenge key={attempt} unlocked={unlocked} best={stats.blitzBest} soundOn={soundOn} onExit={() => setScreen('map')} onFinish={finishBlitz} />
+      ) : screen === 'blitz-result' && blitzResult ? (
+        <main className="result-page" id="conteudo">
+          <p className="eyebrow">DESAFIO RELÂMPAGO</p>
+          <div className="result-art won blitz-art">
+            <Zap size={72} />
+          </div>
+          <p className="eyebrow">{blitzResult.record ? 'NOVO RECORDE!' : `SEU RECORDE: ${stats.blitzBest}`}</p>
+          <h1>{blitzResult.score} {blitzResult.score === 1 ? 'ponto' : 'pontos'}!</h1>
+          <p>{blitzResult.score >= 15 ? 'Velocidade de raio! Seu cálculo mental está afiado.' : blitzResult.score >= 8 ? 'Muito bom! Tente bater seu recorde.' : 'Cada rodada deixa seu cálculo mais rápido. Jogue de novo!'}</p>
+          <div className="result-stats">
+            <div>
+              <Check />
+              <strong>
+                {blitzResult.score}/{blitzResult.answered}
+              </strong>
+              <small>ACERTOS</small>
+            </div>
+            <div>
+              <Flame />
+              <strong>x{blitzResult.maxCombo}</strong>
+              <small>MAIOR COMBO</small>
+            </div>
+            <div>
+              <Coins />
+              <strong>+{blitzResult.coins}</strong>
+              <small>MOEDAS</small>
+            </div>
+          </div>
+          <div className="result-actions">
+            <button className="rpg-button" onClick={startBlitz}>
+              <RotateCcw size={17} /> Jogar de novo
+            </button>
+            <button className="secondary-button" onClick={() => setScreen('map')}>
+              <Map size={17} /> Voltar à trilha
+            </button>
+          </div>
+        </main>
       ) : screen === 'result' && result ? (
         <main className="result-page" id="conteudo">
           <p className="eyebrow">LIVRO I · FASE {String(result.level).padStart(2, '0')}</p>
@@ -178,7 +310,19 @@ export default function Aprender() {
                 : 'A chama cresceu. O próximo trecho da floresta espera por você.'
               : 'Respire, revise a dica e tente outra vez. Cada tentativa traz novos desafios.'}
           </p>
+          {result.won && (
+            <div className="result-stars" aria-label={`${starsFor(result.level, result.correct)} de 3 estrelas`}>
+              {[1, 2, 3].map((n) => (
+                <Star key={n} size={40} fill={n <= starsFor(result.level, result.correct) ? 'currentColor' : 'none'} className={n <= starsFor(result.level, result.correct) ? 'earned-star' : 'missing-star'} style={{ animationDelay: `${n * 0.18}s` }} />
+              ))}
+            </div>
+          )}
           <div className="result-stats">
+            <div>
+              <Flame />
+              <strong>x{result.maxCombo}</strong>
+              <small>MAIOR COMBO</small>
+            </div>
             <div>
               <Check />
               <strong>
@@ -211,7 +355,8 @@ export default function Aprender() {
                 <span>
                   {result.earned
                     ? `Já está no seu inventário. +${coinsForLevel(result.level)} moedas conquistadas.`
-                    : 'Repetir fases melhora seu recorde; XP e itens são concedidos na primeira vitória.'}
+                    : 'Repetir fases melhora seu recorde e suas estrelas; XP e itens vêm na primeira vitória.'}
+                  {result.bonus > 0 && ` Bônus de combo: +${result.bonus} moedas.`}
                 </span>
               </div>
             </div>
@@ -347,6 +492,13 @@ export default function Aprender() {
                       <span className="node-label">
                         {n === 10 ? 'CHEFÃO' : `FASE ${String(n).padStart(2, '0')}`}
                       </span>
+                      {done && (
+                        <span className="node-stars" aria-hidden="true">
+                          {[1, 2, 3].map((k) => (
+                            <Star key={k} size={10} fill={k <= starsFor(n, progress.best[n]?.correct ?? 0) ? 'currentColor' : 'none'} />
+                          ))}
+                        </span>
+                      )}
                       {selected === n && <span className="selected-node-marker" />}
                     </div>
                   )
@@ -389,7 +541,9 @@ export default function Aprender() {
                     {boss ? 'CHEFÃO' : 'FUNDAMENTOS'}
                   </p>
                   <h2>{level.title}</h2>
-                  <p className="mission-topic">{level.topic}</p>
+                  <p className="mission-topic">
+                    {level.topic} · {boss ? 'Chefão: Grum' : `Monstro: ${enemies[selected - 1].name.charAt(0)}${enemies[selected - 1].name.slice(1).toLowerCase()}`}
+                  </p>
                   <p className="mission-description">{level.description}</p>
                   <div className="mission-facts">
                     <span>
@@ -441,10 +595,41 @@ export default function Aprender() {
                   {progress.best[selected] && (
                     <p className="best-record">
                       Recorde: {progress.best[selected].correct} acertos ·{' '}
-                      {formatTime(progress.best[selected].seconds)}
+                      {formatTime(progress.best[selected].seconds)} ·{' '}
+                      {'★'.repeat(starsFor(selected, progress.best[selected].correct))}
+                      {'☆'.repeat(3 - starsFor(selected, progress.best[selected].correct))}
                     </p>
                   )}
                 </div>
+              </section>
+              <section className="blitz-card" aria-labelledby="blitz-title">
+                <div>
+                  <span className="eyebrow">MODO EXTRA · 60 SEGUNDOS</span>
+                  <h3 id="blitz-title">
+                    <Zap size={18} /> Desafio Relâmpago
+                  </h3>
+                  <p>Quantas contas você acerta em um minuto? Recorde: {stats.blitzBest}.</p>
+                </div>
+                <button className="rpg-button" onClick={startBlitz}>
+                  Jogar <ArrowRight size={17} />
+                </button>
+              </section>
+              <section className="quest-summary" aria-label="Resumo da jornada">
+                <button type="button" onClick={() => setPanel('shop')}>
+                  <Coins size={18} />
+                  <strong>{coins}</strong>
+                  <small>moedas · loja</small>
+                </button>
+                <div>
+                  <Star size={18} />
+                  <strong>{stars}/30</strong>
+                  <small>estrelas</small>
+                </div>
+                <button type="button" onClick={() => setPanel('achievements')}>
+                  <Trophy size={18} />
+                  <strong>{stats.unlocked.length}</strong>
+                  <small>conquistas</small>
+                </button>
               </section>
               <section className="boss-preview">
                 <div>
@@ -470,8 +655,11 @@ export default function Aprender() {
         </main>
       )}
       <SchoolCredit className="pb-6 pt-2" />
-      {inventoryOpen && <Inventory progress={progress} onClose={() => setInventoryOpen(false)} />}
-      {panel && (
+      {inventoryOpen && <Inventory progress={progress} coins={coins} onClose={() => setInventoryOpen(false)} />}
+      {panel === 'shop' && <ShopPanel coins={coins} items={stats.items} onBuy={buy} onClose={() => setPanel(null)} />}
+      {panel === 'achievements' && <AchievementsPanel unlocked={stats.unlocked} onClose={() => setPanel(null)} />}
+      {toast.length > 0 && <AchievementToast ids={toast} onDone={clearToast} />}
+      {panel === 'books' && (
         <div
           className="rpg-modal-backdrop"
           onKeyDown={(e) => {
