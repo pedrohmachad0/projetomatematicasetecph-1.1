@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { Target } from 'lucide-react'
 import { educationLevelLabels, getContent, type SimulatorId } from '../data/mathContent'
 import { getCategoryColor, simulatorIcons } from '../data/simulatorVisuals'
-import TeacherGuidePanel from './TeacherGuidePanel'
 
 interface Props {
   id: SimulatorId
@@ -71,7 +70,6 @@ export default function SimulatorHeader({ id, children }: Props) {
         </ol>
       </div>
     </motion.header>
-    <TeacherGuidePanel id={id} />
     </>
   )
 }

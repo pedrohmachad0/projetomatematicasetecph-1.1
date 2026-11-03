@@ -11,7 +11,7 @@ interface Props {
   /** Desenhando agora (captura o toque) ou só mostrando o que já foi riscado. */
   active: boolean
   color: PenColor
-  /** Muda quando o professor pede para apagar tudo. */
+  /** Muda quando alguém pede para apagar tudo. */
   clearKey: number
 }
 
@@ -32,7 +32,7 @@ function paint(el: HTMLCanvasElement | null, strokes: Stroke[]) {
   }
 }
 
-/** Caneta do professor: risca por cima do simulador, como num quadro. */
+/** Caneta: risca por cima do simulador, como num quadro. */
 export default function PenOverlay({ active, color, clearKey }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const strokes = useRef<Stroke[]>([])

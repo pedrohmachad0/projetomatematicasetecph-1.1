@@ -33,7 +33,7 @@ export default function PresentationMode({ children, title }: Props) {
         setPen(false)
       }
     }
-    // Se o professor sair da tela cheia pelo navegador, sai também do modo apresentação.
+    // Se a pessoa sair da tela cheia pelo navegador, sai também do modo apresentação.
     function onFullscreen() {
       if (!document.fullscreenElement) {
         setIsOpen(false)

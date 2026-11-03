@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { BookOpen, Gamepad2, Home, Map, Maximize2, Minimize2, Music, Play, RotateCcw, Settings, Sparkles, Volume2, X, Presentation } from 'lucide-react'
+import { BookOpen, Gamepad2, Home, Map, Maximize2, Minimize2, Music, Play, RotateCcw, Settings, Sparkles, Volume2, X, Hourglass, Type } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cleanName, type GameSettings, type TextSpeed } from '../../logic/settings'
 import { HeroSprite } from './MapSprites'
@@ -70,10 +70,17 @@ export function SettingsPanel({ settings, onChange, onClose }: { settings: GameS
         </div>
         <label className="setting-row">
           <span>
-            <Presentation size={16} /> Modo turma (projetor)
-            <small className="setting-note">Sem limite de tempo no chefão e letras maiores na batalha, para a turma responder junta.</small>
+            <Hourglass size={16} /> Sem limite de tempo
+            <small className="setting-note">O chefão não tem cronômetro: pense com calma em cada conta.</small>
           </span>
-          <input type="checkbox" checked={settings.classroom} onChange={(event) => onChange({ ...settings, classroom: event.target.checked })} />
+          <input type="checkbox" checked={settings.noTimer} onChange={(event) => onChange({ ...settings, noTimer: event.target.checked })} />
+        </label>
+        <label className="setting-row">
+          <span>
+            <Type size={16} /> Letras grandes
+            <small className="setting-note">Pergunta, respostas e explicações maiores na batalha.</small>
+          </span>
+          <input type="checkbox" checked={settings.bigText} onChange={(event) => onChange({ ...settings, bigText: event.target.checked })} />
         </label>
         <label className="setting-row setting-column">
           <span>Nome do aventureiro</span>

@@ -439,8 +439,7 @@ html[data-theme='dark'] .sim-value {
   }
 }
 
-/* Modo apresentação: o guia do professor fica fora da projeção e os desafios podem ser escondidos. */
-.presentation-surface .teacher-guide,
+/* Modo apresentação: os desafios podem ser escondidos. */
 .hide-challenges [data-challenges] {
   display: none;
 }

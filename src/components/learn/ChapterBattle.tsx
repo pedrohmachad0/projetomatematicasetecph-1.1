@@ -58,7 +58,8 @@ export default function ChapterBattle({
   items,
   onUsePowerUp,
   soundOn = false,
-  classroom = false,
+  noTimer = false,
+  bigText = false,
   config,
   heroName = 'Você',
 }: {
@@ -72,8 +73,10 @@ export default function ChapterBattle({
   /** Deve gastar o item e devolver `true` quando ele puder ser usado. */
   onUsePowerUp?: (id: PowerUpId) => boolean
   soundOn?: boolean
-  /** Modo turma: sem limite de tempo (a turma discute antes de responder) e letras maiores. */
-  classroom?: boolean
+  /** Sem cronômetro no chefão. */
+  noTimer?: boolean
+  /** Letras maiores na pergunta e nas respostas. */
+  bigText?: boolean
 }) {
   const boss = config ? config.boss : level === 10
   const enemy = config ? config.enemy : boss ? null : enemies[level - 1]
@@ -107,8 +110,8 @@ export default function ChapterBattle({
   const input = useRef<HTMLInputElement>(null)
   const effectId = useRef(0)
   const timeLimit = BOSS_SECONDS + bonusSeconds
-  // No modo turma o chefão não tem cronômetro: a turma pode discutir cada conta.
-  const timed = boss && !classroom
+  // Com "sem limite de tempo", o chefão não tem cronômetro.
+  const timed = boss && !noTimer
   const remaining = Math.max(0, timeLimit - elapsed)
   const title = config?.title ?? chapterLevels[level - 1].title
 
@@ -382,7 +385,7 @@ export default function ChapterBattle({
   const showHeroNumber = (stage === 'enemy' || stage === 'over' || stage === 'result') && (effect?.target === 'player' || effect?.target === 'dodge' || effect?.target === 'heal')
 
   return (
-    <main className={`battle-page turn-battle ${classroom ? 'classroom-mode' : ''}`} id="conteudo">
+    <main className={`battle-page turn-battle ${bigText ? 'big-text-mode' : ''}`} id="conteudo">
       <div className="battle-breadcrumb">
         <span>
           <Swords size={14} /> BATALHA

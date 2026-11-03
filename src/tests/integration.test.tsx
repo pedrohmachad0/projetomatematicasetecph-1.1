@@ -64,13 +64,13 @@ describe('Navegação da plataforma', () => {
     expect(screen.getByRole('button', { name: /Guardião bloqueado/ })).toBeDisabled()
   })
 
-  it('a biblioteca mostra os cinco livros e o modo professor libera todos', async () => {
+  it('a biblioteca mostra os cinco livros e a opção de liberar todas as fases abre todos', async () => {
     window.history.replaceState({}, '', '/aprender')
     render(<App />)
     await startGame()
     fireEvent.click(screen.getByRole('button', { name: /Seus livros/ }))
     expect(screen.getByRole('button', { name: /Vila das Frações/ })).toBeDisabled()
-    fireEvent.click(screen.getByRole('checkbox', { name: /Modo professor/ }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /Liberar todas as fases/ }))
     fireEvent.click(screen.getByRole('button', { name: /Cidade das Funções/ }))
     expect(screen.getByRole('heading', { level: 1, name: /Cidade das Funções/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Treinar no simulador/ })).toHaveAttribute('href', '/funcoes')

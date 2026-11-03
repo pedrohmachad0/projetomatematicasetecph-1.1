@@ -38,11 +38,10 @@ Plataforma web educacional com um catálogo de simuladores de Matemática para o
 
 Todos seguem a filosofia do §31.3 de `regrasdoprojeto.md`: interação, cálculo em tempo real, representação visual em SVG, feedback textual, desafios que se completam sozinhos e modo apresentação para projetor/TV, com tema claro e escuro. Todos funcionam no celular: controles grandes, arrastar por toque e desenhos que se adaptam a telas estreitas.
 
-## Para o professor
+## Apresentação e acessibilidade
 
-- **Guia do professor** em cada simulador: objetivo, roteiro em sala, perguntas para a turma, erros comuns e tempo sugerido (`src/data/teacherGuides.ts`). Fica fechado por padrão e não aparece na projeção.
-- **Modo apresentação**: tela cheia, zoom de 100% a 150%, caneta com quatro cores e borracha para riscar por cima do simulador, e botão para esconder os desafios.
-- **MathQuest em sala**: o *modo professor* libera todos os livros e abre o **painel do professor** (fases concluídas, estrelas, melhor resultado, atalho para a fase e para o simulador de cada fase, com opção de imprimir). Nas configurações, o **modo turma** tira o limite de tempo do chefão e aumenta as letras da batalha para a turma ler no projetor.
+- **Modo apresentação** nos simuladores: tela cheia, zoom de 100% a 150%, caneta com quatro cores e borracha para riscar por cima, e botão para esconder os desafios. Bom para projetor ou TV.
+- **MathQuest**: nas configurações, *Sem limite de tempo* tira o cronômetro do chefão e *Letras grandes* aumenta a pergunta e as respostas da batalha. Na biblioteca, *Liberar todas as fases* abre todos os livros para jogar em qualquer ordem.
 
 ## MathQuest (`/aprender`)
 
@@ -56,7 +55,7 @@ Mini RPG para aprender Matemática por livros (capítulos) e fases, seguindo os 
 | IV · Templo da Geometria | Pitágoras, círculo e trigonometria | 6 | Pitágoras, Círculo, Trigonometria |
 | V · Cidade das Funções | Funções, PA, PG e probabilidade | 6 | Funções, PA e PG, Probabilidade |
 
-Cada fase é um mapa explorável de 24 × 15 casas, com câmera que acompanha o herói, caminhada animada, minimapa e andar por toque: no celular, toque onde quer ir e o herói anda até lá (no computador, setas/WASD ou clique) com missões: derrotar monstros, ajudar um morador com um problema do local, consertar a ponte/portão, abrir o baú e ler a placa que leva ao simulador. Depois vem a batalha por turnos contra o guardião: menu **Atacar** (golpe rápido, golpe pesado e chama especial), **Esquivar**, **Mochila** e **Fugir**; cada ação pede uma conta, o monstro contra-ataca a cada turno e avisa antes de um golpe carregado. As estrelas dependem dos erros. As regras de dano ficam em `src/logic/battle.ts` e os sprites em pixel art em `src/data/sprites.ts`. Os mapas são gerados de forma determinística (`src/logic/questMap.ts`) e as perguntas vêm de `src/logic/questTopics.ts`; os testes conferem que todo mapa é jogável e que toda resposta está certa. O **modo professor** (na biblioteca de livros) libera todos os livros e fases.
+Cada fase é um mapa explorável de 24 × 15 casas, com câmera que acompanha o herói, caminhada animada, minimapa e andar por toque: no celular, toque onde quer ir e o herói anda até lá (no computador, setas/WASD ou clique) com missões: derrotar monstros, ajudar um morador com um problema do local, consertar a ponte/portão, abrir o baú e ler a placa que leva ao simulador. Depois vem a batalha por turnos contra o guardião: menu **Atacar** (golpe rápido, golpe pesado e chama especial), **Esquivar**, **Mochila** e **Fugir**; cada ação pede uma conta, o monstro contra-ataca a cada turno e avisa antes de um golpe carregado. As estrelas dependem dos erros. As regras de dano ficam em `src/logic/battle.ts` e os sprites em pixel art em `src/data/sprites.ts`. Os mapas são gerados de forma determinística (`src/logic/questMap.ts`) e as perguntas vêm de `src/logic/questTopics.ts`; os testes conferem que todo mapa é jogável e que toda resposta está certa. A opção **Liberar todas as fases** (na biblioteca de livros) abre todos os livros e fases.
 
 ## Rodar local
 

@@ -5338,22 +5338,22 @@ html[data-theme='dark'] .game-stage:not(.stage-explore) {
   z-index: 1100;
 }
 
-/* Modo turma: letras grandes para a sala ler no projetor. */
-.classroom-mode .question-instruction {
+/* Letras grandes na batalha. */
+.big-text-mode .question-instruction {
   font-size: clamp(1rem, 2.2vw, 1.35rem) !important;
 }
-.classroom-mode .question-expression {
+.big-text-mode .question-expression {
   font-size: clamp(2.2rem, 6vw, 4rem) !important;
   line-height: 1.1 !important;
 }
-.classroom-mode .answer-option {
+.big-text-mode .answer-option {
   min-height: 64px !important;
   font-size: clamp(1.15rem, 2.6vw, 1.6rem) !important;
 }
-.classroom-mode .message-box p {
+.big-text-mode .message-box p {
   font-size: clamp(1rem, 2.2vw, 1.3rem) !important;
 }
-.classroom-mode .message-box small {
+.big-text-mode .message-box small {
   font-size: clamp(0.95rem, 2vw, 1.15rem) !important;
 }
 .setting-note {
@@ -5362,154 +5362,4 @@ html[data-theme='dark'] .game-stage:not(.stage-explore) {
   font-size: 0.72rem;
   font-weight: 600;
   opacity: 0.75;
-}
-
-/* ===== Painel do professor ===== */
-.teacher-dashboard-open {
-  margin-top: 10px;
-}
-.game-panel.teacher-dashboard {
-  width: min(920px, 100%);
-}
-.teacher-dashboard-intro {
-  margin: 0 0 12px;
-  font-size: 0.85rem;
-  opacity: 0.85;
-}
-.teacher-dashboard-books {
-  display: grid;
-  gap: 12px;
-}
-.teacher-book {
-  padding: 12px;
-  border: 2px solid #c9a75a55;
-  border-radius: 8px;
-  background: #ffffff08;
-}
-.teacher-book header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 6px;
-  font-size: 0.9rem;
-}
-.teacher-book header span {
-  color: #f6d27a;
-  font-weight: 800;
-}
-.teacher-progress {
-  height: 6px;
-  margin: 8px 0 10px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: #ffffff1c;
-}
-.teacher-progress span {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #7bc47f, #f6d27a);
-}
-.teacher-book ol {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.teacher-book li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-.teacher-phase {
-  display: flex;
-  flex: 1 1 320px;
-  align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 6px 10px;
-  border: 1px solid #ffffff22;
-  border-radius: 6px;
-  background: #00000026;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.teacher-phase:hover {
-  border-color: #f6d27a;
-}
-.teacher-phase-n {
-  display: grid;
-  flex: none;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  border-radius: 50%;
-  background: #ffffff1f;
-  font-size: 0.8rem;
-  font-weight: 900;
-}
-.teacher-book li.done .teacher-phase-n {
-  background: #3f8f53;
-}
-.teacher-phase-text {
-  display: grid;
-  flex: 1;
-  min-width: 0;
-}
-.teacher-phase-text strong {
-  font-size: 0.88rem;
-}
-.teacher-phase-text small,
-.teacher-phase-result small {
-  font-size: 0.74rem;
-  opacity: 0.8;
-}
-.teacher-phase-result {
-  display: grid;
-  justify-items: end;
-  flex: none;
-}
-.teacher-stars {
-  display: inline-flex;
-  gap: 1px;
-  color: #f6d27a;
-}
-.teacher-sim {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 40px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: #f6d27a;
-  color: #3a2a0a;
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-decoration: none;
-}
-.teacher-print {
-  margin-top: 14px;
-}
-
-@media print {
-  body:has(.teacher-dashboard) .rpg-app > :not(.game-overlay) {
-    display: none !important;
-  }
-  .game-overlay:has(.teacher-dashboard) {
-    position: static !important;
-    background: none !important;
-  }
-  .game-panel.teacher-dashboard {
-    max-height: none !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    box-shadow: none !important;
-  }
-  .teacher-dashboard .game-panel-close,
-  .teacher-print {
-    display: none !important;
-  }
 }

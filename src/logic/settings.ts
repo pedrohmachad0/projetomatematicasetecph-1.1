@@ -9,14 +9,16 @@ export interface GameSettings {
   /** 0 a 1. */
   volume: number
   textSpeed: TextSpeed
-  /** Modo turma: para projetar em sala, sem limite de tempo e com letras maiores. */
-  classroom: boolean
+  /** Sem cronômetro no chefão: dá para pensar com calma em cada conta. */
+  noTimer: boolean
+  /** Letras maiores na batalha (bom para telas distantes ou para ler com calma). */
+  bigText: boolean
 }
 
 export const SETTINGS_STORAGE = 'matematica-rpg-settings-v1'
 const LEGACY_SOUND = 'matematica-rpg-sound-v1'
 
-export const defaultSettings = (): GameSettings => ({ playerName: '', music: true, sfx: true, volume: 0.6, textSpeed: 'normal', classroom: false })
+export const defaultSettings = (): GameSettings => ({ playerName: '', music: true, sfx: true, volume: 0.6, textSpeed: 'normal', noTimer: false, bigText: false })
 
 /** Milissegundos por letra na caixa de diálogo. */
 export const textDelay: Record<TextSpeed, number> = { lento: 45, normal: 24, rapido: 8 }
@@ -40,7 +42,8 @@ export function readSettings(): GameSettings {
       sfx: typeof parsed.sfx === 'boolean' ? parsed.sfx : base.sfx,
       volume: Number.isFinite(parsed.volume) ? Math.min(1, Math.max(0, parsed.volume)) : base.volume,
       textSpeed: ['lento', 'normal', 'rapido'].includes(parsed.textSpeed) ? parsed.textSpeed : base.textSpeed,
-      classroom: typeof parsed.classroom === 'boolean' ? parsed.classroom : base.classroom,
+      noTimer: typeof parsed.noTimer === 'boolean' ? parsed.noTimer : parsed.classroom === true,
+      bigText: typeof parsed.bigText === 'boolean' ? parsed.bigText : parsed.classroom === true,
     }
   } catch {
     return base
