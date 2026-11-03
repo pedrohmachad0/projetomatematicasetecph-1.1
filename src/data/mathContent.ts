@@ -280,7 +280,7 @@ export const mathContents: MathContent[] = [
   {
     id: 'pi',
     title: 'Explorador do Círculo',
-    description: 'Descubra o número π e explore raio, diâmetro, arcos, cordas e área do setor.',
+    description: 'Dobre o diâmetro sobre a volta para descobrir o π e explore partes, arcos, cordas e a área do círculo.',
     educationLevel: 'fundamental-2',
     grade: '9º ano',
     category: 'Geometria',
@@ -289,7 +289,7 @@ export const mathContents: MathContent[] = [
     simulator: 'pi',
     available: true,
     goal: 'Descobrir de onde vem o número π e como medir círculos.',
-    steps: ['Escolha um experimento', 'Clique para dobrar, girar ou medir', 'Veja o π aparecer em todo círculo'],
+    steps: ['Dobre o diâmetro sobre a volta', 'Toque e arraste as partes do círculo', 'Rearrume a pizza e descubra πr²'],
   },
   {
     id: 'tales',

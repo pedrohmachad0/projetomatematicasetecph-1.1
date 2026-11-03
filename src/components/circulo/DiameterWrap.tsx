@@ -90,7 +90,7 @@ export default function DiameterWrap() {
   return (
     <div className="diameter-wrap">
       <div className="mx-auto grid max-w-4xl items-center gap-3 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <svg viewBox="-80 -60 560 500" className="mx-auto block h-auto w-full max-w-[520px] touch-manipulation" role="img" aria-label={`Diâmetro dobrado ${arcsDone} vezes sobre a circunferência. ${stepText[stage]}`}>
+        <svg viewBox="-10 -20 440 400" className="mx-auto block h-auto w-full max-w-[480px] touch-manipulation" style={{ overflow: 'visible' }} role="img" aria-label={`Diâmetro dobrado ${arcsDone} vezes sobre a circunferência. ${stepText[stage]}`}>
           <circle cx={CX} cy={CY} r={R} fill="#ffffff" stroke="#cbd5e1" strokeWidth={3} />
           <line x1={CX - R} y1={CY} x2={CX + R} y2={CY} stroke={ARC} strokeWidth={5} strokeLinecap="round" />
           <text x={CX} y={CY - 14} textAnchor="middle" fontSize={22} fontWeight={900} fill={ARC} letterSpacing={1}>

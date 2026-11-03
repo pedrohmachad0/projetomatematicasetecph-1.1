@@ -3,7 +3,7 @@ export const MAX_RADIUS = 10
 export const DEFAULT_RADIUS = 4
 export const RADIUS_STEP = 0.5
 
-export type CircleMode = 'medidas' | 'circunferencia' | 'dobrar' | 'angulos' | 'elementos' | 'area'
+export type CircleMode = 'dobrar' | 'partes' | 'arcos' | 'area'
 
 export interface CircleState { radius: number; diameter: number; circumference: number; area: number; ratio: number }
 

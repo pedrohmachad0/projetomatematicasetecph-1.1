@@ -23,7 +23,7 @@ Plataforma web educacional com um catálogo de simuladores de Matemática para o
 | `/poligonos` | Ângulos e Polígonos (triangulação, ângulos externos, transferidor) | 8º ano | Geometria |
 | `/estatistica` | Média, Mediana e Moda | 8º ano | Estatística |
 | `/pitagoras` | Explorador de Pitágoras | 9º ano | Geometria |
-| `/pi` | Explorador do Círculo (π, dobrar o diâmetro, raio, arcos, setor) | 9º ano | Geometria |
+| `/pi` | Explorador do Círculo (dobrar o diâmetro para achar o π, jogo das partes, arcos e cordas, pizza da área) | 9º ano | Geometria |
 | `/tales` | Teorema de Tales (paralelas arrastáveis) | 9º ano | Geometria |
 | `/funcoes` | Explorador de Funções (afim e quadrática) | 1º ano EM | Funções |
 | `/exponencial` | Exponencial e Logaritmo (inversas, espelho em y = x) | 1º ano EM | Funções |
