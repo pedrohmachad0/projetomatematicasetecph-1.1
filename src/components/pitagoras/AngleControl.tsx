@@ -1,5 +1,3 @@
-import { Minus, Plus } from 'lucide-react'
-
 interface Props {
   angle: number
   min: number
@@ -31,7 +29,7 @@ export default function AngleControl({ angle, min, max, step, onChange }: Props)
             max={max}
             value={angle}
             onChange={(event) => updateAngle(event.target.value)}
-            className="w-20 rounded-lg border border-slate-300 bg-white px-2 py-1 text-right text-2xl font-black text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-24 sm:text-3xl"
+            className="w-20 rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-right text-2xl font-black text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-24 sm:text-3xl"
             aria-label={`Ângulo entre ${min} e ${max} graus`}
           />
           <span aria-hidden="true">°</span>
@@ -45,7 +43,7 @@ export default function AngleControl({ angle, min, max, step, onChange }: Props)
           onClick={() => canDec && onChange(angle - step)}
           className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-3 sm:py-3.5 rounded-xl font-bold text-base sm:text-lg bg-slate-100 hover:bg-slate-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-slate-800 transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[48px] touch-manipulation"
         >
-          <Minus size={18} className="sm:w-5 sm:h-5" /> −10°
+          −10°
         </button>
         <button
           aria-label="Aumentar ângulo em 10 graus"
@@ -53,16 +51,11 @@ export default function AngleControl({ angle, min, max, step, onChange }: Props)
           onClick={() => canInc && onChange(angle + step)}
           className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-3 sm:py-3.5 rounded-xl font-bold text-base sm:text-lg bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[48px] touch-manipulation"
         >
-          <Plus size={18} className="sm:w-5 sm:h-5" /> +10°
+          +10°
         </button>
       </div>
 
-      <p className="text-[11px] text-slate-500">Digite qualquer valor inteiro entre {min}° e {max}°.</p>
-
-      <div className="flex justify-between text-[11px] sm:text-xs text-slate-400 px-1">
-        <span>{min}° mínimo</span>
-        <span>{max}° máximo</span>
-      </div>
+      <p className="text-[11px] text-slate-500 sm:text-xs">Use os botões ou digite um valor inteiro entre {min}° e {max}°.</p>
 
       <div className="w-full h-2 sm:h-2.5 bg-slate-200 rounded-full overflow-hidden" aria-hidden="true">
         <div

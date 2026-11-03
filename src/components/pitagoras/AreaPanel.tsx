@@ -52,8 +52,8 @@ export default function AreaPanel({
       </div>
 
       <div
-        className="rounded-xl p-3 sm:p-4 text-center font-mono font-bold text-base sm:text-lg border-2"
-        style={{ background: `${color}10`, borderColor: color, color: '#1e293b' }}
+        className="rounded-xl border-2 p-3 text-center font-mono text-base font-bold text-slate-800 sm:p-4 sm:text-lg"
+        style={{ background: `${color}14`, borderColor: color }}
         aria-live="polite"
       >
         <span className="text-slate-500 text-sm sm:text-base">

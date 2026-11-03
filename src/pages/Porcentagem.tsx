@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, BadgePercent, Minus, Plus, RotateCcw } from 'lucide-react'
+import { Lightbulb, Minus, Plus, RotateCcw } from 'lucide-react'
+import PresentationMode from '../components/PresentationMode'
+import SimulatorHeader from '../components/SimulatorHeader'
 import { calculateDiscount, calculateIncrease, calculatePercentage, formatPercentage } from '../logic/percentage'
 
 type Mode = 'percentage' | 'discount' | 'increase'
@@ -37,13 +38,10 @@ export default function Porcentagem() {
   const filledBlocks = Math.round(Math.min(Math.max(percentage, 0), 100))
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <Link to="/" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-900"><ArrowLeft size={17} /> Voltar ao Hub</Link>
-      <header className="mb-6 rounded-3xl bg-gradient-to-br from-blue-700 to-indigo-600 p-6 text-white shadow-lg sm:p-8">
-        <div className="flex items-start justify-between gap-4"><div><span className="mb-3 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-black tracking-widest">PORCENTAGEM · VISUALIZAÇÃO</span><h1 className="text-3xl font-black sm:text-5xl">Explorador de Porcentagem</h1><p className="mt-2 max-w-2xl text-sm leading-relaxed text-blue-100 sm:text-base">Entenda porcentagens usando valores, blocos visuais, descontos e acréscimos em tempo real.</p></div><BadgePercent className="hidden shrink-0 sm:block" size={54} /></div>
-      </header>
+    <PresentationMode title="Explorador de Porcentagem">
+      <SimulatorHeader id="porcentagem">Entenda porcentagens usando valores, uma grade de 100 partes, descontos e acréscimos em tempo real.</SimulatorHeader>
 
-      <div className="mb-5 grid gap-2 sm:grid-cols-3">{modes.map((item) => <button key={item.id} type="button" onClick={() => setMode(item.id)} className={`rounded-2xl border p-4 text-left transition ${mode === item.id ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200' : 'border-slate-200 bg-white hover:border-blue-300'}`}><span className="block text-sm font-black text-slate-900">{item.label}</span><span className="mt-1 block text-xs text-slate-600">{item.description}</span></button>)}</div>
+      <div className="mb-5 grid gap-2 sm:grid-cols-3">{modes.map((item) => <button key={item.id} type="button" onClick={() => setMode(item.id)} aria-pressed={mode === item.id} className={`rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${mode === item.id ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200' : 'border-slate-200 bg-white hover:border-blue-300'}`}><span className="block text-sm font-black text-slate-900">{item.label}</span><span className="mt-1 block text-xs text-slate-600">{item.description}</span></button>)}</div>
 
       <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -61,7 +59,7 @@ export default function Porcentagem() {
           {mode === 'percentage' ? <p className="mt-4 text-sm text-slate-600">A porcentagem indica quantas partes de cada 100 estão sendo consideradas.</p> : <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600">{mode === 'discount' ? <Minus size={16} /> : <Plus size={16} />} O cálculo mostra o impacto percentual sobre o valor base.</p>}
         </div>
       </section>
-      <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900"><strong>Dica:</strong> 25% é a mesma coisa que dividir por 4. Experimente mudar os valores e observe a representação visual.</div>
-    </div>
+      <div className="mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900"><Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={20} /><p><strong>Dica:</strong> 25% é a mesma coisa que dividir por 4, e 50% é a metade. Experimente mudar os valores e observe a grade.</p></div>
+    </PresentationMode>
   )
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Divide, Lightbulb, RotateCcw, ArrowRight } from 'lucide-react'
+import { Lightbulb, RotateCcw, ArrowRight } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
+import SimulatorHeader from '../components/SimulatorHeader'
 
 function gcd(a: number, b: number): number {
   let left = Math.abs(a)
@@ -46,14 +46,8 @@ export default function Fracoes() {
 
   return (
     <PresentationMode title="Explorador de Frações">
-      <div className="mx-auto max-w-6xl">
-        <Link to="/" className="mb-4 inline-flex min-h-[44px] items-center gap-1.5 rounded text-xs font-medium text-blue-700 hover:underline sm:mb-6 sm:text-sm"><ArrowLeft size={16} /> Voltar ao início</Link>
-
-        <header className="mb-5 text-center sm:mb-7 sm:text-left">
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1.5 text-xs font-black text-indigo-800"><Divide size={15} /> FUNDAMENTAL II · 6º ANO</div>
-          <h1 className="text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl md:text-5xl">Explorador de Frações</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg">Entenda uma fração dividindo um inteiro em partes iguais e destacando somente as partes escolhidas.</p>
-        </header>
+      <div>
+        <SimulatorHeader id="fracoes">Entenda uma fração dividindo um inteiro em partes iguais e destacando somente as partes escolhidas.</SimulatorHeader>
 
         <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
@@ -82,7 +76,6 @@ export default function Fracoes() {
         </div>
 
         <section className="mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900"><Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={20} /><p><strong>Forma simplificada:</strong> {numerator}/{denominator} = {simplified.numerator}/{simplified.denominator}. Dividimos numerador e denominador pelo maior divisor comum ({gcd(numerator, denominator)}).</p></section>
-        <div className="mt-5 flex sm:flex-row"><Link to="/aprender" className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 hover:bg-slate-50">Aventura</Link></div>
       </div>
     </PresentationMode>
   )
