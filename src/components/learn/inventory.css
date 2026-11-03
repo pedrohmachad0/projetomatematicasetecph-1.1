@@ -1,0 +1,278 @@
+.inventory-dialog {
+  margin: auto;
+  --pack-bg: #f7f3e7;
+  --pack-panel: #ece9d8;
+  --pack-ink: #294538;
+  --pack-border: #a8ad8b;
+  color: var(--pack-ink);
+  background: var(--pack-bg);
+  border: 1px solid var(--pack-border);
+  border-radius: 16px;
+  width: min(900px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 28px);
+  padding: 0;
+  box-shadow: 0 24px 90px #0008;
+  overflow: auto;
+}
+.inventory-dialog::backdrop {
+  background: #09180fd9;
+  backdrop-filter: blur(5px);
+}
+html[data-theme='dark'] .inventory-dialog {
+  --pack-bg: #14251e;
+  --pack-panel: #20382c;
+  --pack-ink: #e1e9cc;
+  --pack-border: #657d57;
+}
+.inventory-shell {
+  padding: 24px;
+}
+.inventory-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+}
+.inventory-kicker {
+  font: 700 11px monospace;
+  letter-spacing: 1.2px;
+  color: #b88342;
+}
+.inventory-heading h2 {
+  font:
+    700 clamp(22px, 3vw, 30px)/1.15 Georgia,
+    serif;
+  margin: 8px 0 18px;
+}
+.inventory-close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--pack-border);
+  border-radius: 50%;
+  background: var(--pack-panel);
+  color: inherit;
+  flex-shrink: 0;
+}
+.inventory-wallet {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--pack-panel);
+  border: 1px solid var(--pack-border);
+  border-radius: 10px;
+}
+.inventory-wallet > svg {
+  color: #d4a95f;
+  flex-shrink: 0;
+}
+.inventory-wallet strong {
+  font:
+    700 27px Georgia,
+    serif;
+}
+.inventory-wallet strong span {
+  font:
+    600 14px Arial,
+    sans-serif;
+}
+.inventory-wallet small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+.inventory-level {
+  margin-left: auto;
+  white-space: nowrap;
+  font: 700 12px monospace;
+}
+.inventory-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+.inventory-columns h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font:
+    700 19px Georgia,
+    serif;
+  margin: 0 0 12px;
+}
+.inventory-bag h3 {
+  justify-content: space-between;
+}
+.inventory-bag h3 span {
+  font:
+    600 11px Arial,
+    sans-serif;
+}
+.equipment-stage {
+  position: relative;
+  height: 340px;
+  border: 1px solid var(--pack-border);
+  border-radius: 100px 100px 12px 12px;
+  background: radial-gradient(ellipse at center, #9ba96b30, transparent 70%), var(--pack-panel);
+}
+.inventory-hero {
+  position: absolute;
+  height: 280px;
+  width: 172px;
+  top: 28px;
+  left: calc(50% - 86px);
+}
+.equipment-slot {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: clamp(68px, 22%, 88px);
+  height: 86px;
+  border: 1px dashed var(--pack-border);
+  background: var(--pack-bg);
+  color: inherit;
+  border-radius: 10px;
+}
+.equipment-slot > svg {
+  width: 32px;
+  height: 32px;
+}
+.equipment-slot span {
+  font-size: 11px;
+}
+.equipment-slot.filled {
+  border-style: solid;
+  border-color: #b78c48;
+  background: var(--pack-panel);
+}
+.equipment-helmet {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.equipment-chest {
+  top: 111px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.equipment-right {
+  top: 120px;
+  left: 10px;
+}
+.equipment-left {
+  top: 120px;
+  right: 10px;
+}
+.equipment-legs {
+  top: 215px;
+  left: 25px;
+}
+.equipment-feet {
+  top: 240px;
+  right: 25px;
+}
+.inventory-bag-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.inventory-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 80px;
+  padding: 8px 4px;
+  border: 1px solid var(--pack-border);
+  color: inherit;
+  background: var(--pack-panel);
+  border-radius: 8px;
+}
+.inventory-item svg {
+  width: 38px;
+  height: 38px;
+}
+.inventory-item small {
+  font-size: 10px;
+}
+.inventory-item.chosen {
+  outline: 2px solid #d4a95f;
+  outline-offset: 1px;
+}
+.inventory-item:disabled {
+  opacity: 0.45;
+}
+.inventory-unknown {
+  font:
+    700 28px Georgia,
+    serif;
+}
+.inventory-detail {
+  padding: 16px;
+  margin-top: 14px;
+  border: 1px solid var(--pack-border);
+  border-radius: 10px;
+  min-height: 150px;
+}
+.inventory-detail > strong {
+  font:
+    700 19px Georgia,
+    serif;
+}
+.inventory-detail p,
+.inventory-note {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.inventory-detail .rpg-button {
+  width: 100%;
+}
+.inventory-note {
+  margin: 12px 0 0;
+  opacity: 0.85;
+}
+.player-avatar:focus-visible,
+.inventory-dialog button:focus-visible {
+  outline: 3px solid #d4a95f;
+  outline-offset: 3px;
+}
+@media (max-width: 650px) {
+  .inventory-shell {
+    padding: 16px;
+  }
+  .inventory-columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .inventory-wallet {
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+  .inventory-level {
+    margin-left: 0;
+  }
+  .equipment-stage {
+    max-width: 360px;
+    margin: auto;
+  }
+  .inventory-bag-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .inventory-item {
+    min-height: 72px;
+  }
+  .inventory-item svg {
+    width: 30px;
+    height: 30px;
+  }
+}

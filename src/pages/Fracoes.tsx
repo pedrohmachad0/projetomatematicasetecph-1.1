@@ -82,7 +82,7 @@ export default function Fracoes() {
         </div>
 
         <section className="mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900"><Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={20} /><p><strong>Forma simplificada:</strong> {numerator}/{denominator} = {simplified.numerator}/{simplified.denominator}. Dividimos numerador e denominador pelo maior divisor comum ({gcd(numerator, denominator)}).</p></section>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row"><Link to="/quiz/fracoes" className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-indigo-600 px-5 text-sm font-black text-white hover:bg-indigo-700">Praticar com quiz de frações →</Link><Link to="/aprender" className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 hover:bg-slate-50">Voltar para aprender</Link></div>
+        <div className="mt-5 flex sm:flex-row"><Link to="/aprender" className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 hover:bg-slate-50">Aventura</Link></div>
       </div>
     </PresentationMode>
   )
