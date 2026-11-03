@@ -41,6 +41,7 @@ import PixelCreature from '../components/learn/PixelCreature'
 import { AchievementToast, AchievementsPanel, ShopPanel } from '../components/learn/QuestPanels'
 import {
   applyBattleStats,
+  battleScore,
   applyBlitzStats,
   availableCoins,
   buyPowerUp,
@@ -257,6 +258,7 @@ export default function Aprender() {
             boss: n === total,
             enemy: target.guardian,
             questions: topicBattle(target.topics, guardianQuestions(book, n)),
+            more: () => topicBattle(target.topics, 10),
           },
     )
     setAttempt((a) => a + 1)
@@ -268,7 +270,7 @@ export default function Aprender() {
     let earned = 0
     let nextProgresses = progresses
     if (outcome.won) {
-      const update = recordVictory(progress, outcome.level, outcome.correct, outcome.seconds, total)
+      const update = recordVictory(progress, outcome.level, battleScore(outcome.level, outcome.mistakes, total), outcome.seconds, total)
       earned = update.earned
       nextProgresses = { ...progresses, [book.id]: update.progress }
       setProgresses(nextProgresses)
@@ -291,7 +293,7 @@ export default function Aprender() {
 
   const resultPhase = result ? book.phases[result.level - 1] : null
   const resultBoss = result ? result.level === total : false
-  const resultStars = result ? starsFor(result.level, result.correct, total) : 0
+  const resultStars = result ? starsFor(result.level, battleScore(result.level, result.mistakes, total), total) : 0
   const resultGuardianName = resultPhase ? (resultPhase.guardian ? titleCase(resultPhase.guardian.name) : 'Grum') : ''
 
   return (
@@ -434,7 +436,7 @@ export default function Aprender() {
             <div>
               <Check />
               <strong>
-                {result.correct}/{guardianQuestions(book, result.level)}
+                {result.correct}/{result.answered}
               </strong>
               <small>ACERTOS</small>
             </div>
@@ -613,7 +615,8 @@ export default function Aprender() {
                       Mapa com missões
                     </span>
                     <span>
-                      <Heart size={15} />3 vidas
+                      <Heart size={15} />
+                      Batalha por turnos
                     </span>
                     <span>
                       <Clock3 size={15} />
@@ -647,7 +650,7 @@ export default function Aprender() {
                   )}
                   {progress.best[selected] && (
                     <p className="best-record">
-                      Recorde: {progress.best[selected].correct} acertos · {formatTime(progress.best[selected].seconds)} · {'★'.repeat(starsFor(selected, progress.best[selected].correct, total))}
+                      Recorde: {formatTime(progress.best[selected].seconds)} · {'★'.repeat(starsFor(selected, progress.best[selected].correct, total))}
                       {'☆'.repeat(3 - starsFor(selected, progress.best[selected].correct, total))}
                     </p>
                   )}

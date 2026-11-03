@@ -91,6 +91,14 @@ export function totalStars(progress: ChapterProgress, phases = 10): number {
   return progress.completed.reduce((sum, level) => sum + starsFor(level, progress.best[level]?.correct ?? 0, phases), 0)
 }
 
+/**
+ * Pontuação gravada no recorde da fase: o total de perguntas menos os erros
+ * (até 2). Assim 0 erro = 3 estrelas, 1 erro = 2 e 2 ou mais = 1.
+ */
+export function battleScore(level: number, mistakes: number, phases = 10): number {
+  return questionsInLevel(level, phases) - Math.min(mistakes, 2)
+}
+
 /** Moedas extras por combo: 2 moedas por acerto a partir do 3º seguido. */
 export function comboCoins(maxCombo: number): number {
   return Math.max(0, maxCombo - 2) * 2

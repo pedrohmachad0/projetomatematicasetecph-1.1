@@ -1,37 +1,45 @@
 import type { BookTheme } from '../../data/questBooks'
+import { heroBackSprite, heroPalette, heroSprite, villagerSprite } from '../../data/sprites'
+import PixelSprite from './PixelSprite'
 
 /** Sprites pequenos do mapa de exploração, em pixel art (16 × 16). */
 
+/** Herói do mapa: de frente, de lado (espelhado) ou de costas, conforme a direção. */
 export function HeroSprite({ facing }: { facing: 'left' | 'right' | 'up' | 'down' }) {
+  if (facing === 'up')
+    return (
+      <svg viewBox="0 0 20 21" shapeRendering="crispEdges" className="hero-sprite facing-up" aria-hidden="true">
+        <PixelSprite rows={heroBackSprite} palette={heroPalette} />
+      </svg>
+    )
   return (
     <svg viewBox="0 0 16 16" shapeRendering="crispEdges" className={`hero-sprite facing-${facing}`} aria-hidden="true">
-      <path fill="#2b3a2d" d="M5 1h6v1h1v4h-1v1H5V6H4V2h1z" />
-      <path fill="#e8b98c" d="M5 3h6v3H5z" />
-      <path fill="#7a4b2a" d="M5 2h6v1H5zM4 3h1v2H4z" />
-      {facing !== 'up' && <path fill="#1f2a22" d={facing === 'left' ? 'M6 4h1v1H6z' : facing === 'right' ? 'M9 4h1v1H9z' : 'M6 4h1v1H6zM9 4h1v1H9z'} />}
-      <path fill="#3f7d4a" d="M4 7h8v5H4z" />
-      <path fill="#2f5f38" d="M4 11h8v1H4zM7 7h2v5H7z" />
-      <path fill="#d4a95f" d="M4 9h8v1H4z" />
-      <path fill="#e8b98c" d="M3 8h1v3H3zM12 8h1v3h-1z" />
-      <path fill="#5a3d24" d="M5 12h2v3H5zM9 12h2v3H9z" />
-      <path fill="#cfd8c4" d={facing === 'left' ? 'M1 6h1v5H1z' : 'M14 6h1v5h-1z'} />
+      <PixelSprite rows={heroSprite} palette={heroPalette} />
     </svg>
   )
 }
 
-const villagerColors = ['#b0537a', '#4d7aa8', '#c8703f']
+/** Herói visto de costas, usado na batalha. */
+export function HeroBattleSprite({ state }: { state: 'idle' | 'attack' | 'hurt' | 'dodge' }) {
+  return (
+    <svg viewBox="-1 -1 22 24" shapeRendering="crispEdges" className={`hero-battle hero-${state}`} role="img" aria-label="Seu aventureiro">
+      <ellipse cx="10" cy="21.5" rx="8" ry="1.3" fill="#182d2455" />
+      <PixelSprite rows={heroBackSprite} palette={heroPalette} />
+      <PixelSprite rows={['oo', 'ww', 'ww', 'ww', 'ww', 'ww', 'yy', 'dd']} palette={{ o: '#22302a', w: '#d9e2d2', y: '#e2b04a', d: '#6b4626' }} x={18} y={5} />
+    </svg>
+  )
+}
+
+const villagerPalettes = [
+  { o: '#2a2320', h: '#3a2a20', s: '#e9b98f', k: '#1d2420', p: '#e98b8b', c: '#b0537a', w: '#fff3d0', d: '#4b3a2a', B: '#2f241b' },
+  { o: '#20262e', h: '#c9b27e', s: '#d9a273', k: '#1d2420', p: '#e98b8b', c: '#4d7aa8', w: '#f0f4f8', d: '#3a4350', B: '#2a2f36' },
+  { o: '#2a2320', h: '#8a8f99', s: '#f1c39b', k: '#1d2420', p: '#e98b8b', c: '#c8703f', w: '#fff3d0', d: '#5a3d24', B: '#2f241b' },
+]
 
 export function VillagerSprite({ variant }: { variant: number }) {
-  const color = villagerColors[variant % villagerColors.length]
   return (
     <svg viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden="true">
-      <path fill="#2b2b2b" d="M5 1h6v2H5z" />
-      <path fill="#e2b48a" d="M5 3h6v4H5z" />
-      <path fill="#1f2a22" d="M6 4h1v1H6zM9 4h1v1H9z" />
-      <path fill="#a0522d" d="M7 6h2v1H7z" />
-      <path fill={color} d="M3 7h10v6H3z" />
-      <path fill="#fff3d0" d="M6 8h4v4H6z" />
-      <path fill="#4b3a2a" d="M5 13h2v2H5zM9 13h2v2H9z" />
+      <PixelSprite rows={villagerSprite} palette={villagerPalettes[variant % villagerPalettes.length]} />
     </svg>
   )
 }

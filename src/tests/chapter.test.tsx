@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, cleanup } from '@testing-library/react'
+import { act, fireEvent, render, screen, cleanup, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   answerMatches,
@@ -110,7 +110,7 @@ describe('Livro I: questões e recompensas', () => {
   })
 })
 
-describe('batalha: vidas, tempo e contagem', () => {
+describe('batalha por turnos', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
@@ -120,115 +120,161 @@ describe('batalha: vidas, tempo e contagem', () => {
     vi.useRealTimers()
     vi.restoreAllMocks()
   })
+
+  /** Responde a pergunta aberta, certo ou errado, e confirma. */
   function answerCurrent(correct: boolean) {
     const expression = document.getElementById('question-expression')!.textContent!
     const instruction = document.getElementById('question-instruction')!.textContent!
-    const kind: ChapterQuestion['kind'] = instruction.includes('afirmação')
-        ? 'truth'
-        : instruction.includes('falta')
-          ? 'missing'
-          : instruction.includes('Digite')
-            ? 'input'
-            : 'choice'
+    const kind: ChapterQuestion['kind'] = instruction.includes('afirmação') ? 'truth' : instruction.includes('falta') ? 'missing' : instruction.includes('Digite') ? 'input' : 'choice'
     const answer = mathAnswer({ expression, kind } as ChapterQuestion)
     const input = screen.queryByRole('textbox')
     if (input) fireEvent.change(input, { target: { value: correct ? answer : '99999' } })
     else {
-      const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.answer-option'))
-      const option = options.find((o) =>
-        correct ? o.textContent!.slice(1) === answer : o.textContent!.slice(1) !== answer,
-      )!
-      fireEvent.click(option)
+      const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.answer-option:not(:disabled)'))
+      fireEvent.click(options.find((o) => (correct ? o.textContent!.slice(1) === answer : o.textContent!.slice(1) !== answer))!)
     }
     fireEvent.click(screen.getByRole('button', { name: /Confirmar/ }))
   }
-  it('encerra após três erros sem contar respostas duas vezes', () => {
-    const finish = vi.fn()
-    render(<ChapterBattle level={1} onExit={() => {}} onFinish={finish} />)
-    for (let i = 0; i < 3; i++) {
-      answerCurrent(false)
-      if (i < 2) fireEvent.click(screen.getByRole('button', { name: 'Próximo desafio' }))
-    }
-    expect(screen.getByLabelText('0 vidas restantes')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Ver resultado' }))
-    expect(finish).toHaveBeenCalledWith(
-      expect.objectContaining({ won: false, correct: 0, answered: 3, reason: 'lives' }),
-    )
+  const continueTurn = () => fireEvent.click(screen.getByRole('button', { name: /Continuar|Ver resultado/ }))
+  const attack = (move: RegExp = /Golpe rápido/) => {
+    fireEvent.click(screen.getByRole('button', { name: /Atacar/ }))
+    fireEvent.click(screen.getByRole('button', { name: move }))
+  }
+  const enemyHp = () => Number(screen.getByRole('meter', { name: /Vida de/ }).getAttribute('aria-valuenow'))
+  const playerHp = () => Number(screen.getByRole('meter', { name: 'Sua vida' }).getAttribute('aria-valuenow'))
+
+  it('o menu tem atacar, esquivar, mochila e fugir', () => {
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} />)
+    for (const name of [/Atacar/, /Esquivar/, /Mochila/, /Fugir/]) expect(screen.getAllByRole('button', { name }).length).toBeGreaterThan(0)
+    expect(enemyHp()).toBe(100)
+    expect(playerHp()).toBe(100)
   })
-  it('conclui oito perguntas e congela o tempo na última resposta', () => {
+
+  it('golpes certos tiram vida do monstro; o contra-ataque é mais fraco quando você acerta', () => {
     const finish = vi.fn()
     render(<ChapterBattle level={1} onExit={() => {}} onFinish={finish} />)
-    for (let i = 0; i < 8; i++) {
+    attack()
+    answerCurrent(true)
+    expect(screen.getByText('Resposta certa!')).toBeInTheDocument()
+    expect(enemyHp()).toBe(83)
+    continueTurn()
+    expect(playerHp()).toBe(93)
+    continueTurn()
+    attack()
+    answerCurrent(false)
+    expect(enemyHp()).toBe(83)
+    continueTurn()
+    expect(playerHp()).toBe(65)
+  })
+
+  it('vence com seis golpes rápidos e informa os erros para as estrelas', () => {
+    const finish = vi.fn()
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={finish} />)
+    for (let i = 0; i < 6; i++) {
       act(() => vi.advanceTimersByTime(1000))
+      attack()
       answerCurrent(true)
-      if (i < 7) fireEvent.click(screen.getByRole('button', { name: 'Próximo desafio' }))
+      continueTurn()
+      if (i < 5) continueTurn()
     }
+    expect(screen.getByText(/foi derrotado!/)).toBeInTheDocument()
     act(() => vi.advanceTimersByTime(15000))
-    fireEvent.click(screen.getByRole('button', { name: 'Ver resultado' }))
-    expect(finish).toHaveBeenCalledWith(
-      expect.objectContaining({ won: true, correct: 8, answered: 8, seconds: 8 }),
-    )
+    continueTurn()
+    expect(finish).toHaveBeenCalledWith(expect.objectContaining({ won: true, correct: 6, answered: 6, mistakes: 0, reason: 'complete', seconds: 6 }))
   })
-  it('responde alternativas e verdadeiro/falso pelo teclado, com Enter e Espaço', () => {
+
+  it('perde quando a vida chega a zero', () => {
+    const finish = vi.fn()
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={finish} />)
+    for (let turn = 0; turn < 10 && !screen.queryByRole('button', { name: 'Ver resultado' }); turn++) {
+      attack()
+      answerCurrent(false)
+      continueTurn()
+      if (!screen.queryByRole('button', { name: 'Ver resultado' })) continueTurn()
+    }
+    expect(playerHp()).toBe(0)
+    continueTurn()
+    expect(finish).toHaveBeenCalledWith(expect.objectContaining({ won: false, reason: 'lives', correct: 0, livesLeft: 0 }))
+  })
+
+  it('a esquiva certa faz o próximo ataque passar direto e carrega energia', () => {
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /Esquivar/ }))
+    answerCurrent(true)
+    continueTurn()
+    expect(playerHp()).toBe(100)
+    expect(screen.getByText(/você se esquivou/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Energia 1 de 3')).toBeInTheDocument()
+  })
+
+  it('a chama especial só libera com energia cheia e dá dano enorme', () => {
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /Atacar/ }))
+    expect(screen.getByRole('button', { name: /Chama especial/ })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ }))
+    for (let i = 0; i < 3; i++) {
+      fireEvent.click(screen.getByRole('button', { name: /Esquivar/ }))
+      answerCurrent(true)
+      continueTurn()
+      continueTurn()
+    }
+    attack(/Chama especial/)
+    answerCurrent(true)
+    expect(enemyHp()).toBe(100 - Math.ceil((100 / 6) * 3 * 1.25))
+  })
+
+  it('o monstro avisa antes de um golpe carregado', () => {
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} />)
+    for (let i = 0; i < 2; i++) {
+      attack()
+      answerCurrent(true)
+      continueTurn()
+      if (i < 1) continueTurn()
+    }
+    expect(screen.getAllByText(/concentrando energia/).length).toBeGreaterThan(0)
+    continueTurn()
+    attack()
+    answerCurrent(true)
+    const before = playerHp()
+    continueTurn()
+    expect(before - playerHp()).toBe(14)
+  })
+
+  it('escolhe ações e respostas pelo teclado', () => {
     const random = randomSeed(14)
     vi.spyOn(Math, 'random').mockImplementation(random)
-    const finish = vi.fn()
-    render(<ChapterBattle level={1} onExit={() => {}} onFinish={finish} />)
-    let sawTruth = false
-    for (let i = 0; i < 8; i++) {
-      const expression = document.getElementById('question-expression')!.textContent!
-      const instruction = document.getElementById('question-instruction')!.textContent!
-      const kind: ChapterQuestion['kind'] = instruction.includes('afirmação')
-        ? 'truth'
-        : instruction.includes('falta')
-          ? 'missing'
-          : instruction.includes('Digite')
-            ? 'input'
-            : 'choice'
-      const answer = mathAnswer({ expression, kind } as ChapterQuestion)
-      const input = screen.queryByRole('textbox')
-      if (input) fireEvent.change(input, { target: { value: answer } })
-      else {
-        const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.answer-option'))
-        const selected = options.findIndex((option) => option.textContent!.slice(1) === answer)
-        expect(selected).toBeGreaterThanOrEqual(0)
-        const digit = String(selected + 1)
-        fireEvent.keyDown(window, {
-          key: digit,
-          code: kind === 'truth' || i % 2 ? `Numpad${digit}` : `Digit${digit}`,
-        })
-        expect(options[selected].getAttribute('aria-pressed')).toBe('true')
-        if (kind === 'truth') sawTruth = true
-      }
-      fireEvent.keyDown(window, i % 2 ? { key: ' ', code: 'Space' } : { key: 'Enter', code: 'Enter' })
-      expect(screen.getByText('Resposta certa!')).toBeInTheDocument()
-      fireEvent.keyDown(window, i % 2 ? { key: 'Enter', code: 'Enter' } : { key: ' ', code: 'Space' })
-    }
-    expect(sawTruth).toBe(true)
-    expect(finish).toHaveBeenCalledWith(expect.objectContaining({ won: true, correct: 8 }))
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} />)
+    fireEvent.keyDown(window, { key: '1', code: 'Digit1' })
+    fireEvent.keyDown(window, { key: '1', code: 'Digit1' })
+    const expression = document.getElementById('question-expression')!.textContent!
+    const answer = mathAnswer({ expression, kind: 'choice' } as ChapterQuestion)
+    const options = Array.from(document.querySelectorAll<HTMLButtonElement>('.answer-option'))
+    const index = options.findIndex((o) => o.textContent!.slice(1) === answer)
+    expect(index).toBeGreaterThanOrEqual(0)
+    fireEvent.keyDown(window, { key: String(index + 1), code: `Numpad${index + 1}` })
+    expect(options[index].getAttribute('aria-pressed')).toBe('true')
+    fireEvent.keyDown(window, { key: 'Enter', code: 'Enter' })
+    expect(screen.getByText('Resposta certa!')).toBeInTheDocument()
+    fireEvent.keyDown(window, { key: ' ', code: 'Space' })
+    expect(screen.getByText(/contra-atacou/)).toBeInTheDocument()
   })
-  it('o boss termina quando o tempo real expira', () => {
+
+  it('o chefe termina quando o tempo real expira', () => {
     const finish = vi.fn()
     render(<ChapterBattle level={10} onExit={() => {}} onFinish={finish} />)
     act(() => vi.advanceTimersByTime(BOSS_SECONDS * 1000))
     expect(finish).toHaveBeenCalledTimes(1)
-    expect(finish).toHaveBeenCalledWith(
-      expect.objectContaining({ won: false, reason: 'time', seconds: BOSS_SECONDS }),
-    )
+    expect(finish).toHaveBeenCalledWith(expect.objectContaining({ won: false, reason: 'time', seconds: BOSS_SECONDS }))
   })
-  it('vence o chefe com oito acertos, dois erros e dez respostas antes do prazo', () => {
-    const finish = vi.fn()
-    render(<ChapterBattle level={10} onExit={() => {}} onFinish={finish} />)
-    for (let i = 0; i < 10; i++) {
-      act(() => vi.advanceTimersByTime(1000))
-      answerCurrent(i >= 2)
-      if (i < 9) fireEvent.click(screen.getByRole('button', { name: 'Próximo desafio' }))
-    }
-    act(() => vi.advanceTimersByTime(BOSS_SECONDS * 1000))
-    expect(finish).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: 'Ver resultado' }))
-    expect(finish).toHaveBeenCalledWith(
-      expect.objectContaining({ won: true, correct: 8, answered: 10, seconds: 10 }),
-    )
+
+  it('fugir pede confirmação', () => {
+    const exit = vi.fn()
+    render(<ChapterBattle level={1} onExit={exit} onFinish={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /Fugir/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar lutando' }))
+    expect(exit).not.toHaveBeenCalled()
+    fireEvent.keyDown(window, { key: '4', code: 'Digit4' })
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Fugir' }))
+    expect(exit).toHaveBeenCalled()
   })
 })

@@ -133,15 +133,21 @@ describe('MathQuest: itens e relâmpago na tela', () => {
   })
 
 
-  it('mostra o monstro da fase, usa o escudo e a poção', () => {
+  it('mostra o monstro da fase e usa itens da mochila', () => {
     const use = vi.fn(() => true)
-    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} items={{ pocao: 1, lupa: 0, escudo: 1, ampulheta: 1 }} onUsePowerUp={use} />)
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} items={{ pocao: 1, lupa: 1, escudo: 1, ampulheta: 1 }} onUsePowerUp={use} />)
     expect(screen.getByText('GOSMINHA')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Mochila/ }))
     expect(screen.queryByRole('button', { name: /Usar Ampulheta/ })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Usar Poção/ })).toBeDisabled()
     fireEvent.click(screen.getByRole('button', { name: /Usar Escudo/ }))
     expect(use).toHaveBeenCalledWith('escudo')
-    expect(screen.getByLabelText('3 vidas restantes, escudo ativo')).toBeInTheDocument()
+    expect(screen.getByLabelText('Escudo ativo')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Mochila/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Usar Lupa/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Atacar/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Golpe rápido/ }))
+    expect(document.querySelectorAll('.answer-option.crossed-option')).toHaveLength(2)
   })
 
   it('o relâmpago termina em 60 segundos e devolve a pontuação', () => {
@@ -171,7 +177,36 @@ describe('MathQuest: guardiões dos outros livros', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Baronesa Metade' })).toBeInTheDocument()
     expect(screen.getByText('BARONESA')).toBeInTheDocument()
     expect(screen.getByText(/LIVRO II/)).toBeInTheDocument()
-    expect(screen.getByText(/\/ 10/)).toBeInTheDocument()
     expect(screen.getByRole('timer', { name: 'Tempo restante' })).toHaveTextContent('03:00')
+  })
+})
+
+describe('MathQuest: equilíbrio da batalha por turnos', () => {
+  it('golpes, crítico e especial', async () => {
+    const { moveDamage, enemyDamage, quickHitsToWin } = await import('../logic/battle')
+    expect(moveDamage(1, false, 'rapido', 0)).toBe(17)
+    expect(moveDamage(1, false, 'rapido', 3)).toBe(21)
+    expect(moveDamage(10, true, 'rapido', 0)).toBe(13)
+    expect(moveDamage(1, false, 'pesado', 0)).toBeGreaterThan(moveDamage(1, false, 'rapido', 0))
+    expect(Math.ceil(100 / moveDamage(1, false, 'rapido', 0))).toBe(quickHitsToWin(false))
+    expect(enemyDamage(false, true, false)).toBe(7)
+    expect(enemyDamage(false, false, false)).toBe(28)
+    expect(enemyDamage(false, false, true)).toBe(56)
+  })
+
+  it('jogando sem errar você sobrevive; com muitos erros, não', async () => {
+    const { enemyDamage } = await import('../logic/battle')
+    const perfect = Array.from({ length: 6 }, (_, turn) => enemyDamage(false, true, turn % 3 === 2)).reduce((a, b) => a + b, 0)
+    expect(100 - perfect).toBeGreaterThan(0)
+    const careless = 4 * enemyDamage(false, false, false)
+    expect(100 - careless).toBeLessThanOrEqual(0)
+  })
+
+  it('a pontuação do recorde dá estrelas pelos erros', async () => {
+    const { battleScore, starsFor } = await import('../logic/quest')
+    expect(starsFor(1, battleScore(1, 0))).toBe(3)
+    expect(starsFor(1, battleScore(1, 1))).toBe(2)
+    expect(starsFor(1, battleScore(1, 5))).toBe(1)
+    expect(starsFor(6, battleScore(6, 0, 6), 6)).toBe(3)
   })
 })

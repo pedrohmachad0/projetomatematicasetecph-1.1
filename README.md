@@ -35,7 +35,7 @@ Mini RPG para aprender Matemática por livros (capítulos) e fases, seguindo os 
 | IV · Templo da Geometria | Pitágoras, círculo e trigonometria | 6 | Pitágoras, Círculo, Trigonometria |
 | V · Cidade das Funções | Funções, PA, PG e probabilidade | 6 | Funções, PA e PG, Probabilidade |
 
-Cada fase é um mapa explorável (setas, WASD, toque ou clique) com missões: derrotar monstros, ajudar um morador com um problema do local, consertar a ponte/portão, abrir o baú e ler a placa que leva ao simulador. Depois vem a batalha contra o guardião (3 corações, combos, itens da loja e estrelas). Os mapas são gerados de forma determinística (`src/logic/questMap.ts`) e as perguntas vêm de `src/logic/questTopics.ts`; os testes conferem que todo mapa é jogável e que toda resposta está certa. O **modo professor** (na biblioteca de livros) libera todos os livros e fases.
+Cada fase é um mapa explorável (setas, WASD, toque ou clique) com missões: derrotar monstros, ajudar um morador com um problema do local, consertar a ponte/portão, abrir o baú e ler a placa que leva ao simulador. Depois vem a batalha por turnos contra o guardião: menu **Atacar** (golpe rápido, golpe pesado e chama especial), **Esquivar**, **Mochila** e **Fugir**; cada ação pede uma conta, o monstro contra-ataca a cada turno e avisa antes de um golpe carregado. As estrelas dependem dos erros. As regras de dano ficam em `src/logic/battle.ts` e os sprites em pixel art em `src/data/sprites.ts`. Os mapas são gerados de forma determinística (`src/logic/questMap.ts`) e as perguntas vêm de `src/logic/questTopics.ts`; os testes conferem que todo mapa é jogável e que toda resposta está certa. O **modo professor** (na biblioteca de livros) libera todos os livros e fases.
 
 ## Rodar local
 
