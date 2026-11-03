@@ -122,7 +122,7 @@ export default function CalcSoma() {
   const problemaOriginal = additionProblems[idx]
 
   return (
-    <PresentationMode title="Cálculo Mental — Soma">
+    <PresentationMode title="Cálculo Mental: Soma">
       <div className="mx-auto max-w-6xl overflow-x-hidden">
         <SimulatorHeader id="soma">Compensação aditiva com material dourado: transfira unidades de uma parcela para a outra, ou edite os valores, e compare com a conta inicial.</SimulatorHeader>
         <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:mb-6 sm:p-4"><div className="flex flex-wrap items-center gap-1.5 sm:gap-2"><span className="mb-1 mr-1 w-full text-xs font-semibold text-slate-600 sm:mb-0 sm:w-auto sm:text-sm">Escolha o problema:</span>{additionProblems.map((p, i) => <button type="button" key={p.id} aria-label={`Problema ${p.id}: ${p.a} + ${p.b}`} aria-current={i === idx ? 'true' : undefined} onClick={() => setIdx(i)} className={`min-h-[44px] rounded-xl border-2 px-3 py-2 text-xs font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:px-3.5 sm:text-sm ${i === idx ? 'border-blue-600 bg-blue-600 text-white shadow' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}>{p.a} + {p.b}</button>)}</div><p className="mt-2 text-xs leading-relaxed text-slate-500 sm:mt-3 sm:text-sm">{problemaOriginal.description}</p></div>

@@ -170,7 +170,7 @@ export default function CalcSubtracao() {
   const orig = subtractionProblems[idx]
 
   return (
-    <PresentationMode title="Cálculo Mental — Subtração">
+    <PresentationMode title="Cálculo Mental: Subtração">
       <div className="mx-auto max-w-6xl overflow-x-hidden">
         <SimulatorHeader id="subtracao">Some ou subtraia o mesmo valor dos dois números e veja, na reta numérica, que a distância entre eles (a diferença) não muda.</SimulatorHeader>
 

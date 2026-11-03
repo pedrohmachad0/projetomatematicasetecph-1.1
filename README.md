@@ -1,16 +1,27 @@
-# Plataforma de Simuladores Matemáticos Interativos — PEMFM
+# Simuladores Matemáticos Interativos — PEMFM
 
-Plataforma web educacional com Hub + 3 simuladores interativos, desenvolvida em **React + TypeScript + Vite + Tailwind + SVG + Framer Motion**.
+Plataforma web educacional com um catálogo de simuladores de Matemática para o Ensino Fundamental II e o Ensino Médio, além da aventura MathQuest (`/aprender`). Feita com **React + TypeScript + Vite + Tailwind + SVG + Framer Motion**.
 
 **Stack:** React 19, Vite 8, TypeScript 6, Tailwind 4, Framer Motion 13, Lucide React, Vitest + Testing Library, Oxlint/Prettier.
 
 ## Simuladores
 
-1. **Explorador de Pitágoras** (`/pitagoras`) — ângulo 10°–120° passo 10°, dois lados fixos de 10u, terceiro lado via Lei dos Cossenos, 3 quadrados (2 fixos + 1 dinâmico), classificação acutângulo/retângulo/obtusângulo com cor + texto, comparação `A²+B² <> C²`.
-2. **Cálculo Mental — Soma** (`/soma`) — 10 problemas em `src/data/additionProblems.ts`, material dourado (barras dezenas + cubos unidades), transferência mantém soma constante, destaque dezena exata, animação.
-3. **Cálculo Mental — Subtração** (`/subtracao`) — 10 problemas em `src/data/subtractionProblems.ts`, reta numérica SVG com marcações, deslocamento `-1/+1` mantém diferença, posição original tracejada, destaque dezena.
+| Rota | Simulador | Etapa | Área |
+| --- | --- | --- | --- |
+| `/soma` | Cálculo Mental: Soma (material dourado, compensação) | 6º ano | Aritmética |
+| `/subtracao` | Cálculo Mental: Subtração (reta numérica, deslocamento) | 6º ano | Aritmética |
+| `/fracoes` | Explorador de Frações | 6º ano | Frações |
+| `/porcentagem` | Explorador de Porcentagem | 7º ano | Porcentagem |
+| `/equacoes` | Balança de Equações (1º grau) | 7º ano | Álgebra |
+| `/estatistica` | Média, Mediana e Moda | 8º ano | Estatística |
+| `/pitagoras` | Explorador de Pitágoras | 9º ano | Geometria |
+| `/pi` | Explorador do Círculo (π, raio, arcos, setor) | 9º ano | Geometria |
+| `/funcoes` | Explorador de Funções (afim e quadrática) | 1º ano EM | Funções |
+| `/progressoes` | Progressões: PA e PG | 1º ano EM | Progressões |
+| `/trigonometria` | Círculo Trigonométrico | 2º ano EM | Trigonometria |
+| `/probabilidade` | Laboratório de Probabilidade | 2º ano EM | Probabilidade |
 
-Todos com SVG, Tailwind, acessibilidade (`aria-label`, foco visível, teclado), responsivo mobile/desktop/projetor/TV sem overflow.
+Todos seguem a filosofia do §31.3 de `regrasdoprojeto.md`: interação, cálculo em tempo real, representação visual em SVG, feedback textual e modo apresentação para projetor/TV, com tema claro e escuro.
 
 ## Rodar local
 
@@ -18,7 +29,7 @@ Todos com SVG, Tailwind, acessibilidade (`aria-label`, foco visível, teclado), 
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # tsc -b && vite build
-npm run test     # vitest run — 49 testes
+npm run test     # vitest run
 npm run lint     # oxlint
 ```
 
@@ -26,15 +37,22 @@ npm run lint     # oxlint
 
 ```
 src/
-├── components/{pitagoras,soma,subtracao}/
-├── pages/{Hub,Pitagoras,CalcSoma,CalcSubtracao}
-├── data/{additionProblems,subtractionProblems,mathContent}
-├── logic/{pitagoras,adicao,subtracao,calculoMental}
+├── components/   # componentes de cada simulador, SimulatorHeader, PresentationMode, ui/
+├── pages/        # uma página por simulador + Hub + Aprender (MathQuest)
+├── data/         # mathContent (catálogo), simulatorVisuals, problemas pré-configurados
+├── logic/        # lógica matemática pura e testável
 └── tests/
 ```
 
-Arquitetura preparada para expansão Fundamental II (6º–9º) e Médio (1º–3º) via `src/data/mathContent.ts`.
+## Como adicionar um simulador
+
+1. Crie a lógica em `src/logic/` e os testes em `src/tests/`.
+2. Crie a página em `src/pages/` usando `PresentationMode` e `SimulatorHeader`.
+3. Registre o conteúdo em `src/data/mathContent.ts` (nome, etapa, ano, área) e o ícone em `src/data/simulatorVisuals.ts`.
+4. Adicione a rota em `src/App.tsx`.
+
+O Hub, os filtros e o cabeçalho da página leem o nome e a classificação do catálogo, então eles não divergem.
 
 ---
 
-> Template base Vite + React. Ver `regrasdoprojeto.md` para regras técnicas e pedagógicas.
+Ver `regrasdoprojeto.md` para as regras técnicas e pedagógicas.

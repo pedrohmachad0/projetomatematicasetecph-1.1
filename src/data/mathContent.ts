@@ -106,7 +106,7 @@ export const mathContents: MathContent[] = [
     subject: 'Equações do 1º grau',
     interaction: 'balança',
     simulator: 'equacoes',
-    available: false,
+    available: true,
   },
   {
     id: 'estatistica',
@@ -118,7 +118,7 @@ export const mathContents: MathContent[] = [
     subject: 'Medidas de tendência central',
     interaction: 'gráfico',
     simulator: 'estatistica',
-    available: false,
+    available: true,
   },
   {
     id: 'pitagoras',
@@ -154,7 +154,7 @@ export const mathContents: MathContent[] = [
     subject: 'Função afim e quadrática',
     interaction: 'gráfico',
     simulator: 'funcoes',
-    available: false,
+    available: true,
   },
   {
     id: 'progressoes',
@@ -166,7 +166,7 @@ export const mathContents: MathContent[] = [
     subject: 'PA e PG',
     interaction: 'sequência',
     simulator: 'progressoes',
-    available: false,
+    available: true,
   },
   {
     id: 'trigonometria',
@@ -178,7 +178,7 @@ export const mathContents: MathContent[] = [
     subject: 'Seno, cosseno e tangente',
     interaction: 'geométrica',
     simulator: 'trigonometria',
-    available: false,
+    available: true,
   },
   {
     id: 'probabilidade',
@@ -190,7 +190,7 @@ export const mathContents: MathContent[] = [
     subject: 'Probabilidade',
     interaction: 'experimento',
     simulator: 'probabilidade',
-    available: false,
+    available: true,
   },
 ]
 
