@@ -1,4 +1,4 @@
-# Simuladores Matemáticos Interativos — PEMFM
+# Simuladores Matemáticos Interativos
 
 Plataforma web educacional com um catálogo de simuladores de Matemática para o Ensino Fundamental II e o Ensino Médio, além da aventura MathQuest (`/aprender`). Feita com **React + TypeScript + Vite + Tailwind + SVG + Framer Motion**.
 
@@ -54,5 +54,7 @@ src/
 O Hub, os filtros e o cabeçalho da página leem o nome e a classificação do catálogo, então eles não divergem.
 
 ---
+
+Feito no Colégio Estadual Barbosa Ferraz (Ivaiporã · PR). O logo original fica em `docs/logo-barbosa-original.png`; o site usa uma versão reduzida em `public/logo-barbosa.webp`.
 
 Ver `regrasdoprojeto.md` para as regras técnicas e pedagógicas.

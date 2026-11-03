@@ -32,6 +32,7 @@ import {
   PixelItem,
 } from '../components/learn/PixelArt'
 import { type ThemeContext } from '../components/Layout'
+import SchoolCredit from '../components/SchoolCredit'
 import '../styles/chapter.css'
 
 const positions = [
@@ -468,6 +469,7 @@ export default function Aprender() {
           </div>
         </main>
       )}
+      <SchoolCredit className="pb-6 pt-2" />
       {inventoryOpen && <Inventory progress={progress} onClose={() => setInventoryOpen(false)} />}
       {panel && (
         <div
