@@ -14,9 +14,11 @@ interface Props {
   sideC: number
   classification: Classification
   showAllAngles: boolean
+  /** Progresso (0 a 1) da água passando de A² e B² para C². */
+  pour?: number
 }
 
-export default function TriangleSVG({ angle, sideA, sideB, sideC, classification, showAllAngles }: Props) {
+export default function TriangleSVG({ angle, sideA, sideB, sideC, classification, showAllAngles, pour = 0 }: Props) {
   const color = getCorClassificacao(classification)
   const VISUAL_SIDE = 110
 
@@ -36,6 +38,12 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
   const sqC = buildExternalSquare(A, B, O)
 
   const poly = (pts: Point[]) => pts.map((p) => `${p.x},${p.y}`).join(' ')
+  const lerp = (p: Point, q: Point, t: number): Point => ({ x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t })
+  // Água: preenche o quadrado a partir do lado colado no triângulo.
+  const water = (sq: Point[], f: number) => (f <= 0 ? '' : poly([sq[0], sq[1], lerp(sq[1], sq[2], Math.min(1, f)), lerp(sq[0], sq[3], Math.min(1, f))]))
+  const ratio = (sideA * sideA + sideB * sideB) / (sideC * sideC)
+  const smallLevel = pour > 0 ? 1 - pour : 0
+  const bigLevel = pour * ratio
 
   const apexMarker = buildAngleMarker(O, A, B, 28, 42)
   const baseEdgeLength = Math.hypot(A.x - B.x, A.y - B.y)
@@ -84,6 +92,15 @@ export default function TriangleSVG({ angle, sideA, sideB, sideC, classification
           stroke={color}
           strokeWidth={3}
         />
+
+        {pour > 0 && (
+          <g>
+            <polygon points={water(sqA, smallLevel)} fill="#38bdf8" fillOpacity={0.75} />
+            <polygon points={water(sqB, smallLevel)} fill="#38bdf8" fillOpacity={0.75} />
+            <polygon points={water(sqC, bigLevel)} fill="#0ea5e9" fillOpacity={0.6} />
+            {bigLevel > 1.01 && <text x={(sqC[2].x + sqC[3].x) / 2} y={(sqC[2].y + sqC[3].y) / 2 - 10} textAnchor="middle" fontSize={13} fontWeight={900} fill="#0369a1">transbordou!</text>}
+          </g>
+        )}
 
         <motion.polygon
           key={`tri-${angle}`}

@@ -55,3 +55,38 @@ export function maxDeviation(experiment: Experiment, counts: number[]): number {
 export function formatPercent(value: number): string {
   return `${(value * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`
 }
+
+export interface Roll {
+  /** Índice do resultado em `outcomes`. */
+  index: number
+  /** Faces sorteadas: lado da moeda (0 cara, 1 coroa) ou valor de cada dado. */
+  faces: number[]
+}
+
+/** Um lançamento com os detalhes de cada moeda ou dado, para desenhar. */
+export function rollOnce(id: ExperimentId, random: () => number = Math.random): Roll {
+  const roll = () => Math.floor(random() * 6) + 1
+  if (id === 'moeda') {
+    const side = random() < 0.5 ? 0 : 1
+    return { index: side, faces: [side] }
+  }
+  if (id === 'dado') {
+    const face = roll()
+    return { index: face - 1, faces: [face] }
+  }
+  const a = roll()
+  const b = roll()
+  return { index: a + b - 2, faces: [a, b] }
+}
+
+/** Faz vários lançamentos e devolve as contagens e os últimos resultados. */
+export function runRolls(id: ExperimentId, trials: number, counts: number[], keep = 12, random: () => number = Math.random): { counts: number[]; last: Roll[] } {
+  const next = [...counts]
+  const last: Roll[] = []
+  for (let i = 0; i < trials; i++) {
+    const r = rollOnce(id, random)
+    next[r.index] += 1
+    if (i >= trials - keep) last.push(r)
+  }
+  return { counts: next, last }
+}

@@ -5,6 +5,7 @@ import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
 import SegmentedControl from '../components/ui/SegmentedControl'
 import TipBox from '../components/ui/TipBox'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import BalanceSVG from '../components/equacoes/BalanceSVG'
 import { equationProblems, type EquationProblem } from '../data/equationProblems'
 import { applyOperation, formatEquation, formatSide, isBalanced, isSolved, solutionOf, tilt, type Balance, type Operation, type Scope } from '../logic/equacoes'
@@ -53,7 +54,7 @@ function Workspace({ problem }: { problem: EquationProblem }) {
 
   return (
     <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
-      <Panel className="overflow-hidden">
+      <Panel stage className="overflow-hidden">
         <div className="mb-2 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Equação atual</p>
           <p className={`mt-1 font-mono text-3xl font-black sm:text-5xl ${balanced ? 'text-slate-900' : 'text-rose-700'}`} aria-live="polite">
@@ -119,6 +120,17 @@ function Workspace({ problem }: { problem: EquationProblem }) {
           </ol>
           {history.length === 0 && <p className="mt-2 text-xs text-slate-500">Suas operações aparecerão aqui.</p>}
         </Panel>
+      </div>
+      <div className="lg:col-span-2">
+        <ChallengeCard
+          simulator="equacoes"
+          goals={[
+            { id: 'resolver', text: 'Resolva uma equação até sobrar só x de um lado.', met: solved },
+            { id: 'desequilibrar', text: 'Faça uma operação em um lado só e veja a balança pender.', met: !balanced },
+            { id: 'dividir', text: 'Resolva uma equação com 3x ou mais (você vai precisar dividir).', met: solved && problem.a >= 3 },
+            { id: 'grande', text: 'Resolva a equação 5x + 5 = 30.', met: solved && problem.a === 5 && problem.b === 5 && problem.c === 30 },
+          ]}
+        />
       </div>
     </div>
   )

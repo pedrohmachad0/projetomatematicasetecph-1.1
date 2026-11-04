@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
 interface Props {
@@ -16,10 +17,20 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
   const max = Math.ceil(maxVal)
   const span = Math.max(1, max - min)
 
-  const W = 800
-  const H = 120
-  const pad = 24
-  const yLine = 60
+  // No celular a reta fica mais curta e os números, maiores, para caber sem rolar.
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.matchMedia?.('(max-width: 640px)').matches)
+  useEffect(() => {
+    const query = window.matchMedia?.('(max-width: 640px)')
+    if (!query) return
+    const update = () => setCompact(query.matches)
+    query.addEventListener?.('change', update)
+    return () => query.removeEventListener?.('change', update)
+  }, [])
+  const k = compact ? 1.75 : 1
+  const W = compact ? 460 : 800
+  const H = 150 * k
+  const pad = 24 * k
+  const yLine = 78 * k
   const scale = (x: number) => pad + ((x - min) / span) * (W - pad * 2)
 
   const left = Math.min(minuendo, subtraendo)
@@ -29,36 +40,25 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
   for (let v = min; v <= max; v++) ticks.push(v)
 
   return (
-    <div className="w-full overflow-x-auto overscroll-x-contain pb-1 -mb-1 touch-manipulation">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="120" className="min-w-[520px] sm:min-w-[560px] block" role="img" aria-label={`Reta numérica de ${min} a ${max}, minuendo ${minuendo}, subtraendo ${subtraendo}`}>
+    <div className="w-full pb-1 -mb-1 touch-manipulation">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="block h-auto" role="img" aria-label={`Reta numérica de ${min} a ${max}, minuendo ${minuendo}, subtraendo ${subtraendo}`}>
         {/* linha base */}
         <line x1={pad} x2={W - pad} y1={yLine} y2={yLine} stroke="#cbd5e1" strokeWidth={3} strokeLinecap="round" />
 
-        {/* segmento distância */}
-        <motion.line
-          key={`seg-${minuendo}-${subtraendo}`}
-          x1={scale(left)}
-          x2={scale(right)}
-          y1={yLine}
-          y2={yLine}
-          stroke={isDezena ? '#f59e0b' : '#2563eb'}
-          strokeWidth={10}
-          strokeLinecap="round"
-          opacity={0.9}
-          initial={{ scaleX: 0.8, opacity: 0 }}
-          animate={{ scaleX: 1, opacity: 0.9 }}
-          transition={{ duration: 0.4 }}
-        />
-        <text
-          x={(scale(left) + scale(right)) / 2}
-          y={yLine - 18}
-          textAnchor="middle"
-          fontSize={12}
-          fontWeight={800}
-          fill={isDezena ? '#b45309' : '#1d4ed8'}
-        >
-          dist. = {Math.abs(minuendo - subtraendo)}
-        </text>
+        {/* trena: a distância entre os dois números */}
+        <defs>
+          <pattern id="tape-ticks" width={(W - pad * 2) / span} height={10} patternUnits="userSpaceOnUse" x={pad}>
+            <rect width={1.5} height={6 * k} fill="#92400e" opacity={0.55} />
+          </pattern>
+        </defs>
+        <motion.rect initial={false} animate={{ x: scale(left), width: Math.max(0, scale(right) - scale(left)) }} transition={{ type: 'spring', stiffness: 180, damping: 22 }} y={yLine - 9 * k} height={18 * k} rx={4 * k} fill={isDezena ? '#fbbf24' : '#fde047'} stroke="#ca8a04" strokeWidth={1.5} />
+        <motion.rect initial={false} animate={{ x: scale(left), width: Math.max(0, scale(right) - scale(left)) }} transition={{ type: 'spring', stiffness: 180, damping: 22 }} y={yLine - 9 * k} height={18 * k} fill="url(#tape-ticks)" />
+        <motion.g initial={false} animate={{ x: (scale(left) + scale(right)) / 2 }} transition={{ type: 'spring', stiffness: 180, damping: 22 }}>
+          <rect x={-46 * k} y={yLine + 38 * k} width={92 * k} height={22 * k} rx={11 * k} fill={isDezena ? '#b45309' : '#1d4ed8'} />
+          <text y={yLine + 53 * k} textAnchor="middle" fontSize={12 * k} fontWeight={900} fill="#ffffff">
+            diferença {Math.abs(minuendo - subtraendo)}
+          </text>
+        </motion.g>
 
         {/* ticks */}
         {ticks.map((v) => {
@@ -69,96 +69,44 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
               <line
                 x1={scale(v)}
                 x2={scale(v)}
-                y1={yLine - (isMajor ? 14 : 7)}
-                y2={yLine + (isMajor ? 14 : 7)}
+                y1={yLine - (isMajor ? 14 : 7) * k}
+                y2={yLine + (isMajor ? 14 : 7) * k}
                 style={{ stroke: isTen ? 'var(--svg-ink)' : 'var(--svg-axis)' }}
                 strokeWidth={isTen ? 2 : 1.2}
               />
               {isMajor && (
                 <text
                   x={scale(v)}
-                  y={yLine + 28}
+                  y={yLine + 28 * k}
                   textAnchor="middle"
-                  fontSize={isTen ? 11 : 10}
+                  fontSize={(isTen ? 11 : 10) * k}
                   fontWeight={isTen ? 800 : 600}
                   style={{ fill: isTen ? 'var(--svg-ink)' : 'var(--svg-text)' }}
                 >
                   {v}
                 </text>
               )}
-              {isTen && <circle cx={scale(v)} cy={yLine} r={2.5} style={{ fill: 'var(--svg-ink)' }} opacity={0.15} />}
+              {isTen && <circle cx={scale(v)} cy={yLine} r={2.5 * k} style={{ fill: 'var(--svg-ink)' }} opacity={0.15} />}
             </g>
           )
         })}
 
-        {/* posições originais discretas */}
-        <g opacity={0.35}>
-          <circle cx={scale(origMinuendo)} cy={yLine + 36} r={5} fill="none" style={{ stroke: 'var(--svg-muted)' }} strokeWidth={1.5} strokeDasharray="3 3" />
-          <text x={scale(origMinuendo)} y={yLine + 50} textAnchor="middle" fontSize={9} style={{ fill: 'var(--svg-muted)' }} fontWeight={600}>
-            orig {origMinuendo}
-          </text>
-          <circle cx={scale(origSubtraendo)} cy={yLine + 36} r={5} fill="none" style={{ stroke: 'var(--svg-muted)' }} strokeWidth={1.5} strokeDasharray="3 3" />
-          <text x={scale(origSubtraendo)} y={yLine + 50} textAnchor="middle" fontSize={9} style={{ fill: 'var(--svg-muted)' }} fontWeight={600}>
-            orig {origSubtraendo}
-          </text>
-        </g>
-
-        {/* subtraendo */}
-        <g>
-          <motion.g
-            key={`sub-${subtraendo}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-          >
-            <circle
-              cx={scale(subtraendo)}
-              cy={yLine}
-              r={12}
-              style={{ fill: isDezena ? '#fef3c7' : 'var(--svg-surface)' }}
-              stroke={isDezena ? '#f59e0b' : '#7c3aed'}
-              strokeWidth={3}
-            />
-            <text
-              x={scale(subtraendo)}
-              y={yLine - 28}
-              textAnchor="middle"
-              fontSize={10}
-              fontWeight={800}
-              fill={isDezena ? '#b45309' : '#7c3aed'}
-            >
-              {subtraendo}
+        {[
+          { v: subtraendo, letter: 'S', color: isDezena ? '#b45309' : '#7c3aed', fill: isDezena ? '#fef3c7' : '#ede9fe' },
+          { v: minuendo, letter: 'M', color: '#2563eb', fill: '#dbeafe' },
+        ].map((pin) => (
+          <motion.g key={pin.letter} initial={false} animate={{ x: scale(pin.v) }} transition={{ type: 'spring', stiffness: 220, damping: 20 }}>
+            <line x1={0} x2={0} y1={yLine + 4} y2={yLine - 22 * k} stroke={pin.color} strokeWidth={3 * k} strokeLinecap="round" />
+            <circle cx={0} cy={yLine + 2} r={4 * k} fill={pin.color} />
+            <circle cx={0} cy={yLine - 38 * k} r={17 * k} fill={pin.fill} stroke={pin.color} strokeWidth={3 * k} />
+            <text y={yLine - 33 * k} textAnchor="middle" fontSize={15 * k} fontWeight={900} fill={pin.color}>
+              {pin.v}
             </text>
-            <text x={scale(subtraendo)} y={yLine + 4} textAnchor="middle" fontSize={9} fontWeight={900} fill={isDezena ? '#b45309' : '#7c3aed'}>
-              S
+            <text y={yLine - 62 * k} textAnchor="middle" fontSize={10 * k} fontWeight={900} fill={pin.color}>
+              {pin.letter === 'M' ? 'minuendo' : 'subtraendo'}
             </text>
           </motion.g>
-        </g>
-
-        {/* minuendo */}
-        <g>
-          <motion.g
-            key={`min-${minuendo}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <circle
-              cx={scale(minuendo)}
-              cy={yLine}
-              r={12}
-              style={{ fill: 'var(--svg-surface)' }}
-              stroke="#2563eb"
-              strokeWidth={3}
-            />
-            <text x={scale(minuendo)} y={yLine - 28} textAnchor="middle" fontSize={10} fontWeight={800} fill="#2563eb">
-              {minuendo}
-            </text>
-            <text x={scale(minuendo)} y={yLine + 4} textAnchor="middle" fontSize={9} fontWeight={900} fill="#2563eb">
-              M
-            </text>
-          </motion.g>
-        </g>
+        ))}
       </svg>
 
       <div className="flex flex-wrap justify-between sm:justify-between gap-1 sm:gap-2 text-[10px] sm:text-[11px] text-slate-500 px-1 -mt-1">
@@ -170,13 +118,9 @@ export default function RetaNumerica({ minuendo, subtraendo, origMinuendo, origS
           <span className="inline-flex items-center gap-1">
             <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border-2" style={{ borderColor: isDezena ? '#f59e0b' : '#7c3aed', background: isDezena ? '#fef3c7' : 'white' }} /> subtraendo
           </span>
-          <span className="inline-flex items-center gap-1 hidden sm:inline-flex">
-            <span className="w-3 h-3 rounded-full border border-slate-400 border-dashed" /> origem
-          </span>
         </span>
         <span className="hidden sm:inline">maior →</span>
       </div>
-      <p className="sm:hidden text-[10px] text-slate-400 text-center mt-1">← arraste para ver toda a reta →</p>
     </div>
   )
 }

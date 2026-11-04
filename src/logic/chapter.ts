@@ -98,6 +98,7 @@ export function generateChapterQuestions(level: number, random = Math.random): C
 }
 
 export function hintForQuestion(question: ChapterQuestion): string {
+  if (question.hint) return question.hint
   if (question.kind === 'truth')
     return 'Resolva a conta à esquerda e confira se o resultado mostrado está certo.'
   if (question.kind === 'missing') {
@@ -128,12 +129,16 @@ export function answerMatches(question: ChapterQuestion, input: string) {
   return question.answer === input
 }
 
-export function readChapterProgress(): ChapterProgress {
+/**
+ * Lê o progresso de um livro. `total` é o número de fases; a última é sempre o chefão
+ * (10 perguntas), as demais têm 8.
+ */
+export function readChapterProgress(storage = CHAPTER_STORAGE, total = 10): ChapterProgress {
   try {
-    const parsed = JSON.parse(localStorage.getItem(CHAPTER_STORAGE) || 'null')
+    const parsed = JSON.parse(localStorage.getItem(storage) || 'null')
     if (!parsed || !Array.isArray(parsed.completed)) return emptyProgress()
     const completed: number[] = []
-    for (let n = 1; n <= 10 && parsed.completed.includes(n); n++) completed.push(n)
+    for (let n = 1; n <= total && parsed.completed.includes(n); n++) completed.push(n)
     const best: ChapterProgress['best'] = {}
     for (const n of completed) {
       const record = parsed.best?.[n]
@@ -141,7 +146,7 @@ export function readChapterProgress(): ChapterProgress {
         record &&
         Number.isInteger(record.correct) &&
         record.correct >= 0 &&
-        record.correct <= (n === 10 ? 10 : 8) &&
+        record.correct <= (n === total ? 10 : 8) &&
         Number.isFinite(record.seconds) &&
         record.seconds >= 0
       )
@@ -162,10 +167,11 @@ export function recordVictory(
   level: number,
   correct: number,
   seconds: number,
+  total: number = chapterLevels.length,
 ) {
-  if (!chapterLevels[level - 1] || level > progress.completed.length + 1)
+  if (level < 1 || level > total || level > progress.completed.length + 1)
     return { progress, earned: 0 }
-  const earned = progress.completed.includes(level) ? 0 : level === 10 ? 300 : 100
+  const earned = progress.completed.includes(level) ? 0 : level === total ? 300 : 100
   const old = progress.best[level]
   return {
     earned,

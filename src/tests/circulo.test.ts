@@ -49,3 +49,33 @@ describe('getUnrolledDistance', () => {
     expect(getUnrolledDistance(4, Number.NaN)).toBe(0)
   })
 })
+
+describe('Dobrar o diâmetro sobre a circunferência', () => {
+  it('cabem 3 diâmetros inteiros e sobra π − 3 ≈ 0,14', async () => {
+    const { WHOLE_DIAMETERS, LEFTOVER_DIAMETERS, DIAMETER_ARC_RADIANS } = await import('../logic/circulo')
+    expect(WHOLE_DIAMETERS).toBe(3)
+    expect(LEFTOVER_DIAMETERS).toBeCloseTo(0.1416, 4)
+    expect(WHOLE_DIAMETERS * DIAMETER_ARC_RADIANS + LEFTOVER_DIAMETERS * DIAMETER_ARC_RADIANS).toBeCloseTo(2 * Math.PI, 10)
+  })
+
+  it('a régua tem sempre o comprimento do diâmetro: arco dobrado + parte reta', async () => {
+    const { rulerGeometry } = await import('../logic/circulo')
+    const r = 100
+    for (const wrap of [0, 0.25, 0.5, 0.9, 1]) {
+      const g = rulerGeometry(200, 200, r, 0, 1, wrap)
+      const arc = (g.arcEnd - g.arcStart) * r
+      const straight = Math.hypot(g.tip.x - g.touch.x, g.tip.y - g.touch.y)
+      expect(arc + straight).toBeCloseTo(2 * r, 6)
+    }
+  })
+
+  it('antes de girar, a régua fica deitada sobre o diâmetro; depois, tangente à borda', async () => {
+    const { rulerGeometry } = await import('../logic/circulo')
+    const flat = rulerGeometry(200, 200, 100, 0, 0, 0)
+    expect(flat.tip.x).toBeCloseTo(100, 6)
+    expect(flat.tip.y).toBeCloseTo(200, 6)
+    const tangent = rulerGeometry(200, 200, 100, 0, 1, 0)
+    expect(tangent.tip.x).toBeCloseTo(300, 6)
+    expect(tangent.tip.y).toBeCloseTo(0, 6)
+  })
+})

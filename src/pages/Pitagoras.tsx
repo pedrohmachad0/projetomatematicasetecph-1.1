@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Droplets } from 'lucide-react'
 import {
   FIXED_SIDE,
   MIN_ANGLE,
@@ -13,10 +14,32 @@ import AreaPanel from '../components/pitagoras/AreaPanel'
 import ClassificationMessage from '../components/pitagoras/ClassificationMessage'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
+import ChallengeCard from '../components/ui/ChallengeCard'
 
 export default function Pitagoras() {
   const [angle, setAngle] = useState(90)
   const [showAllAngles, setShowAllAngles] = useState(true)
+  const [pour, setPour] = useState(0)
+  const [pouring, setPouring] = useState(false)
+  const frame = useRef(0)
+  const changeAngle = (value: number) => {
+    setPour(0)
+    setPouring(false)
+    setAngle(value)
+  }
+
+  useEffect(() => {
+    if (!pouring) return
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 1800)
+      setPour(t)
+      if (t < 1) frame.current = requestAnimationFrame(tick)
+      else setPouring(false)
+    }
+    frame.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame.current)
+  }, [pouring])
 
   const estado = getEstadoCompleto(angle)
   const { sideA, sideB, sideC, areaA, areaB, areaC, sumAB, classification, comparison } = estado
@@ -40,7 +63,7 @@ export default function Pitagoras() {
               min={MIN_ANGLE}
               max={MAX_ANGLE}
               step={ANGLE_STEP}
-              onChange={setAngle}
+              onChange={changeAngle}
             />
             <label className="mt-4 flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
               <input
@@ -86,7 +109,7 @@ export default function Pitagoras() {
         </div>
 
         {/* Visualização SVG */}
-        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-3 sm:p-4 md:p-6 order-1 lg:order-2 flex flex-col items-center overflow-hidden">
+        <div className="sim-stage rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4 md:p-6 order-1 lg:order-2 flex flex-col items-center overflow-hidden">
           <TriangleSVG
             angle={angle}
             sideA={sideA}
@@ -94,7 +117,20 @@ export default function Pitagoras() {
             sideC={sideC}
             classification={classification}
             showAllAngles={showAllAngles}
+            pour={pour}
           />
+          <button type="button" onClick={() => { setPour(0); setPouring(true) }} disabled={pouring} className="mt-3 inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white shadow disabled:opacity-60">
+            <Droplets size={17} /> {pouring ? 'Despejando…' : 'Despejar a água de A² e B² em C²'}
+          </button>
+          {pour === 1 && (
+            <p role="status" className={`mt-2 rounded-xl border px-3 py-2 text-center text-sm font-semibold ${classification === 'retangulo' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
+              {classification === 'retangulo'
+                ? 'Encheu certinho! Em 90°, a água dos dois quadrados menores cabe exata no maior: A² + B² = C².'
+                : areaC > sumAB
+                  ? `Faltou água: com ${angle}°, C² (${areaC.toFixed(0)}) é maior que A² + B² (${sumAB}).`
+                  : `Transbordou: com ${angle}°, C² (${areaC.toFixed(0)}) é menor que A² + B² (${sumAB}).`}
+            </p>
+          )}
 
           <div className="mt-4 sm:mt-6 w-full max-w-xl grid grid-cols-3 gap-2 sm:gap-3 text-center">
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-2 sm:p-3">
@@ -112,6 +148,15 @@ export default function Pitagoras() {
           </div>
         </div>
       </div>
+      <ChallengeCard
+        simulator="pitagoras"
+        goals={[
+          { id: 'agua', text: 'Despeje a água num triângulo retângulo e veja encher certinho.', met: pour === 1 && classification === 'retangulo' },
+          { id: 'agudo-meio', text: 'Deixe o triângulo acutângulo com C² entre 100 e 150.', met: areaC > 100 && areaC < 150 },
+          { id: 'equilatero', text: 'Deixe o lado C igual aos outros dois (triângulo equilátero).', met: angle === 60 },
+          { id: 'c2-300', text: 'Faça a área C² passar de 300.', met: areaC > 300 },
+        ]}
+      />
     </div>
     </PresentationMode>
   )

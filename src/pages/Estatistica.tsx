@@ -1,9 +1,12 @@
-import { useState } from 'react'
-import { Minus, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Anchor, Minus, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import PresentationMode from '../components/PresentationMode'
 import SimulatorHeader from '../components/SimulatorHeader'
 import Panel from '../components/ui/Panel'
 import TipBox from '../components/ui/TipBox'
+import ChallengeCard from '../components/ui/ChallengeCard'
+import { useCompact } from '../components/ui/useCompact'
 import { describeModes, frequencies, mean, median, modes, range, sortValues } from '../logic/estatistica'
 
 const MIN = 0
@@ -23,56 +26,119 @@ function format(value: number) {
   return value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
 }
 
-function DotPlot({ values }: { values: number[] }) {
+interface PlotProps {
+  values: number[]
+  /** Posição do apoio da gangorra; `null` = apoio na média. */
+  pivot: number | null
+  onPivot: (value: number) => void
+  onAdd: (value: number) => void
+  onRemove: (value: number) => void
+}
+
+const LEFT = 36
+const RIGHT = 26
+const BASE = 210
+
+/** Gráfico de pontos em cima de uma gangorra: ela só fica reta com o apoio na média. */
+function DotPlot({ values, pivot, onPivot, onAdd, onRemove }: PlotProps) {
+  const svg = useRef<SVGSVGElement>(null)
+  const dragging = useRef(false)
+  // No celular a régua fica mais curta, para os números e as bolinhas ficarem maiores.
+  const compact = useCompact()
+  const PW = compact ? 440 : 640
+  const k = compact ? 1.25 : 1
+  const scaleX = (value: number) => LEFT + ((value - MIN) / (MAX - MIN)) * (PW - LEFT - RIGHT)
+  const toValue = (x: number) => MIN + ((x - LEFT) / (PW - LEFT - RIGHT)) * (MAX - MIN)
   const counts = frequencies(values, MIN, MAX)
   const highest = Math.max(4, ...counts)
-  const width = 640
-  const left = 30
-  const right = 20
-  const base = 250
-  const dot = Math.min(20, 200 / highest)
-  const scale = (value: number) => left + ((value - MIN) / (MAX - MIN)) * (width - left - right)
+  const dot = Math.min(compact ? 26 : 22, 150 / highest)
   const average = mean(values)
   const middle = median(values)
   const found = modes(values)
+  const support = pivot ?? average
+  const angle = Math.max(-12, Math.min(12, (average - support) * 5))
+  const px = scaleX(support)
+
+  function svgX(event: ReactPointerEvent) {
+    const ctm = svg.current?.getScreenCTM()
+    if (!ctm) return null
+    return new DOMPoint(event.clientX, event.clientY).matrixTransform(ctm.inverse()).x
+  }
 
   return (
-    <svg viewBox="0 0 640 320" className="block h-auto w-full" role="img" aria-label={`Gráfico de pontos com ${values.length} valores. Média ${format(average)}, mediana ${format(middle)}.`}>
-      <line x1={left - 10} x2={width - right + 10} y1={base} y2={base} strokeWidth={2} style={{ stroke: 'var(--svg-axis)' }} />
-      {counts.map((count, i) => {
-        const value = MIN + i
-        const isMode = found.includes(value)
-        return (
-          <g key={value}>
-            <line x1={scale(value)} x2={scale(value)} y1={base} y2={base + 6} strokeWidth={2} style={{ stroke: 'var(--svg-axis)' }} />
-            <text x={scale(value)} y={base + 24} textAnchor="middle" fontSize={14} fontWeight={800} style={{ fill: 'var(--svg-text)' }}>
-              {value}
-            </text>
-            {Array.from({ length: count }, (_, k) => (
-              <circle key={k} cx={scale(value)} cy={base - dot / 2 - 2 - k * (dot + 2)} r={dot / 2} fill={isMode ? '#7c3aed' : '#2563eb'} stroke="#ffffff" strokeWidth={1.5} />
-            ))}
-          </g>
-        )
-      })}
-      {values.length > 0 && (
-        <>
-          <line x1={scale(middle)} x2={scale(middle)} y1={30} y2={base} stroke={MEDIAN_COLOR} strokeWidth={3} strokeDasharray="6 5" />
-          <text x={scale(middle)} y={22} textAnchor="middle" fontSize={13} fontWeight={900} fill={MEDIAN_COLOR}>
-            mediana {format(middle)}
-          </text>
-          <line x1={scale(average)} x2={scale(average)} y1={44} y2={base} stroke={MEAN_COLOR} strokeWidth={3} />
-          <path d={`M ${scale(average)} ${base + 30} l -9 14 h 18 z`} fill={MEAN_COLOR} />
-          <text x={scale(average)} y={base + 44 + 14} textAnchor="middle" fontSize={13} fontWeight={900} fill={MEAN_COLOR}>
-            média {format(average)}
-          </text>
-        </>
-      )}
+    <svg
+      ref={svg}
+      viewBox={`0 0 ${PW} 320`}
+      className="block h-auto w-full touch-manipulation select-none"
+      role="img"
+      aria-label={`Gráfico de pontos com ${values.length} valores. Média ${format(average)}, mediana ${format(middle)}.`}
+      onPointerMove={(event) => {
+        if (!dragging.current) return
+        const x = svgX(event)
+        if (x !== null) onPivot(Math.max(MIN, Math.min(MAX, Math.round(toValue(x) * 4) / 4)))
+      }}
+      onPointerUp={() => (dragging.current = false)}
+      onPointerCancel={() => (dragging.current = false)}
+    >
+      <defs>
+        <linearGradient id="plank" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#d6a26b" />
+          <stop offset="1" stopColor="#8b5a2b" />
+        </linearGradient>
+      </defs>
+      <line x1={scaleX(middle)} x2={scaleX(middle)} y1={26} y2={BASE} stroke={MEDIAN_COLOR} strokeWidth={3} strokeDasharray="6 5" />
+      <text x={scaleX(middle)} y={18} textAnchor="middle" fontSize={13 * k} fontWeight={900} fill={MEDIAN_COLOR}>
+        mediana {format(middle)}
+      </text>
+
+      <motion.g initial={false} animate={{ rotate: angle }} transition={{ type: 'spring', stiffness: 90, damping: 12 }} style={{ originX: `${px}px`, originY: `${BASE + 11}px`, transformBox: 'view-box' }}>
+        <rect x={LEFT - 22} y={BASE} width={PW - LEFT - RIGHT + 44} height={24} rx={8} fill="url(#plank)" stroke="#6b4423" strokeWidth={1.5} />
+        {counts.map((count, i) => {
+          const value = MIN + i
+          const isMode = found.includes(value)
+          return (
+            <g key={value}>
+              <rect x={scaleX(value) - 20} y={BASE - 200} width={40} height={200} fill="transparent" style={{ cursor: 'copy' }} onClick={() => onAdd(value)} />
+              <text x={scaleX(value)} y={BASE + 17} textAnchor="middle" fontSize={14 * k} fontWeight={900} fill="#ffffff" style={{ pointerEvents: 'none' }}>
+                {value}
+              </text>
+              <AnimatePresence>
+                {Array.from({ length: count }, (_, k) => (
+                  <motion.g key={k} initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -40, opacity: 0 }} transition={{ type: 'spring', stiffness: 420, damping: 20 }}>
+                    <circle cx={scaleX(value)} cy={BASE - dot / 2 - 2 - k * (dot + 2)} r={dot / 2} fill={isMode ? '#7c3aed' : '#2563eb'} stroke="#ffffff" strokeWidth={2} style={{ cursor: 'pointer' }} onClick={() => onRemove(value)} />
+                    <circle cx={scaleX(value) - dot / 6} cy={BASE - dot / 2 - 2 - k * (dot + 2) - dot / 6} r={dot / 7} fill="#ffffff" opacity={0.45} style={{ pointerEvents: 'none' }} />
+                  </motion.g>
+                ))}
+              </AnimatePresence>
+              {isMode && count > 0 && (
+                <text x={scaleX(value)} y={BASE - count * (dot + 2) - 10} textAnchor="middle" fontSize={16} style={{ pointerEvents: 'none' }}>
+                  👑
+                </text>
+              )}
+            </g>
+          )
+        })}
+      </motion.g>
+
+      {/* Apoio (triângulo) arrastável */}
+      <motion.g initial={false} animate={{ x: px }} transition={{ type: 'spring', stiffness: 200, damping: 22 }}>
+        <path d={`M 0 ${BASE + 26} L -26 ${BASE + 72} L 26 ${BASE + 72} Z`} fill={MEAN_COLOR} stroke="#7c2d12" strokeWidth={2} style={{ cursor: 'ew-resize', touchAction: 'none' }} onPointerDown={(event) => {
+          ;(event.target as Element).setPointerCapture?.(event.pointerId)
+          dragging.current = true
+        }} />
+        <text y={BASE + 96} textAnchor="middle" fontSize={13 * k} fontWeight={900} fill={MEAN_COLOR}>
+          {pivot === null ? `média ${format(average)}` : `apoio em ${format(support)}`}
+        </text>
+      </motion.g>
+      <rect x={20} y={BASE + 72} width={PW - 40} height={6} rx={3} style={{ fill: 'var(--svg-grid)' }} />
     </svg>
   )
 }
 
 export default function Estatistica() {
   const [values, setValues] = useState<number[]>(presets[0].values)
+  const [pivot, setPivot] = useState<number | null>(null)
+  const [balancedTest, setBalancedTest] = useState(false)
   const average = mean(values)
   const middle = median(values)
   const found = modes(values)
@@ -100,8 +166,30 @@ export default function Estatistica() {
 
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4 sm:space-y-5">
-          <Panel title="Gráfico de pontos">
-            <DotPlot values={values} />
+          <Panel stage title="Gangorra dos dados">
+            <DotPlot
+              values={values}
+              pivot={pivot}
+              onPivot={(p) => {
+                setPivot(p)
+                if (Math.abs(p - average) < 0.13) setBalancedTest(true)
+              }}
+              onAdd={(v) => values.length < MAX_ITEMS && setValues((items) => [...items, v])}
+              onRemove={(v) => values.length > 1 && setValues((items) => items.filter((_, i) => i !== items.indexOf(v)))}
+            />
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button type="button" aria-pressed={pivot !== null} onClick={() => setPivot(pivot === null ? Math.max(MIN, Math.round(average) - 2) : null)} className={`inline-flex min-h-[44px] items-center gap-2 rounded-xl px-4 text-sm font-black ${pivot === null ? 'bg-blue-700 text-white' : 'border border-orange-200 bg-orange-50 text-orange-800'}`}>
+                <Anchor size={16} /> {pivot === null ? 'Testar outro ponto de apoio' : 'Voltar o apoio para a média'}
+              </button>
+              <p role="status" className="flex-1 text-sm font-semibold text-slate-700">
+                {pivot === null
+                  ? 'A gangorra fica reta com o apoio na média: a média é o ponto de equilíbrio dos dados.'
+                  : Math.abs(pivot - average) < 0.13
+                    ? 'Equilibrou! Esse ponto é a média.'
+                    : `Arraste o triângulo laranja. Com o apoio em ${format(pivot)}, a gangorra pende para a ${pivot < average ? 'direita' : 'esquerda'}.`}
+              </p>
+            </div>
+            <p className="mt-2 text-xs font-semibold text-slate-500">Toque acima de um número da régua para colocar um valor; toque numa bolinha para tirá-la.</p>
             <div className="mt-1 flex flex-wrap justify-center gap-3 text-xs font-semibold text-slate-600">
               <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-[#2563eb]" /> valor</span>
               <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-[#7c3aed]" /> moda</span>
@@ -179,6 +267,15 @@ export default function Estatistica() {
         </div>
       </div>
 
+      <ChallengeCard
+        simulator="estatistica"
+        goals={[
+          { id: 'bimodal', text: 'Monte um conjunto com exatamente duas modas.', met: found.length === 2 },
+          { id: 'media-oito', text: 'Deixe a média exatamente 8 com pelo menos 6 valores.', met: values.length >= 6 && Math.abs(average - 8) < 1e-9 },
+          { id: 'equilibrio', text: 'Teste outro apoio e arraste o triângulo até a gangorra equilibrar.', met: balancedTest },
+          { id: 'media-mediana', text: 'Com 9 valores ou mais, deixe a média igual à mediana.', met: values.length >= 9 && Math.abs(average - middle) < 1e-9 },
+        ]}
+      />
       <TipBox>
         <strong>Experimente:</strong> escolha “Com um valor discrepante”. A nota 0 puxa a média para baixo, mas quase não mexe na mediana. Por isso a mediana é mais resistente a valores muito diferentes dos outros.
       </TipBox>

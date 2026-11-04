@@ -6,7 +6,10 @@ import Panel from '../components/ui/Panel'
 import NumberControl from '../components/ui/NumberControl'
 import SegmentedControl from '../components/ui/SegmentedControl'
 import TipBox from '../components/ui/TipBox'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import CartesianPlane from '../components/graph/CartesianPlane'
+import FunctionMachine from '../components/graph/FunctionMachine'
+import { Cog, Eye, EyeOff } from 'lucide-react'
 import { createScale, plotPath } from '../logic/plane'
 import {
   affineBehavior,
@@ -42,6 +45,9 @@ export default function Funcoes() {
   const [kind, setKind] = useState<FunctionKind>('afim')
   const [coefficients, setCoefficients] = useState<Coefficients>(defaults.afim)
   const [pointX, setPointX] = useState(1)
+  const [run, setRun] = useState(0)
+  const [dots, setDots] = useState<number[]>([])
+  const [showCurve, setShowCurve] = useState(true)
   const { a, b, c } = coefficients
   const isQuadratic = kind === 'quadratica' && a !== 0
   const f = (x: number) => evaluate(kind, coefficients, x)
@@ -54,10 +60,18 @@ export default function Funcoes() {
   function changeKind(next: FunctionKind) {
     setKind(next)
     setCoefficients(defaults[next])
+    setDots([])
   }
 
   function set(key: keyof Coefficients, value: number) {
     setCoefficients((current) => ({ ...current, [key]: value }))
+    setDots([])
+  }
+
+  function feed() {
+    setRun((v) => v + 1)
+    const x = pointX
+    window.setTimeout(() => setDots((list) => (list.includes(x) ? list : [...list, x])), 1100)
   }
 
   return (
@@ -65,17 +79,29 @@ export default function Funcoes() {
       <SimulatorHeader id="funcoes" />
 
       <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[1fr_380px]">
-        <Panel>
+        <Panel stage>
           <p className="mb-2 text-center font-mono text-2xl font-black sm:text-3xl" aria-live="polite">
             <span className="accent-text" style={{ ['--accent' as string]: CURVE }}>{formatLaw(kind, coefficients)}</span>
           </p>
+          <FunctionMachine x={pointX} y={pointY} law={formatLaw(kind, coefficients).replace('f(x) = ', '')} run={run} format={fmt} />
+          <div className="mb-3 mt-1 flex flex-wrap items-center justify-center gap-2">
+            <button type="button" onClick={feed} className="inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white shadow">
+              <Cog size={17} /> Jogar x = {fmt(pointX)} na máquina
+            </button>
+            <button type="button" aria-pressed={!showCurve} onClick={() => setShowCurve((v) => !v)} className="inline-flex min-h-[48px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700">
+              {showCurve ? <EyeOff size={16} /> : <Eye size={16} />} {showCurve ? 'Esconder a curva' : 'Mostrar a curva'}
+            </button>
+          </div>
           <CartesianPlane scale={scale} label={`Gráfico de ${formatLaw(kind, coefficients)}`}>
-            <path d={plotPath(f, scale)} fill="none" stroke={CURVE} strokeWidth={3.5} strokeLinecap="round" />
-            {roots.map((root) => (
+            {showCurve && <path d={plotPath(f, scale)} fill="none" stroke={CURVE} strokeWidth={3.5} strokeLinecap="round" opacity={dots.length > 0 ? 0.55 : 1} />}
+            {dots.map((dx) => (
+              <circle key={dx} cx={scale.toX(dx)} cy={scale.toY(f(dx))} r={6} fill="#f59e0b" stroke="#ffffff" strokeWidth={2} />
+            ))}
+            {showCurve && roots.map((root) => (
               <circle key={root} cx={scale.toX(root)} cy={scale.toY(0)} r={6} fill="#ffffff" stroke={CURVE} strokeWidth={3} />
             ))}
-            <circle cx={scale.toX(0)} cy={scale.toY(f(0))} r={6} fill="#0f766e" stroke="#ffffff" strokeWidth={2} />
-            {top && <rect x={scale.toX(top.x) - 6} y={scale.toY(top.y) - 6} width={12} height={12} fill="#7c3aed" stroke="#ffffff" strokeWidth={2} transform={`rotate(45 ${scale.toX(top.x)} ${scale.toY(top.y)})`} />}
+            {showCurve && <circle cx={scale.toX(0)} cy={scale.toY(f(0))} r={6} fill="#0f766e" stroke="#ffffff" strokeWidth={2} />}
+            {showCurve && top && <rect x={scale.toX(top.x) - 6} y={scale.toY(top.y) - 6} width={12} height={12} fill="#7c3aed" stroke="#ffffff" strokeWidth={2} transform={`rotate(45 ${scale.toX(top.x)} ${scale.toY(top.y)})`} />}
             <line x1={scale.toX(pointX)} x2={scale.toX(pointX)} y1={scale.toY(0)} y2={scale.toY(pointY)} stroke="#2563eb" strokeWidth={2} strokeDasharray="5 4" />
             <circle cx={scale.toX(pointX)} cy={scale.toY(pointY)} r={7} fill="#2563eb" stroke="#ffffff" strokeWidth={2} />
           </CartesianPlane>
@@ -135,6 +161,15 @@ export default function Funcoes() {
         </div>
       </div>
 
+      <ChallengeCard
+        simulator="funcoes"
+        goals={[
+          { id: 'pontos', text: 'Esconda a curva e jogue 5 valores de x na máquina: veja os pontos desenharem o gráfico.', met: !showCurve && dots.length >= 5 },
+          { id: 'decrescente-3', text: 'Faça uma reta decrescente que corte o eixo y em 3.', met: kind === 'afim' && a < 0 && b === 3 },
+          { id: 'sem-raiz', text: 'Monte uma parábola que não toque o eixo x.', met: isQuadratic && delta < 0 },
+          { id: 'vertice', text: 'Monte uma parábola com vértice em (2, −1).', met: isQuadratic && top !== null && top.x === 2 && top.y === -1 },
+        ]}
+      />
       <TipBox>
         <strong>Experimente:</strong> na função afim, mude só o <strong>b</strong> e veja a reta subir ou descer sem mudar a inclinação. Na quadrática, deixe <strong>Δ</strong> negativo e observe a parábola deixar de tocar o eixo x.
       </TipBox>

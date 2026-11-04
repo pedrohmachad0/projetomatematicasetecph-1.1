@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { RotateCcw, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react'
 import { additionProblems, type AdditionProblem } from '../data/additionProblems'
 import { transferir, isDezenaExata, podeTransferir } from '../logic/adicao'
-import MaterialDourado from '../components/soma/MaterialDourado'
+import MaterialDourado, { UnitCube } from '../components/soma/MaterialDourado'
 import PresentationMode from '../components/PresentationMode'
+import ChallengeCard from '../components/ui/ChallengeCard'
 import SimulatorHeader from '../components/SimulatorHeader'
 
 const MAX_VALUE = 120
@@ -23,6 +24,7 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
   const [a, setA] = useState(problema.a)
   const [b, setB] = useState(problema.b)
   const [animDelta, setAnimDelta] = useState<number | null>(null)
+  const [flight, setFlight] = useState(0)
 
   const soma = a + b
   const somaOriginal = problema.a + problema.b
@@ -40,6 +42,7 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
     if (!podeTransferir(a, b, delta)) return
     const { novoA, novoB } = transferir(a, b, delta)
     setAnimDelta(delta)
+    setFlight((v) => v + 1)
     setA(novoA)
     setB(novoB)
     window.setTimeout(() => setAnimDelta(null), 800)
@@ -56,7 +59,7 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
 
   return (
     <>
-      <div className="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 text-center shadow-sm sm:mb-6 sm:p-5">
+      <div className="sim-stage mb-4 overflow-hidden rounded-2xl border border-slate-200 p-3 text-center shadow-sm sm:mb-6 sm:p-5">
         <p className="mb-2 text-[11px] font-medium text-slate-500">Clique em um número para editá-lo.</p>
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-4">
           <motion.input initial={{ scale: 0.9 }} animate={{ scale: 1 }} type="number" min="0" max={MAX_VALUE} inputMode="numeric" value={a} onChange={(event) => updateValue(event.target.value, setA)} className={`${numberInputClass} ${isADezena ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-slate-200 bg-slate-50 text-slate-800'}`} aria-label="Parcela A" />
@@ -91,7 +94,7 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
         </AnimatePresence>
         </div>
 
-        <div className="mx-auto mt-2 min-h-[58px] max-w-2xl">
+        <div className="mx-auto mt-2 max-w-2xl">
           {(isADezena || isBDezena) && (
             <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left">
               <Lightbulb className="mt-0.5 shrink-0 text-amber-600" size={16} />
@@ -101,7 +104,23 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
         </div>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-[1fr_auto_1fr]">
+      <div className="relative grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-[1fr_auto_1fr]">
+        <AnimatePresence>
+          {animDelta !== null && (
+            <motion.div
+              key={flight}
+              className="pointer-events-none absolute top-[45%] z-10 hidden lg:flex"
+              initial={{ left: animDelta > 0 ? '18%' : '78%', y: 0, opacity: 0, scale: 0.6 }}
+              animate={{ left: animDelta > 0 ? '78%' : '18%', y: [0, -70, 0], opacity: [0, 1, 1, 0], scale: 1.2 }}
+              transition={{ duration: 0.75, ease: 'easeInOut' }}
+              aria-hidden="true"
+            >
+              {Array.from({ length: Math.min(5, Math.abs(animDelta)) }, (_, i) => (
+                <UnitCube key={i} cor={animDelta > 0 ? '#2563eb' : '#7c3aed'} size={24} />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
         <MaterialDourado valor={a} label="PARCELA A" destacado={isADezena} cor="#2563eb" />
         <div className="order-first grid grid-cols-2 gap-2 py-1 sm:gap-3 lg:order-none lg:grid-cols-1 lg:py-2">
           <button type="button" aria-label="Transferir 1 unidade de B para A" onClick={() => doTransfer(-1)} disabled={!podeTransferir(a, b, -1)} className="inline-flex min-h-[48px] items-center justify-center gap-1 rounded-xl bg-blue-600 px-3 py-3 text-sm font-bold text-white shadow transition hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"><ChevronLeft size={16} /> 1 para A</button>
@@ -112,6 +131,15 @@ function SomaWorkspace({ problema, showResult, setShowResult }: SomaWorkspacePro
         </div>
         <MaterialDourado valor={b} label="PARCELA B" destacado={isBDezena} cor="#7c3aed" />
       </div>
+      <ChallengeCard
+        simulator="soma"
+        goals={[
+          { id: 'dezena', text: 'Transfira unidades até uma parcela virar dezena exata (como 12 + 27 → 10 + 29).', met: constante && (isADezena || isBDezena) && a !== problema.a },
+          { id: 'duas-dezenas', text: 'Deixe as duas parcelas como dezenas exatas sem mudar a soma (dica: tente 26 + 14).', met: constante && isADezena && isBDezena && a > 0 && b > 0 },
+          { id: 'zero', text: 'Passe todas as unidades para um lado só, até a outra parcela virar 0.', met: constante && (a === 0 || b === 0) },
+          { id: 'cinquenta', text: 'Edite os números e monte uma conta que dá exatamente 50.', met: soma === 50 && (a !== problema.a || b !== problema.b) },
+        ]}
+      />
     </>
   )
 }

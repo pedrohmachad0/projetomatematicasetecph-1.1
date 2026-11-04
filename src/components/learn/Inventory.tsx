@@ -23,15 +23,18 @@ const itemSlots: Partial<Record<number, Slot>> = {
   9: 'right',
   10: 'helmet',
 }
-export const coinsForLevel = (level: number) => (level === 10 ? 100 : 25)
-export const chapterCoins = (progress: ChapterProgress) =>
-  progress.completed.reduce((total, level) => total + coinsForLevel(level), 0)
+export const coinsForLevel = (level: number, total = 10) => (level === total ? 100 : 25)
+export const chapterCoins = (progress: ChapterProgress, total = 10) =>
+  progress.completed.reduce((sum, level) => sum + coinsForLevel(level, total), 0)
 
 export default function Inventory({
   progress,
+  coins,
   onClose,
 }: {
   progress: ChapterProgress
+  /** Moedas disponíveis (ganhas menos gastas). Sem ela, mostra as ganhas nas fases. */
+  coins?: number
   onClose: () => void
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
@@ -99,9 +102,9 @@ export default function Inventory({
           <Coins size={28} />
           <div>
             <strong>
-              {chapterCoins(progress)} <span>moedas</span>
+              {coins ?? chapterCoins(progress)} <span>moedas</span>
             </strong>
-            <small>25 por fase · 100 ao vencer Grum · uma vez por missão</small>
+            <small>25 por fase · 100 ao vencer Grum · bônus por combos e no Desafio Relâmpago</small>
           </div>
           <span className="inventory-level">Nível {Math.floor(progress.xp / 300) + 1}</span>
         </div>

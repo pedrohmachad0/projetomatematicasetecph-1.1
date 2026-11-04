@@ -13,6 +13,9 @@ const gradesByLevel: Record<EducationLevel, Grade[]> = {
   medio: ['1º ano', '2º ano', '3º ano'],
 }
 
+const stageOrder = (Object.keys(gradesByLevel) as EducationLevel[]).flatMap((level) => gradesByLevel[level].map((grade) => `${level}:${grade}`))
+const stageIndex = (level: EducationLevel, grade: Grade) => stageOrder.indexOf(`${level}:${grade}`)
+
 const selectClass =
   'mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
 
@@ -21,7 +24,7 @@ export default function Hub() {
   const [gradeFilter, setGradeFilter] = useState<GradeFilter>('todos')
   const [categoryFilter, setCategoryFilter] = useState('todas')
 
-  const available = useMemo(() => mathContents.filter((content) => content.available && content.simulator), [])
+  const available = useMemo(() => mathContents.filter((content) => content.available && content.simulator).sort((a, b) => stageIndex(a.educationLevel, a.grade) - stageIndex(b.educationLevel, b.grade)), [])
   const categories = useMemo(() => [...new Set(available.map((content) => content.category))], [available])
   const visibleContents = available.filter(
     (content) =>
@@ -140,22 +143,24 @@ export default function Hub() {
                 className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 active:scale-[0.98]"
                 style={{ ['--accent' as string]: color }}
               >
-                <div className="h-1.5 shrink-0" style={{ background: color }} aria-hidden="true" />
-                <div className="flex flex-1 flex-col p-4 sm:p-5">
-                  <div className="mb-3 flex items-start gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: color }} aria-hidden="true">
-                      <Icon size={22} />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="accent-text text-[11px] font-black uppercase tracking-wide">{content.category}</p>
-                      <p className="text-xs font-semibold text-slate-500">
-                        {educationLevelLabels[content.educationLevel]} · {content.grade}
-                      </p>
-                    </div>
+                <div className="sim-hero relative flex h-[86px] shrink-0 items-center gap-3 overflow-hidden px-4 text-white sm:px-5" aria-hidden="true">
+                  <span className="pointer-events-none absolute -right-2 -top-4 font-serif text-[88px] font-black leading-none text-white/15 transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-110">
+                    <Icon size={96} strokeWidth={1.5} />
+                  </span>
+                  <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20 ring-1 ring-white/30 transition-transform duration-300 group-hover:scale-110">
+                    <Icon size={24} />
+                  </span>
+                  <div className="relative min-w-0">
+                    <p className="text-[11px] font-black uppercase leading-tight tracking-wide text-white">{content.category}</p>
+                    <p className="text-xs font-semibold text-white/80">
+                      {educationLevelLabels[content.educationLevel]} · {content.grade}
+                    </p>
                   </div>
+                </div>
+                <div className="flex flex-1 flex-col p-4 sm:p-5">
                   <h2 className="mb-1.5 text-[17px] font-black leading-tight text-slate-900 sm:text-[19px]">{content.title}</h2>
                   <p className="mb-3 flex-1 text-[13px] leading-relaxed text-slate-600 sm:text-[14px]">{content.description}</p>
-                  <span className="accent-text inline-flex min-h-[36px] items-center gap-1.5 text-sm font-bold transition-all group-hover:gap-2.5">
+                  <span className="sim-accent-bg inline-flex min-h-[40px] w-fit items-center gap-1.5 rounded-xl px-4 text-sm font-black text-white shadow-sm transition-all group-hover:gap-2.5">
                     Abrir simulador <ArrowRight size={16} aria-hidden="true" />
                   </span>
                 </div>
