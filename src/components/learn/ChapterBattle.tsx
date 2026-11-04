@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import NumberPad from './NumberPad'
-import { ArrowLeft, ArrowRight, Backpack, Check, Clock3, Flame, Footprints, Heart, Hourglass, Search, Shield, Swords, Wind, X, Zap } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Backpack, Check, Clock3, Flame, Footprints, Heart, Hourglass, Search, Shield, ShieldHalf, Skull, Swords, Target, Wind, X, Zap } from 'lucide-react'
 import { BOSS_SECONDS, chapterLevels, type ChapterQuestion } from '../../data/chapter'
 import { enemies, powerUps, type Enemy, type PowerUpId } from '../../data/quest'
 import { answerMatches, formatTime, generateChapterQuestions, hintForQuestion } from '../../logic/chapter'
-import { enemyDamage, lensEliminations, MAX_ENERGY, MOVES, moveDamage, type MoveId } from '../../logic/battle'
+import { armorBreak, chargeEvery, enemyDamage, FURY_SECONDS, GUARDIAN_ARMOR, guardianPhase, lensEliminations, MAX_ENERGY, MOVES, moveDamage, pickWeakness, weaknessMultiplier, type BattleRole, type GuardianPhase, type MoveId } from '../../logic/battle'
 import { playSound, type SoundEffect } from '../../logic/sound'
 import { PixelFire, PixelOgre, PixelTree } from './PixelArt'
 import PixelCreature from './PixelCreature'
@@ -36,6 +37,8 @@ export interface BattleConfig {
   questions: ChapterQuestion[]
   /** Gera mais perguntas quando as primeiras acabam. */
   more?: () => ChapterQuestion[]
+  /** Monstro da trilha (batalha curta) ou guardião/chefão (com fases). Padrão: guardião. */
+  role?: BattleRole
 }
 
 const powerUpIcons: Record<PowerUpId, typeof Heart> = { pocao: Heart, lupa: Search, escudo: Shield, ampulheta: Hourglass }
@@ -45,6 +48,9 @@ const POTION_HEAL = 40
 type Stage = 'menu' | 'moves' | 'bag' | 'question' | 'result' | 'enemy' | 'over'
 type Action = { type: 'attack'; move: MoveId } | { type: 'dodge' }
 type Effect = { id: number; target: 'enemy' | 'player' | 'miss' | 'dodge' | 'heal'; text: string }
+
+/** Agora, em milissegundos (fora do desenho da tela). */
+const timestamp = () => Date.now()
 
 /** Segundos desde o início da batalha. */
 const secondsSince = (start: number) => Math.floor((Date.now() - start) / 1000)
@@ -63,6 +69,8 @@ export default function ChapterBattle({
   bigText = false,
   config,
   heroName = 'Você',
+  role: roleOverride,
+  embedded = false,
 }: {
   level: number
   heroName?: string
@@ -78,8 +86,15 @@ export default function ChapterBattle({
   noTimer?: boolean
   /** Letras maiores na pergunta e nas respostas. */
   bigText?: boolean
+  /** Força o tipo de batalha (útil sem `config`). */
+  role?: BattleRole
+  /** Batalha aberta por cima do mapa (não é a página principal). */
+  embedded?: boolean
 }) {
   const boss = config ? config.boss : level === 10
+  const role: BattleRole = roleOverride ?? config?.role ?? (boss ? 'boss' : 'guardian')
+  const minion = role === 'minion'
+  const Root = embedded ? 'div' : 'main'
   const enemy = config ? config.enemy : boss ? null : enemies[level - 1]
   const enemyName = enemy ? enemy.name : 'GRUM'
   const pool = useRef<ChapterQuestion[] | null>(null)
@@ -97,6 +112,12 @@ export default function ChapterBattle({
   const [lens, setLens] = useState(false)
   const [eliminated, setEliminated] = useState<string[]>([])
   const [bonusSeconds, setBonusSeconds] = useState(0)
+  // Sistemas do guardião: armadura, ponto fraco e fúria (ver logic/battle.ts).
+  const [armor, setArmor] = useState(minion ? 0 : GUARDIAN_ARMOR)
+  const [weak, setWeak] = useState<MoveId | null>(null)
+  const [banner, setBanner] = useState<GuardianPhase | null>(null)
+  const [questionAt, setQuestionAt] = useState(0)
+  const [now, setNow] = useState(() => Date.now())
   const [message, setMessage] = useState(`${enemyName} apareceu na sua frente! O que você vai fazer?`)
   const [detail, setDetail] = useState<string | null>(null)
   const [effect, setEffect] = useState<Effect | null>(null)
@@ -115,6 +136,10 @@ export default function ChapterBattle({
   const timed = boss && !noTimer
   const remaining = Math.max(0, timeLimit - elapsed)
   const title = config?.title ?? chapterLevels[level - 1].title
+  const phase: GuardianPhase | 0 = minion ? 0 : guardianPhase(enemyHp)
+  // Na fúria cada pergunta tem tempo (a não ser com "sem limite de tempo").
+  const furyTimer = phase === 3 && !noTimer
+  const furyLeft = Math.max(0, FURY_SECONDS - Math.floor((now - questionAt) / 1000))
 
   function sound(name: SoundEffect) {
     playSound(name, soundOn)
@@ -126,16 +151,16 @@ export default function ChapterBattle({
   }
 
   // O relógio lê sempre a versão mais nova de `report` e do limite de tempo.
-  const latest = useRef({ report, timeLimit })
-  useEffect(() => {
-    latest.current = { report, timeLimit }
-  })
+  const latest = useRef({ report, timeLimit, expire: () => {}, furyActive: false, questionAt: 0 })
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       if (finished.current) return
       const seconds = secondsSince(started)
       setElapsed(seconds)
+      setNow(Date.now())
+      const l = latest.current
+      if (l.furyActive && Date.now() - l.questionAt >= FURY_SECONDS * 1000) l.expire()
       if (timed && seconds >= latest.current.timeLimit) {
         finished.current = true
         playSound('defeat', soundOn)
@@ -184,19 +209,22 @@ export default function ChapterBattle({
     setEliminated(useLens ? lensEliminations(q) : [])
     if (useLens) setLens(false)
     setStage('question')
+    setQuestionAt(timestamp())
     setDetail(null)
     setMessage(next.type === 'dodge' ? 'Prepare a esquiva: acerte para escapar do próximo ataque!' : `${move!.name}! Acerte a conta para o golpe funcionar.`)
     sound('select')
   }
 
-  function submit() {
-    if (stage !== 'question' || !question || !action || !answer.trim() || finished.current) return
+  /** `timeUp`: na fúria, o tempo da pergunta acabou e conta como erro. */
+  function submit(timeUp = false) {
+    if (stage !== 'question' || !question || !action || finished.current) return
+    if (!timeUp && !answer.trim()) return
     if (timed && secondsSince(started) >= timeLimit) {
       finished.current = true
       report(false, 'time', timeLimit, playerHp)
       return
     }
-    const good = answerMatches(question, answer)
+    const good = !timeUp && answerMatches(question, answer)
     const nextCombo = good ? combo + 1 : 0
     stats.current.answered += 1
     if (good) stats.current.correct += 1
@@ -209,31 +237,51 @@ export default function ChapterBattle({
     if (action.type === 'attack') {
       const move = MOVES[action.move]
       if (move.id === 'chama') setEnergy(0)
-      if (good) {
-        const damage = moveDamage(level, boss, move.id, nextCombo)
+      if (good && phase === 1 && armor > 0) {
+        // Fase 1: o acerto racha a armadura em vez de tirar vida.
+        const left = Math.max(0, armor - armorBreak(move.id))
+        setArmor(left)
+        if (move.id !== 'chama') setEnergy((value) => Math.min(MAX_ENERGY, value + 1))
+        flash('enemy', left === 0 ? 'QUEBROU!' : 'RACHOU!')
+        sound(left === 0 ? 'combo' : 'correct')
+        setMessage(left === 0 ? `A armadura de ${enemyName} quebrou! Agora seus golpes tiram vida.` : `${move.name} rachou a armadura de ${enemyName}! Falta ${left} ponto de armadura. (O golpe pesado quebra 2.)`)
+      } else if (good) {
+        const multiplier = weaknessMultiplier(move.id, phase >= 2 ? weak : null)
+        const damage = Math.max(1, Math.round(moveDamage(level, boss, move.id, nextCombo, minion) * multiplier))
         const hp = Math.max(0, enemyHp - damage)
         setEnemyHp(hp)
         if (move.id !== 'chama') setEnergy((value) => Math.min(MAX_ENERGY, value + 1))
         flash('enemy', `−${damage}`)
-        sound(nextCombo >= 3 || move.id === 'chama' ? 'combo' : 'correct')
-        setMessage(`${move.name} acertou${nextCombo >= 3 ? ' com um golpe CRÍTICO' : ''}! ${enemyName} perdeu ${damage} de vida.`)
+        sound(nextCombo >= 3 || move.id === 'chama' || multiplier > 1 ? 'combo' : 'correct')
+        const note = multiplier > 1 ? ' Acertou o PONTO FRACO!' : multiplier < 1 ? ` ${enemyName} resistiu: o ponto fraco era outro golpe.` : ''
+        setMessage(`${move.name} acertou${nextCombo >= 3 ? ' com um golpe CRÍTICO' : ''}! ${enemyName} perdeu ${damage} de vida.${note}`)
         if (hp === 0) {
           finished.current = true
           setEndTime(secondsSince(started))
+        } else if (!minion && guardianPhase(hp) > phase) {
+          // Mudou de fase: o guardião ganha uma regra nova.
+          const next = guardianPhase(hp)
+          setBanner(next)
+          if (next === 2 || !weak) setWeak(pickWeakness())
         }
       } else {
-        flash('miss', 'ERROU')
+        flash('miss', timeUp ? 'TEMPO!' : 'ERROU')
         sound('wrong')
-        setMessage(`O golpe errou! ${enemyName} aproveitou a abertura.`)
+        setMessage(timeUp ? `O tempo acabou! Na fúria, ${enemyName} não espera.` : `O golpe errou! ${enemyName} aproveitou a abertura.`)
       }
     } else {
-      flash(good ? 'dodge' : 'miss', good ? 'PRONTO!' : 'ERROU')
+      flash(good ? 'dodge' : 'miss', good ? 'PRONTO!' : timeUp ? 'TEMPO!' : 'ERROU')
       sound(good ? 'correct' : 'wrong')
       if (good) setEnergy((value) => Math.min(MAX_ENERGY, value + 1))
       setMessage(good ? 'Esquiva pronta! O próximo ataque vai passar direto.' : 'A esquiva falhou! Você ficou desprotegido.')
     }
     setStage('result')
   }
+
+  // O relógio (efeito acima) lê sempre a versão mais nova destas funções e valores.
+  useEffect(() => {
+    latest.current = { report, timeLimit, expire: () => submit(true), furyActive: furyTimer && stage === 'question', questionAt }
+  })
 
   function enemyTurn(dodged: boolean, playerWasRight: boolean) {
     stats.current.turns += 1
@@ -249,7 +297,7 @@ export default function ChapterBattle({
       setMessage(`${enemyName} atacou, mas o escudo bloqueou o golpe!`)
       sound('item')
     } else {
-      damage = enemyDamage(boss, playerWasRight, wasCharging)
+      damage = enemyDamage(boss, playerWasRight, wasCharging, phase === 3)
       flash('player', `−${damage}`)
       sound('wrong')
       setMessage(`${enemyName} ${wasCharging ? 'soltou o GOLPE CARREGADO' : 'contra-atacou'}! Você perdeu ${damage} de vida.${playerWasRight && !wasCharging ? ' Seu acerto diminuiu o dano.' : ''}`)
@@ -257,7 +305,10 @@ export default function ChapterBattle({
     const hp = Math.max(0, playerHp - damage)
     setPlayerHp(hp)
     // A cada três turnos o monstro avisa que vai carregar um golpe forte.
-    const willCharge = !wasCharging && stats.current.turns % 3 === 2
+    const every = chargeEvery(phase)
+    const willCharge = !wasCharging && stats.current.turns % every === every - 1
+    // No ponto fraco e na fúria, o ponto fraco muda a cada turno.
+    if (phase >= 2) setWeak((current) => pickWeakness(Math.random, current))
     setCharging(willCharge)
     setDetail(willCharge ? `${enemyName} está concentrando energia! O próximo ataque vai ser forte: que tal esquivar?` : null)
     if (hp === 0) {
@@ -386,7 +437,7 @@ export default function ChapterBattle({
   const showHeroNumber = (stage === 'enemy' || stage === 'over' || stage === 'result') && (effect?.target === 'player' || effect?.target === 'dodge' || effect?.target === 'heal')
 
   return (
-    <main className={`battle-page turn-battle ${bigText ? 'big-text-mode' : ''}`} id="conteudo">
+    <Root className={`battle-page turn-battle ${bigText ? 'big-text-mode' : ''} ${minion ? 'minion-battle' : ''}`} id={embedded ? undefined : 'conteudo'}>
       <div className="battle-breadcrumb">
         <span>
           <Swords size={14} /> BATALHA
@@ -419,8 +470,33 @@ export default function ChapterBattle({
             <b>PV</b>
             <div className="hp-bar" role="meter" aria-label={`Vida de ${enemyName}`} aria-valuemin={0} aria-valuemax={MAX_HP} aria-valuenow={enemyHp}>
               <i className={hpClass(enemyHp)} style={{ width: `${enemyHp}%` }} />
+              {!minion && (
+                <>
+                  <em className="hp-mark" style={{ left: '33%' }} />
+                  <em className="hp-mark" style={{ left: '66%' }} />
+                </>
+              )}
             </div>
           </div>
+          {!minion && (
+            <div className="guardian-status">
+              <span className={`guardian-phase phase-${phase}`}>
+                {phase === 1 ? <ShieldHalf size={12} /> : phase === 2 ? <Target size={12} /> : <Skull size={12} />} FASE {phase}/3 · {phase === 1 ? 'ARMADURA' : phase === 2 ? 'PONTO FRACO' : 'FÚRIA'}
+              </span>
+              {phase === 1 && armor > 0 && (
+                <span className="guardian-armor" aria-label={`Armadura ${armor} de ${GUARDIAN_ARMOR}`}>
+                  {Array.from({ length: GUARDIAN_ARMOR }, (_, i) => (
+                    <Shield key={i} size={13} className={i < armor ? 'on' : 'off'} />
+                  ))}
+                </span>
+              )}
+              {phase >= 2 && weak && (
+                <span className="guardian-weak">
+                  fraco contra: <b>{MOVES[weak].name}</b>
+                </span>
+              )}
+            </div>
+          )}
           {charging && (
             <span className="status-warning">
               <Zap size={12} /> carregando golpe forte
@@ -480,6 +556,24 @@ export default function ChapterBattle({
           </div>
         </div>
         <PixelFire className="scene-fire" />
+        <AnimatePresence>
+          {banner && (
+            <motion.button
+              type="button"
+              key={banner}
+              className={`phase-banner phase-${banner}`}
+              initial={{ scale: 0.4, opacity: 0, rotate: -6 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              exit={{ scale: 1.2, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 16 }}
+              onClick={() => setBanner(null)}
+              onAnimationComplete={() => window.setTimeout(() => setBanner(null), 2600)}
+            >
+              <strong>FASE {banner}: {banner === 2 ? 'PONTO FRACO' : 'FÚRIA'}</strong>
+              <span>{banner === 2 ? `${enemyName} mostra um ponto fraco a cada turno. Use o golpe certo: ele causa muito mais dano, e o outro quase não machuca.` : noTimer ? `${enemyName} ficou furioso: bate mais forte e carrega golpes a cada 2 turnos!` : `${enemyName} ficou furioso: ${FURY_SECONDS} segundos por pergunta, golpes mais fortes e ataque carregado a cada 2 turnos!`}</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </section>
 
       <section className="battle-console">
@@ -522,6 +616,8 @@ export default function ChapterBattle({
                       {id === 'chama' ? <Flame size={16} /> : <Swords size={16} />} {move.name}
                     </span>
                     <small>{locked ? `Energia ${energy}/${MAX_ENERGY}: acerte para carregar` : move.description}</small>
+                    {phase === 1 && armor > 0 && !locked && <em className="move-tag tag-armor">quebra {Math.min(armor, armorBreak(id))} de armadura</em>}
+                    {phase >= 2 && weak && id !== 'chama' && <em className={`move-tag ${id === weak ? 'tag-weak' : 'tag-resist'}`}>{id === weak ? 'PONTO FRACO ×1,6' : 'resiste ×0,6'}</em>}
                     <kbd>{i + 1}</kbd>
                   </button>
                 )
@@ -556,6 +652,15 @@ export default function ChapterBattle({
           )}
 
           {stage === 'question' && question && (
+            <>
+            {furyTimer && (
+              <div className={`fury-timer ${furyLeft <= 5 ? 'urgent' : ''}`} role="timer" aria-label={`Tempo da pergunta: ${furyLeft} segundos`}>
+                <Clock3 size={14} /> {furyLeft}s
+                <span>
+                  <i style={{ width: `${(furyLeft / FURY_SECONDS) * 100}%` }} />
+                </span>
+              </div>
+            )}
             <form
               className="battle-question"
               onSubmit={(event) => {
@@ -601,6 +706,7 @@ export default function ChapterBattle({
                 <span>↵</span>
               </button>
             </form>
+            </>
           )}
 
           {(stage === 'result' || stage === 'enemy' || stage === 'over') && (
@@ -637,6 +743,6 @@ export default function ChapterBattle({
           </section>
         </div>
       )}
-    </main>
+    </Root>
   )
 }

@@ -105,7 +105,10 @@ export function HowToPlay({ onClose }: { onClose: () => void }) {
           <strong>Cumpra as missões:</strong> derrote monstros, ajude os moradores com problemas, conserte a passagem e encontre o guardião.
         </li>
         <li>
-          <strong>Batalha por turnos:</strong> escolha Atacar, Esquivar, Mochila ou Fugir. Cada ação é uma conta: acertando, seu golpe funciona e o contra-ataque fica mais fraco.
+          <strong>Batalha por turnos:</strong> contra os monstros da trilha e contra o guardião, escolha Atacar, Esquivar, Mochila ou Fugir. Cada ação é uma conta: acertando, seu golpe funciona e o contra-ataque fica mais fraco.
+        </li>
+        <li>
+          <strong>O guardião luta em 3 fases:</strong> primeiro tem <b>armadura</b> (os acertos só a racham; o golpe pesado quebra mais), depois mostra um <b>ponto fraco</b> que muda a cada turno (use o golpe certo) e no fim entra em <b>fúria</b>: tempo para cada pergunta e golpes mais fortes.
         </li>
         <li>
           <strong>Ganhe estrelas, moedas e conquistas.</strong> Use as moedas na loja e teste sua velocidade no Desafio Relâmpago.

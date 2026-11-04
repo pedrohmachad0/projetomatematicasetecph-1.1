@@ -463,6 +463,8 @@ export default function Aprender() {
           onPause={() => setMenu('pause')}
           journalRequest={journalRequest}
           paused={menu !== null}
+          noTimer={settings.noTimer}
+          bigText={settings.bigText}
         />
       ) : screen === 'battle' ? (
         <ChapterBattle key={attempt} level={selected} config={battleConfig} heroName={heroName} onExit={() => setScreen(complete ? 'map' : 'explore')} onFinish={finish} items={stats.items} onUsePowerUp={spendPowerUp} soundOn={soundOn} noTimer={settings.noTimer} bigText={settings.bigText} />

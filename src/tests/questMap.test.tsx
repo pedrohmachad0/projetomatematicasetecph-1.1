@@ -27,6 +27,34 @@ function answerEncounter() {
   fireEvent.click(screen.getByRole('button', { name: /Próximo golpe|Voltar ao mapa/ }))
 }
 
+/** Vence a batalha por turnos contra um monstro da trilha (aberta por cima do mapa). */
+function winBattle() {
+  for (let turn = 0; turn < 20 && document.querySelector('.map-battle-layer'); turn++) {
+    const next = screen.queryByRole('button', { name: /Continuar|Ver resultado/ })
+    if (next) {
+      fireEvent.click(next)
+      continue
+    }
+    fireEvent.click(screen.getByRole('button', { name: /Atacar/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Golpe rápido/ }))
+    const [a, b] = document.getElementById('question-expression')!.textContent!.match(/\d+/g)!.map(Number)
+    const answer = String(a + b)
+    const input = screen.queryByRole('textbox')
+    if (input) fireEvent.change(input, { target: { value: answer } })
+    else fireEvent.click(Array.from(document.querySelectorAll<HTMLButtonElement>('.map-battle-layer .answer-option')).find((o) => o.textContent!.slice(1) === answer)!)
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar/ }))
+  }
+}
+
+/** Monstro: batalha por turnos. Morador, baú e ponte: janela de pergunta. */
+function solve() {
+  if (document.querySelector('.map-battle-layer')) winBattle()
+  else {
+    answerEncounter()
+    if (screen.queryByRole('dialog')) answerEncounter()
+  }
+}
+
 /** Clica no personagem (ou na ponte) e espera o herói chegar até ele. */
 function walkTo(x: number, y: number) {
   const target = document.querySelector<HTMLButtonElement>(`.map-object[style*="left: ${x * 30}px"][style*="top: ${y * 30}px"]`)!
@@ -91,8 +119,7 @@ describe('Mapa explorável', () => {
       walkTo(entity.x, entity.y)
       finishTalk()
       expect(screen.getByRole('dialog')).toBeInTheDocument()
-      answerEncounter()
-      if (screen.queryByRole('dialog')) answerEncounter()
+      solve()
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     }
     walkTo(map.gate.x, map.gate.y)
@@ -100,8 +127,7 @@ describe('Mapa explorável', () => {
     answerEncounter()
     for (const entity of map.entities.filter((e) => e.x > RIVER_X && e.type === 'monster')) {
       walkTo(entity.x, entity.y)
-      answerEncounter()
-      if (screen.queryByRole('dialog')) answerEncounter()
+      solve()
     }
     const enter = screen.getByRole('button', { name: /^Guardião$/ })
     fireEvent.click(enter)

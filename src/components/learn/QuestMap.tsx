@@ -8,6 +8,8 @@ import { MAP_HEIGHT, MAP_WIDTH, MISSION_COINS, findPath, generateQuestMap, mapSe
 import { cameraOffset, directionDelta, keyToDirection, type Direction } from '../../logic/movement'
 import { playSound } from '../../logic/sound'
 import EncounterDialog, { type EncounterKind } from './EncounterDialog'
+import ChapterBattle, { type BattleResult } from './ChapterBattle'
+import { topicQuestion } from '../../logic/questTopics'
 import { ChestSprite, GateSprite, HeroSprite, ObstacleSprite, SignSprite, VillagerSprite } from './MapSprites'
 import MapTerrain from './MapTerrain'
 import PixelCreature from './PixelCreature'
@@ -34,6 +36,9 @@ interface Props {
   journalRequest?: number
   /** Enquanto algo cobre o mapa (pausa), o herói não anda. */
   paused?: boolean
+  /** Preferências do jogador para as batalhas contra os monstros da trilha. */
+  noTimer?: boolean
+  bigText?: boolean
 }
 
 type Talk = { speaker: string; portrait: 'villager' | 'guardian'; lines: string[]; then?: () => void }
@@ -48,7 +53,7 @@ const sameCell = (a: Point, b: Point) => a.x === b.x && a.y === b.y
 const cellKey = ({ x, y }: Point) => `${x},${y}`
 const titleCase = (name: string) => `${name.charAt(0)}${name.slice(1).toLowerCase()}`
 
-export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn, replay, onExit, onGuardian, onCoins, heroName = 'aventureiro', textSpeed = 'normal', onPause, journalRequest = 0, paused = false }: Props) {
+export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn, replay, onExit, onGuardian, onCoins, heroName = 'aventureiro', textSpeed = 'normal', onPause, journalRequest = 0, paused = false, noTimer = false, bigText = false }: Props) {
   const boss = phaseNumber === book.phases.length
   const map = useMemo(() => generateQuestMap(mapSeed(bookIndex, phaseNumber), { monsters: boss ? 4 : 3, minionKinds: book.minions.length, villagers: 1 }), [bookIndex, phaseNumber, boss, book.minions.length])
   const saveId = `${book.id}-${phaseNumber}`
@@ -577,33 +582,49 @@ export default function QuestMap({ book, bookIndex, phaseNumber, phase, soundOn,
           </section>
         </div>
       )}
-      {dialog && dialog.kind !== 'sign' && (
+      {dialog && dialog.kind === 'monster' && dialog.entity && (() => {
+        const minion = book.minions[dialog.entity.variant % book.minions.length]
+        const questions = () => Array.from({ length: 8 }, () => topicQuestion(phase.topics, Math.random, false))
+        return (
+          <div className="map-battle-layer" role="dialog" aria-modal="true" aria-label={`Batalha contra ${minion.name}`}>
+            <ChapterBattle
+              key={dialog.entity.id}
+              embedded
+              level={phaseNumber}
+              role="minion"
+              heroName={heroName}
+              soundOn={soundOn}
+              noTimer={noTimer}
+              bigText={bigText}
+              config={{ title: minion.name, bookLabel: `LIVRO ${book.roman}`, boss: false, enemy: minion, questions: questions(), more: questions, role: 'minion' }}
+              onExit={() => {
+                closeDialog(false)
+                say(`Você fugiu de ${minion.name}. Ele continua na trilha.`)
+              }}
+              onFinish={(result: BattleResult) => {
+                closeDialog(result.won)
+                if (!result.won) say(`${minion.name} venceu desta vez. Recupere o fôlego e tente de novo!`)
+              }}
+            />
+          </div>
+        )
+      })()}
+      {dialog && dialog.kind !== 'sign' && dialog.kind !== 'monster' && (
         <EncounterDialog
           kind={dialog.kind}
           theme={book.theme}
           soundOn={soundOn}
           topics={phase.topics}
-          hits={dialog.kind === 'monster' ? (boss ? 3 : 2) : 1}
-          enemy={dialog.kind === 'monster' && dialog.entity ? book.minions[dialog.entity.variant % book.minions.length] : undefined}
+          hits={1}
           villager={dialog.entity?.variant}
-          title={
-            dialog.kind === 'monster' && dialog.entity
-              ? book.minions[dialog.entity.variant % book.minions.length].name
-              : dialog.kind === 'villager'
-                ? villagerName
-                : dialog.kind === 'chest'
-                  ? 'Baú com cadeado'
-                  : book.gate.broken
-          }
-          subtitle={dialog.kind === 'monster' ? 'MONSTRO NA TRILHA' : dialog.kind === 'villager' ? 'PROBLEMA DO LOCAL' : dialog.kind === 'chest' ? 'TESOURO' : 'CAMINHO BLOQUEADO'}
+          title={dialog.kind === 'villager' ? villagerName : dialog.kind === 'chest' ? 'Baú com cadeado' : book.gate.broken}
+          subtitle={dialog.kind === 'villager' ? 'PROBLEMA DO LOCAL' : dialog.kind === 'chest' ? 'TESOURO' : 'CAMINHO BLOQUEADO'}
           intro={
-            dialog.kind === 'monster'
-              ? 'Acerte as contas para espantar o monstro. Cada acerto é um golpe!'
-              : dialog.kind === 'villager'
-                ? 'Preciso de ajuda com uma conta. Você resolve para mim?'
-                : dialog.kind === 'chest'
-                  ? 'O segredo do cadeado é a resposta deste desafio.'
-                  : `Para liberar ${book.gate.article} ${book.gate.name}, resolva o cálculo gravado ${book.gate.article === 'a' ? 'nela' : 'nele'}.`
+            dialog.kind === 'villager'
+              ? 'Preciso de ajuda com uma conta. Você resolve para mim?'
+              : dialog.kind === 'chest'
+                ? 'O segredo do cadeado é a resposta deste desafio.'
+                : `Para liberar ${book.gate.article} ${book.gate.name}, resolva o cálculo gravado ${book.gate.article === 'a' ? 'nela' : 'nele'}.`
           }
           onClose={() => closeDialog(false)}
           onSuccess={() => closeDialog(true)}

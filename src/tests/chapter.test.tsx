@@ -152,35 +152,107 @@ describe('batalha por turnos', () => {
 
   it('golpes certos tiram vida do monstro; o contra-ataque é mais fraco quando você acerta', () => {
     const finish = vi.fn()
-    render(<ChapterBattle level={1} onExit={() => {}} onFinish={finish} />)
+    render(<ChapterBattle level={1} role="minion" onExit={() => {}} onFinish={finish} />)
     attack()
     answerCurrent(true)
     expect(screen.getByText('Resposta certa!')).toBeInTheDocument()
-    expect(enemyHp()).toBe(83)
+    expect(enemyHp()).toBe(66)
     continueTurn()
     expect(playerHp()).toBe(93)
     continueTurn()
     attack()
     answerCurrent(false)
-    expect(enemyHp()).toBe(83)
+    expect(enemyHp()).toBe(66)
     continueTurn()
     expect(playerHp()).toBe(65)
   })
 
-  it('vence com seis golpes rápidos e informa os erros para as estrelas', () => {
+  it('o monstro da trilha cai com três golpes rápidos e informa os erros', () => {
     const finish = vi.fn()
-    render(<ChapterBattle level={1} onExit={() => {}} onFinish={finish} />)
-    for (let i = 0; i < 6; i++) {
+    render(<ChapterBattle level={1} role="minion" onExit={() => {}} onFinish={finish} />)
+    for (let i = 0; i < 3; i++) {
       act(() => vi.advanceTimersByTime(1000))
       attack()
       answerCurrent(true)
       continueTurn()
-      if (i < 5) continueTurn()
+      if (i < 2) continueTurn()
     }
     expect(screen.getByText(/foi derrotado!/)).toBeInTheDocument()
     act(() => vi.advanceTimersByTime(15000))
     continueTurn()
-    expect(finish).toHaveBeenCalledWith(expect.objectContaining({ won: true, correct: 6, answered: 6, mistakes: 0, reason: 'complete', seconds: 6 }))
+    expect(finish).toHaveBeenCalledWith(expect.objectContaining({ won: true, correct: 3, answered: 3, mistakes: 0, reason: 'complete', seconds: 3 }))
+  })
+
+  it('o guardião começa com armadura: os primeiros acertos só a racham', () => {
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} />)
+    expect(screen.getByText(/FASE 1\/3/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Armadura 2 de 2')).toBeInTheDocument()
+    attack()
+    answerCurrent(true)
+    expect(enemyHp()).toBe(100)
+    expect(screen.getByText(/rachou a armadura/)).toBeInTheDocument()
+    continueTurn()
+    continueTurn()
+    attack()
+    answerCurrent(true)
+    expect(enemyHp()).toBe(100)
+    expect(screen.getByText(/armadura de .* quebrou/)).toBeInTheDocument()
+    continueTurn()
+    continueTurn()
+    attack()
+    answerCurrent(true)
+    // Terceiro acerto seguido: golpe crítico (+25%).
+    expect(enemyHp()).toBe(100 - Math.ceil((100 / 6) * 1.25))
+  })
+
+  it('o guardião muda de fase: ponto fraco e depois fúria com tempo por pergunta', () => {
+    vi.spyOn(Math, 'random').mockImplementation(randomSeed(3))
+    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} />)
+    // Quebra a armadura (golpe pesado quebra 2) e tira vida até a fase 2.
+    for (let i = 0; i < 4 && enemyHp() > 66; i++) {
+      attack(/Golpe pesado/)
+      answerCurrent(true)
+      continueTurn()
+      continueTurn()
+    }
+    expect(screen.getByText(/FASE 2\/3/)).toBeInTheDocument()
+    expect(screen.getByText(/fraco contra:/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Atacar/ }))
+    expect(screen.getAllByText(/PONTO FRACO ×1,6|resiste ×0,6/).length).toBe(2)
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ }))
+    // Um erro zera o combo; depois um golpe rápido leva o guardião à fúria sem derrotá-lo.
+    attack()
+    answerCurrent(false)
+    continueTurn()
+    continueTurn()
+    for (let i = 0; i < 4 && enemyHp() > 33; i++) {
+      attack()
+      answerCurrent(true)
+      continueTurn()
+      continueTurn()
+    }
+    expect(enemyHp()).toBeGreaterThan(0)
+    expect(screen.getByText(/FASE 3\/3/)).toBeInTheDocument()
+    attack()
+    expect(screen.getByRole('timer', { name: /Tempo da pergunta/ })).toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(21000))
+    expect(screen.getByText(/O tempo acabou/)).toBeInTheDocument()
+  })
+
+  it('a chama especial só libera com energia cheia e dá dano enorme', () => {
+    render(<ChapterBattle level={1} role="minion" onExit={() => {}} onFinish={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /Atacar/ }))
+    expect(screen.getByRole('button', { name: /Chama especial/ })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ }))
+    for (let i = 0; i < 3; i++) {
+      fireEvent.click(screen.getByRole('button', { name: /Esquivar/ }))
+      answerCurrent(true)
+      continueTurn()
+      continueTurn()
+    }
+    attack(/Chama especial/)
+    answerCurrent(true)
+    expect(enemyHp()).toBe(0)
   })
 
   it('perde quando a vida chega a zero', () => {
@@ -205,22 +277,6 @@ describe('batalha por turnos', () => {
     expect(playerHp()).toBe(100)
     expect(screen.getByText(/você se esquivou/)).toBeInTheDocument()
     expect(screen.getByLabelText('Energia 1 de 3')).toBeInTheDocument()
-  })
-
-  it('a chama especial só libera com energia cheia e dá dano enorme', () => {
-    render(<ChapterBattle level={1} onExit={() => {}} onFinish={() => {}} />)
-    fireEvent.click(screen.getByRole('button', { name: /Atacar/ }))
-    expect(screen.getByRole('button', { name: /Chama especial/ })).toBeDisabled()
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ }))
-    for (let i = 0; i < 3; i++) {
-      fireEvent.click(screen.getByRole('button', { name: /Esquivar/ }))
-      answerCurrent(true)
-      continueTurn()
-      continueTurn()
-    }
-    attack(/Chama especial/)
-    answerCurrent(true)
-    expect(enemyHp()).toBe(100 - Math.ceil((100 / 6) * 3 * 1.25))
   })
 
   it('o monstro avisa antes de um golpe carregado', () => {

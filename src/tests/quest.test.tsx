@@ -210,3 +210,25 @@ describe('MathQuest: equilíbrio da batalha por turnos', () => {
     expect(starsFor(6, battleScore(6, 0, 6), 6)).toBe(3)
   })
 })
+
+describe('sistemas do guardião', () => {
+  it('monstros da trilha caem com 3 golpes e o guardião tem três fases', async () => {
+    const b = await import('../logic/battle')
+    expect(b.quickHitsToWin(false, true)).toBe(3)
+    expect(Math.ceil(100 / b.moveDamage(1, false, 'rapido', 0, true))).toBe(3)
+    expect([b.guardianPhase(100), b.guardianPhase(66), b.guardianPhase(40), b.guardianPhase(33), b.guardianPhase(5)]).toEqual([1, 2, 2, 3, 3])
+  })
+  it('armadura, ponto fraco e fúria', async () => {
+    const b = await import('../logic/battle')
+    expect(b.armorBreak('rapido')).toBe(1)
+    expect(b.armorBreak('pesado')).toBe(2)
+    expect(b.armorBreak('chama')).toBe(b.GUARDIAN_ARMOR)
+    expect(b.weaknessMultiplier('pesado', 'pesado')).toBe(b.WEAK_BONUS)
+    expect(b.weaknessMultiplier('rapido', 'pesado')).toBe(b.RESISTED)
+    expect(b.weaknessMultiplier('chama', 'pesado')).toBe(1)
+    expect(['rapido', 'pesado']).toContain(b.pickWeakness(() => 0.9))
+    expect(b.chargeEvery(3)).toBe(2)
+    expect(b.chargeEvery(1)).toBe(3)
+    expect(b.enemyDamage(false, false, false, true)).toBeGreaterThan(b.enemyDamage(false, false, false))
+  })
+})
